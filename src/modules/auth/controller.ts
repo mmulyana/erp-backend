@@ -8,12 +8,7 @@ dotenv.config()
 export default class AuthController {
   private responseHandler: ApiResponse = new ApiResponse()
 
-  constructor() {
-    this.login = this.login.bind(this)
-    this.register = this.register.bind(this)
-  }
-
-  async login(req: any, res: any, next: any) {
+  login = async (req: any, res: any, next: any) => {
     try {
       const { email, password, name } = req.body
 
@@ -62,7 +57,7 @@ export default class AuthController {
     }
   }
 
-  async register(req: any, res: any, next: any) {
+  register = async (req: any, res: any, next: any) => {
     try {
       const { name, email, password } = req.body
 
@@ -98,6 +93,48 @@ export default class AuthController {
       this.responseHandler.success(res, 'successfully registered')
     } catch (error: any) {
       error.code = 400
+      next(error)
+    }
+  }
+
+  checkName = async (req: any, res: any, next: any) => {
+    try {
+      const { name } = req.body
+      const existingUser = await prisma.user.findUnique({
+        where: {
+          name,
+        },
+      })
+      if (!existingUser) {
+        this.responseHandler.success(res, 'success get user by name', {})
+      }
+
+      this.responseHandler.success(res, 'success get user by namme', {
+        name: existingUser?.name,
+      })
+    } catch (error: any) {
+      error.code = 401
+      next(error)
+    }
+  }
+
+  checkEmail = async (req: any, res: any, next: any) => {
+    try {
+      const { email } = req.body
+      const existingUser = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      })
+      if (!existingUser) {
+        this.responseHandler.success(res, 'success get user by email', {})
+      }
+
+      this.responseHandler.success(res, 'success get user by email', {
+        email: existingUser?.email,
+      })
+    } catch (error: any) {
+      error.code = 401
       next(error)
     }
   }

@@ -1,6 +1,5 @@
 import express, { Express } from 'express'
 import cors from 'cors'
-import { routers } from './routers'
 import { ErrorHandler } from './helper/error-handler'
 import AuthRoutes from './modules/auth/router'
 

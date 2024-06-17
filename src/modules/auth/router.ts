@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import AuthController from './auth.controller'
+import AuthController from './controller'
 import Validation from '../../helper/validation'
-import { AuthSchema } from './auth.schema'
+import { AuthSchema } from './schema'
 
 export default class AuthRoutes {
   public router: Router
@@ -18,5 +18,7 @@ export default class AuthRoutes {
   protected registerRoutes() {
     this.router.post('/login', this.loginSchema.validate, this.controller.login)
     this.router.post('/register', this.registerSchema.validate, this.controller.register)
+    this.router.post('/check/email', this.controller.checkEmail)
+    this.router.post('/check/name', this.controller.checkName)
   }
 }
