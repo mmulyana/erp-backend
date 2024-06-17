@@ -1,5 +1,8 @@
 import express, { Express } from 'express'
 import cors from 'cors'
+import { routers } from './routers'
+import { ErrorHandler } from './helper/error-handler'
+import AuthRoutes from './modules/auth/router'
 
 class Application {
   private app: Express
@@ -10,6 +13,7 @@ class Application {
     this.app = express()
     this.port = Number(process.env.PORT) || 5000
     this.host = process.env.HOST || 'localhost'
+    this.plugin()
     this.routers()
     this.start()
   }
@@ -20,6 +24,20 @@ class Application {
         message: 'hello world',
       })
     })
+
+    this.app.use('/api/v1', new AuthRoutes().router)
+    
+    this.app.use((req, res, next) => {
+      next({ err: 'not found' })
+    })
+
+    this.app.use(ErrorHandler)
+  }
+
+  plugin() {
+    this.app.use(cors())
+    this.app.use(express.urlencoded({ extended: true }))
+    this.app.use(express.json())
   }
 
   start() {
