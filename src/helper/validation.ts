@@ -14,13 +14,15 @@ export default class Validation {
       next()
     } catch (error) {
       if (error instanceof ZodError) {
-        const formattedErrors = error.errors.map((err) => ({
-          path: err.path.join('.'),
-          message: err.message,
-        }))
+        const formattedErrors = error.errors.reduce((acc, err) => {
+          const path = err.path.join('.')
+          acc[path] = { message: err.message }
+          return acc
+        }, {} as Record<string, { message: string }>)
+
         res.status(400).json({ errors: formattedErrors })
       } else {
-        console.log(error)
+        console.error(error)
         next(error)
       }
     }
