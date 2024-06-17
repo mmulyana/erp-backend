@@ -3,6 +3,8 @@ import cors from 'cors'
 import { ErrorHandler } from './helper/error-handler'
 import AuthRoutes from './modules/auth/router'
 import RolesRoutes from './modules/roles/router'
+import PermissionRoutes from './modules/permission/router'
+import RolesPermissionRoutes from './modules/roles-permission/router'
 
 class Application {
   private app: Express
@@ -29,6 +31,8 @@ class Application {
 
     v1.use('/auth', new AuthRoutes().router)
     v1.use('/roles', new RolesRoutes().router)
+    v1.use('/permission', new PermissionRoutes().router)
+    v1.use('/rolePermission', new RolesPermissionRoutes().router)
 
     this.app.use('/api/v1', v1)
 
