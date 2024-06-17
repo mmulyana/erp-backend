@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../helper/api-response'
 import prisma from '../../../lib/prisma'
 import { Prisma } from '@prisma/client'
+import extractPermission from '../../utils/extract-permission'
 
 export default class RoleController {
   private response: ApiResponse = new ApiResponse()
@@ -58,9 +59,29 @@ export default class RoleController {
         orderBy: {
           name: 'asc',
         },
+        select: {
+          name: true,
+          id: true,
+          permissions: {
+            select: {
+              enabled: true,
+              permission: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       })
 
-      return this.response.success(res, 'success get roles', roles)
+      const payload = roles.map((role) => ({
+        id: role.id,
+        name: role.name,
+        features: extractPermission(role.permissions),
+      }))
+
+      return this.response.success(res, 'success get roles', payload)
     } catch (error) {
       next(error)
     }
