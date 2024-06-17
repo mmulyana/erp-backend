@@ -2,6 +2,7 @@ import express, { Express } from 'express'
 import cors from 'cors'
 import { ErrorHandler } from './helper/error-handler'
 import AuthRoutes from './modules/auth/router'
+import RolesRoutes from './modules/roles/router'
 
 class Application {
   private app: Express
@@ -24,8 +25,13 @@ class Application {
       })
     })
 
-    this.app.use('/api/v1', new AuthRoutes().router)
-    
+    let v1 = express.Router()
+
+    v1.use('/auth', new AuthRoutes().router)
+    v1.use('/roles', new RolesRoutes().router)
+
+    this.app.use('/api/v1', v1)
+
     this.app.use((req, res, next) => {
       next({ err: 'not found' })
     })

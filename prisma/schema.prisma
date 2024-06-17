@@ -20,6 +20,8 @@ model User {
   password   String
   created_at DateTime @default(now()) @db.Date()
   updated_at DateTime @default(now()) @db.Date()
+  role       Roles?   @relation(fields: [rolesId], references: [id])
+  rolesId    Int?
 
   @@map("users")
 }
@@ -28,6 +30,7 @@ model Roles {
   id          Int               @id @default(autoincrement())
   name        String
   permissions RolesPermission[]
+  User        User[]
 
   @@map("roles")
 }
