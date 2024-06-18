@@ -78,7 +78,7 @@ export default class RoleController {
       const payload = roles.map((role) => ({
         id: role.id,
         name: role.name,
-        features: extractPermission(role.permissions),
+        permissions: extractPermission(role.permissions),
       }))
 
       return this.response.success(res, 'success get roles', payload)

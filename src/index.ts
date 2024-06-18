@@ -5,6 +5,7 @@ import AuthRoutes from './modules/auth/router'
 import RolesRoutes from './modules/roles/router'
 import PermissionRoutes from './modules/permission/router'
 import RolesPermissionRoutes from './modules/roles-permission/router'
+import AccountRouter from './modules/account/router'
 
 class Application {
   private app: Express
@@ -33,6 +34,7 @@ class Application {
     v1.use('/roles', new RolesRoutes().router)
     v1.use('/permission', new PermissionRoutes().router)
     v1.use('/rolePermission', new RolesPermissionRoutes().router)
+    v1.use('/account', new AccountRouter().router)
 
     this.app.use('/api/v1', v1)
 

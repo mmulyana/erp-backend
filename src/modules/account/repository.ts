@@ -1,0 +1,176 @@
+import { genSalt, hash } from 'bcryptjs'
+import prisma from '../../../lib/prisma'
+import extractPermission from '../../utils/extract-permission'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+
+export interface Payload {
+  name: string
+  email: string
+  password?: string
+  rolesId: number
+}
+
+interface Query {
+  data: {
+    name: string
+    email: string
+    rolesId: number
+    password?: string
+  }
+  where: {
+    id: number
+  }
+}
+
+export default class AccountRepository {
+  create = async (payload: Payload) => {
+    try {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            {
+              name: payload.name,
+            },
+            {
+              email: payload.email,
+            },
+          ],
+        },
+      })
+      if (existingUser) {
+        throw new Error('user already registered')
+      }
+
+      const salt = await genSalt()
+      const password = await hash(payload.password || 'password', salt)
+      const query = {
+        data: {
+          ...payload,
+          password,
+        },
+      }
+      const user = await prisma.user.create(query)
+      return { user }
+    } catch (error: any) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2002' &&
+        error.meta?.target === 'users_name_key'
+      ) {
+        console.error('A user with this name or email already exists')
+      } else {
+        throw error
+      }
+    }
+  }
+
+  read = async (id: number) => {
+    try {
+      const data = await prisma.user.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          role: {
+            select: {
+              name: true,
+              permissions: {
+                select: {
+                  enabled: true,
+                  permission: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+
+      const user = {
+        name: data?.name,
+        email: data?.email,
+        roles: {
+          ...data?.role,
+          permissions: extractPermission(data?.role?.permissions || []),
+        },
+      }
+      return { user }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  update = async (id: number, payload: Payload) => {
+    try {
+      const query: Query = {
+        data: {
+          name: payload.name,
+          email: payload.email,
+          rolesId: payload.rolesId,
+        },
+        where: {
+          id,
+        },
+      }
+      if (!!payload.password) {
+        query.data.password = payload.password
+      }
+      const data = await prisma.user.update(query)
+      let user: any = data
+      delete user.password
+      return { user }
+    } catch (error) {
+      console.log(error)
+      return error
+    }
+  }
+
+  delete = async (id: number) => {
+    try {
+      await prisma.user.delete({
+        where: { id },
+      })
+    } catch (error) {
+      return error
+    }
+  }
+
+  readAll = async () => {
+    try {
+      const data = await prisma.user.findMany({
+        include: {
+          role: {
+            select: {
+              name: true,
+              permissions: {
+                select: {
+                  enabled: true,
+                  permission: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+      const users = data.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        roles: {
+          name: user.role?.name,
+          permissions: extractPermission(user.role?.permissions || []),
+        },
+      }))
+      return { users }
+    } catch (error) {
+      throw error
+    }
+  }
+}
