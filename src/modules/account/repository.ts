@@ -16,6 +16,8 @@ interface Query {
     email: string
     rolesId: number
     password?: string
+    created_at?: string
+    updated_at?: string
   }
   where: {
     id: number
@@ -105,11 +107,13 @@ export default class AccountRepository {
 
   update = async (id: number, payload: Payload) => {
     try {
+      const updated_at = new Date().toISOString()
       const query: Query = {
         data: {
           name: payload.name,
           email: payload.email,
           rolesId: payload.rolesId,
+          updated_at,
         },
         where: {
           id,

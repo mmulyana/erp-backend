@@ -1,9 +1,13 @@
 import { Router } from 'express'
 import AccountController from './controller'
+import Validation from '../../helper/validation'
+import { AccountSchema } from './schema'
 
 export default class AccountRouter {
   public router: Router
   private controller: AccountController = new AccountController()
+  private createValidation: Validation = new Validation(AccountSchema.create)
+  private updateValidation: Validation = new Validation(AccountSchema.update)
 
   constructor() {
     this.router = Router()
@@ -13,8 +17,8 @@ export default class AccountRouter {
   protected register() {
     this.router.get('/', this.controller.getAccounts)
     this.router.get('/:id', this.controller.getAccount)
-    this.router.patch('/:id', this.controller.updateAccount)
-    this.router.post('/', this.controller.createAccount)
     this.router.delete('/:id', this.controller.deleteAccount)
+    this.router.post('/', this.createValidation.validate, this.controller.createAccount)
+    this.router.patch('/:id', this.updateValidation.validate, this.controller.updateAccount)
   }
 }
