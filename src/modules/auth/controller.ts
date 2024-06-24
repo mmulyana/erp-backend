@@ -106,11 +106,13 @@ export default class AuthController {
         },
       })
       if (!existingUser) {
-        this.responseHandler.success(res, 'success get user by name', {})
+        this.responseHandler.success(res, 'success get user by name', {
+          isAvailable: true,
+        })
       }
 
       this.responseHandler.success(res, 'success get user by namme', {
-        name: existingUser?.name,
+        isAvailable: false,
       })
     } catch (error: any) {
       error.code = 401
@@ -127,11 +129,13 @@ export default class AuthController {
         },
       })
       if (!existingUser) {
-        this.responseHandler.success(res, 'success get user by email', {})
+        this.responseHandler.success(res, 'success get user by email', {
+          isAvailable: true,
+        })
       }
 
       this.responseHandler.success(res, 'success get user by email', {
-        email: existingUser?.email,
+        isAvailable: false,
       })
     } catch (error: any) {
       error.code = 401

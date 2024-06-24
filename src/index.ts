@@ -6,11 +6,13 @@ import RolesRoutes from './modules/roles/router'
 import PermissionRoutes from './modules/permission/router'
 import RolesPermissionRoutes from './modules/roles-permission/router'
 import AccountRouter from './modules/account/router'
+import { AuthMiddleware } from './middleware/auth-middleware'
 
 class Application {
   private app: Express
   private port: number
   private host: string
+  private authMiddleware: AuthMiddleware = new AuthMiddleware()
 
   constructor() {
     this.app = express()
@@ -31,10 +33,10 @@ class Application {
     let v1 = express.Router()
 
     v1.use('/auth', new AuthRoutes().router)
-    v1.use('/roles', new RolesRoutes().router)
-    v1.use('/permission', new PermissionRoutes().router)
-    v1.use('/rolePermission', new RolesPermissionRoutes().router)
-    v1.use('/account', new AccountRouter().router)
+    v1.use('/roles', this.authMiddleware.isAuthenticated, new RolesRoutes().router)
+    v1.use('/permission', this.authMiddleware.isAuthenticated, new PermissionRoutes().router)
+    v1.use('/rolePermission', this.authMiddleware.isAuthenticated, new RolesPermissionRoutes().router)
+    v1.use('/account', this.authMiddleware.isAuthenticated, new AccountRouter().router)
 
     this.app.use('/api/v1', v1)
 
