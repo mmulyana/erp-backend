@@ -3,6 +3,7 @@ import ApiResponse from '../../helper/api-response'
 import prisma from '../../../lib/prisma'
 import { Prisma } from '@prisma/client'
 import extractPermission from '../../utils/extract-permission'
+import { CustomRequest } from '../../utils/types/common'
 
 export default class RoleController {
   private response: ApiResponse = new ApiResponse()
@@ -53,7 +54,7 @@ export default class RoleController {
     }
   }
 
-  read = async (req: Request, res: Response, next: NextFunction) => {
+  read = async (req: CustomRequest, res: Response, next: NextFunction) => {
     try {
       const roles = await prisma.roles.findMany({
         orderBy: {
@@ -81,7 +82,7 @@ export default class RoleController {
         permissions: extractPermission(role.permissions),
       }))
 
-      return this.response.success(res, 'success get roles', payload)
+      return this.response.success(res, 'success get roles', { roles: payload })
     } catch (error) {
       next(error)
     }
