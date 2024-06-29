@@ -50,6 +50,16 @@ model Permission {
   id               Int               @id @default(autoincrement())
   name             String
   roles_permission RolesPermission[]
+  groupId          Int
+  group            PermissionGroup   @relation(fields: [groupId], references: [id])
 
   @@map("permissions")
+}
+
+model PermissionGroup {
+  id         Int          @id @unique @default(autoincrement())
+  name       String
+  permission Permission[]
+
+  @@map("permission_group")
 }
