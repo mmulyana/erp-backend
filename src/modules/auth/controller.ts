@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import ApiResponse from '../../helper/api-response'
 import { compare, genSalt, hash } from 'bcryptjs'
+import { MESSAGE_SUCCESS } from '../../utils/constant/success'
 dotenv.config()
 
 export default class AuthController {
@@ -50,7 +51,7 @@ export default class AuthController {
         token,
       }
 
-      return this.responseHandler.success(res, 'login successfully', payload)
+      return this.responseHandler.success(res, MESSAGE_SUCCESS.LOGIN, payload)
     } catch (error: any) {
       error.code = 400
       next(error)
@@ -90,7 +91,7 @@ export default class AuthController {
 
       await prisma.user.create(payload)
 
-      this.responseHandler.success(res, 'successfully registered')
+      this.responseHandler.success(res, MESSAGE_SUCCESS.REGISTER)
     } catch (error: any) {
       error.code = 400
       next(error)
