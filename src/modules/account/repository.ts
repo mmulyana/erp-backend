@@ -2,6 +2,8 @@ import { genSalt, hash } from 'bcryptjs'
 import prisma from '../../../lib/prisma'
 import extractPermission from '../../utils/extract-permission'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+import { Prisma } from '@prisma/client'
+import { MESSAGE } from '../../utils/constant/error'
 
 export interface Payload {
   name: string
@@ -75,6 +77,7 @@ export default class AccountRepository {
         include: {
           role: {
             select: {
+              id: true,
               name: true,
               permissions: {
                 select: {
@@ -105,6 +108,26 @@ export default class AccountRepository {
     }
   }
 
+  readExisting = async (email: string, name: string) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: email,
+          name: name,
+        },
+      })
+      if (user?.email == email && user.name == name) {
+        return
+      }
+
+      if (user) {
+        throw new Error(MESSAGE.ACCOUNT_ALREADY_USED)
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
   update = async (id: number, payload: Payload) => {
     try {
       const updated_at = new Date().toISOString()
@@ -127,8 +150,12 @@ export default class AccountRepository {
       delete user.password
       return { user }
     } catch (error) {
-      console.log(error)
-      return error
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new Error('A user with this email already exists.')
+        }
+      }
+      throw new Error('Failed to update user')
     }
   }
 

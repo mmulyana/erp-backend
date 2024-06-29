@@ -30,6 +30,9 @@ export default class AccountController {
     try {
       const { id } = req.params
       const { name, email, password, rolesId } = req.body
+      
+      await this.repository.readExisting(email, name)
+      
       const data = await this.repository.update(Number(id), {
         email,
         name,
