@@ -7,6 +7,7 @@ import PermissionRoutes from './modules/permission/router'
 import RolesPermissionRoutes from './modules/roles-permission/router'
 import AccountRouter from './modules/account/router'
 import { AuthMiddleware } from './middleware/auth-middleware'
+import PermissionGroupRoutes from './modules/permission-group/router'
 
 class Application {
   private app: Express
@@ -37,6 +38,7 @@ class Application {
     v1.use('/permission', this.authMiddleware.isAuthenticated, new PermissionRoutes().router)
     v1.use('/rolePermission', this.authMiddleware.isAuthenticated, new RolesPermissionRoutes().router)
     v1.use('/account', this.authMiddleware.isAuthenticated, new AccountRouter().router)
+    v1.use('/permission-group', this.authMiddleware.isAuthenticated, new PermissionGroupRoutes().router)
 
     this.app.use('/api/v1', v1)
 
