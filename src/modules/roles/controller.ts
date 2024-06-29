@@ -1,28 +1,27 @@
 import { NextFunction, Request, Response } from 'express'
+import { CustomRequest } from '../../utils/types/common'
 import ApiResponse from '../../helper/api-response'
 import prisma from '../../../lib/prisma'
+import RolesRepository from './repository'
 import { Prisma } from '@prisma/client'
-import extractPermission from '../../utils/extract-permission'
-import { CustomRequest } from '../../utils/types/common'
 
 export default class RoleController {
   private response: ApiResponse = new ApiResponse()
+  private repository: RolesRepository = new RolesRepository()
 
-  create = async (req: Request, res: Response, next: NextFunction) => {
+  createRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name } = req.body
-      await prisma.roles.create({
-        data: {
-          name,
-        },
-      })
+      const { name, permissionIds } = req.body
+
+      await this.repository.create(name, permissionIds || [])
+      
       return this.response.success(res, 'succes create roles')
     } catch (error) {
       next(error)
     }
   }
 
-  update = async (req: Request, res: Response, next: NextFunction) => {
+  updateRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name } = req.body
       const { id } = req.params
@@ -40,7 +39,7 @@ export default class RoleController {
     }
   }
 
-  delete = async (req: Request, res: Response, next: NextFunction) => {
+  deleteRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
       await prisma.roles.delete({
@@ -54,35 +53,20 @@ export default class RoleController {
     }
   }
 
-  read = async (req: CustomRequest, res: Response, next: NextFunction) => {
+  readRole = async (req: CustomRequest, res: Response, next: NextFunction) => {
     try {
-      const roles = await prisma.roles.findMany({
-        orderBy: {
-          name: 'asc',
-        },
-        select: {
-          name: true,
-          id: true,
-          permissions: {
-            select: {
-              enabled: true,
-              permission: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      })
+      const { id } = req.params
+      const data = await this.repository.read(Number(id))
+      return this.response.success(res, 'success read role', data)
+    } catch (error) {
+      next(error)
+    }
+  }
 
-      const payload = roles.map((role) => ({
-        id: role.id,
-        name: role.name,
-        permissions: extractPermission(role.permissions),
-      }))
-
-      return this.response.success(res, 'success get roles', { roles: payload })
+  readRoles = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    try {
+      const data = await this.repository.readAll()
+      return this.response.success(res, 'success get roles', data)
     } catch (error) {
       next(error)
     }
