@@ -20,10 +20,11 @@ export default class RolesRoutes {
   }
 
   protected register() {
-    this.router.get('/', this.controller.read)
-    this.router.post('/', this.createSchema.validate, this.controller.create)
-    this.router.patch('/:id', this.updateSchema.validate, this.controller.update)
-    this.router.delete('/:id', this.controller.delete)
+    this.router.get('/', this.controller.readRoles)
+    this.router.get('/:id', this.controller.readRole)
+    this.router.post('/', this.createSchema.validate, this.controller.createRole)
+    this.router.patch('/:id', this.updateSchema.validate, this.controller.updateRole)
+    this.router.delete('/:id', this.controller.deleteRole)
 
     this.router.post('/user/add', this.addSchema.validate, this.controller.add)
     this.router.post('/user/change', this.changeSchema.validate, this.controller.change)
