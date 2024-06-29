@@ -7,10 +7,11 @@ export default class PermissionController {
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name } = req.body
+      const { name, groupId } = req.body
       await prisma.permission.create({
         data: {
           name,
+          groupId,
         },
       })
       return this.response.success(res, 'success create permission')
