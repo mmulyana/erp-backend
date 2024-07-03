@@ -57,9 +57,10 @@ model Permission {
 }
 
 model PermissionGroup {
-  id         Int          @id @unique @default(autoincrement())
-  name       String
-  permission Permission[]
+  id          Int          @id @unique @default(autoincrement())
+  name        String
+  description String?
+  permissions Permission[]
 
   @@map("permission_group")
 }
