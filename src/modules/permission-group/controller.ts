@@ -37,8 +37,13 @@ export default class PermissionGroupController {
     next: NextFunction
   ) => {
     try {
-      const { name, permissionNames } = req.body
-      await this.repository.create(name, permissionNames || [])
+      const { name, description, permissionNames } = req.body
+      const payload = {
+        name,
+        permissionNames: permissionNames || [],
+        description: description || '',
+      }
+      await this.repository.create(payload)
       return this.response.success(res, 'success create group permission')
     } catch (error) {
       next(error)
@@ -51,9 +56,14 @@ export default class PermissionGroupController {
     next: NextFunction
   ) => {
     try {
-      const { name } = req.body
+      const { name, description, permissionNames } = req.body
       const { id } = req.params
-      await this.repository.update(name, Number(id))
+      const payload = {
+        name,
+        permissionNames: permissionNames || [],
+        description: description || '',
+      }
+      await this.repository.update(payload, Number(id))
       return this.response.success(res, 'success update group')
     } catch (error) {
       next(error)
