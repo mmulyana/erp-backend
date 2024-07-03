@@ -17,9 +17,10 @@ export default class RolesPermissionRoutes {
   }
 
   register() {
-    this.router.get('/:id', this.controller.read)
-    this.router.post('/', this.createSchema.validate, this.controller.create)
-    this.router.patch('/:id', this.updateSchema.validate, this.controller.update)
-    this.router.delete('/:id', this.controller.delete)
+    this.router.get('/:id', this.controller.readHandler)
+    this.router.get('/', this.controller.readAllHandler)
+    this.router.post('/', this.createSchema.validate, this.controller.createHandler)
+    this.router.patch('/:id', this.updateSchema.validate, this.controller.updateHandler)
+    this.router.delete('/:id', this.controller.deleteHandler)
   }
 }
