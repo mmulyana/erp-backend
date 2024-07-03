@@ -1,6 +1,12 @@
 import db from '../../lib/db'
 import { MESSAGE } from '../../utils/constant/error'
 
+type createPayload = {
+  name: string
+  permissionNames: string[]
+  description?: string
+}
+
 export default class PermissionGroupRepository {
   readAll = async () => {
     try {
@@ -8,8 +14,10 @@ export default class PermissionGroupRepository {
         select: {
           id: true,
           name: true,
-          permission: {
+          description: true,
+          permissions: {
             select: {
+              id: true,
               name: true,
             },
           },
@@ -28,8 +36,10 @@ export default class PermissionGroupRepository {
         select: {
           id: true,
           name: true,
-          permission: {
+          description: true,
+          permissions: {
             select: {
+              id: true,
               name: true,
             },
           },
@@ -45,39 +55,36 @@ export default class PermissionGroupRepository {
     }
   }
 
-  create = async (name: string, permissionNames: string[]) => {
+  create = async (payload: createPayload) => {
     try {
-      await this.findExisting(name)
+      await this.findExisting(payload.name)
 
       const group = await db.permissionGroup.create({
         data: {
-          name,
+          name: payload.name,
+          description: payload.description,
         },
       })
 
-      if (permissionNames && permissionNames.length > 0) {
-        await db.permission.createMany({
-          data: permissionNames.map((permission) => ({
-            name: permission,
-            groupId: group.id,
-          })),
-        })
-      }
+      await this.updatePermissions(payload.permissionNames, group.id)
     } catch (error) {
       throw error
     }
   }
 
-  update = async (name: string, id: number) => {
+  update = async (payload: createPayload, id: number) => {
     try {
       await db.permissionGroup.update({
         data: {
-          name,
+          name: payload.name,
+          description: payload.description,
         },
         where: {
           id,
         },
       })
+
+      await this.updatePermissions(payload.permissionNames, id)
     } catch (error) {
       throw error
     }
@@ -117,6 +124,23 @@ export default class PermissionGroupRepository {
         where: {
           id,
         },
+      })
+    } catch (error) {
+      throw error
+    }
+  }
+
+  updatePermissions = async (permissionNames: string[], id: number) => {
+    try {
+      if (!permissionNames || !id) {
+        throw new Error('permissions required or id required')
+      }
+
+      await db.permission.createMany({
+        data: permissionNames.map((permission) => ({
+          name: permission,
+          groupId: id,
+        })),
       })
     } catch (error) {
       throw error
