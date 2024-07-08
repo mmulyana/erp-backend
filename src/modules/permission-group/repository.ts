@@ -1,9 +1,21 @@
 import db from '../../lib/db'
 import { MESSAGE } from '../../utils/constant/error'
 
+type Permission = {
+  id: number
+  name: string
+}
+
 type createPayload = {
   name: string
   permissionNames: string[]
+  description?: string
+}
+
+type updatePayload = {
+  name: string
+  permissionNames: Permission[]
+  newPermissionNames: string[]
   description?: string
 }
 
@@ -66,13 +78,13 @@ export default class PermissionGroupRepository {
         },
       })
 
-      await this.updatePermissions(payload.permissionNames, group.id)
+      await this.createPermissions(payload.permissionNames, group.id)
     } catch (error) {
       throw error
     }
   }
 
-  update = async (payload: createPayload, id: number) => {
+  update = async (payload: updatePayload, id: number) => {
     try {
       await db.permissionGroup.update({
         data: {
@@ -84,7 +96,13 @@ export default class PermissionGroupRepository {
         },
       })
 
-      await this.updatePermissions(payload.permissionNames, id)
+      if (payload.permissionNames.length > 0) {
+        await this.updatePermissions(payload.permissionNames)
+      }
+
+      if(payload.newPermissionNames.length > 0) {
+        await this.createPermissions(payload.newPermissionNames, id)
+      }
     } catch (error) {
       throw error
     }
@@ -130,7 +148,7 @@ export default class PermissionGroupRepository {
     }
   }
 
-  updatePermissions = async (permissionNames: string[], id: number) => {
+  createPermissions = async (permissionNames: string[], id: number) => {
     try {
       if (!permissionNames || !id) {
         throw new Error('permissions required or id required')
@@ -141,6 +159,27 @@ export default class PermissionGroupRepository {
           name: permission,
           groupId: id,
         })),
+      })
+    } catch (error) {
+      throw error
+    }
+  }
+
+  updatePermissions = async (permissionNames: Permission[]) => {
+    try {
+      if (!permissionNames) {
+        throw new Error('permissions required')
+      }
+
+      permissionNames.forEach(async (permision) => {
+        await db.permission.update({
+          data: {
+            name: permision.name,
+          },
+          where: {
+            id: permision.id,
+          },
+        })
       })
     } catch (error) {
       throw error

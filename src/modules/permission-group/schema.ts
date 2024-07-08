@@ -9,7 +9,14 @@ const permissionGroupSchema = {
   update: z.object({
     name: z.string(),
     description: z.string().optional(),
-    permissionNames: z.string().array().optional(),
+    permissionNames: z
+      .object({
+        id: z.number(),
+        name: z.string(),
+      })
+      .array()
+      .optional(),
+    newPermissionNames: z.string().array().optional(),
   }),
 }
 

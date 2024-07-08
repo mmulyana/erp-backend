@@ -56,12 +56,14 @@ export default class PermissionGroupController {
     next: NextFunction
   ) => {
     try {
-      const { name, description, permissionNames } = req.body
+      const { name, description, permissionNames, newPermissionNames } =
+        req.body
       const { id } = req.params
       const payload = {
         name,
         permissionNames: permissionNames || [],
         description: description || '',
+        newPermissionNames: newPermissionNames || [],
       }
       await this.repository.update(payload, Number(id))
       return this.response.success(res, 'success update group')
