@@ -19,5 +19,6 @@ export default class PermissionRoutes {
     this.router.patch('/:id', this.updateSchema.validate, this.controller.update)
     this.router.delete('/:id', this.controller.delete)
     this.router.get('/', this.controller.read)
+    this.router.get('/check/:id', this.controller.checkHandler)
   }
 }
