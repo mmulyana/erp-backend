@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../helper/api-response'
 import prisma from '../../../lib/prisma'
+import PermissionRepository from './repository'
 
 export default class PermissionController {
   private response: ApiResponse = new ApiResponse()
+  private repository: PermissionRepository = new PermissionRepository()
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -66,5 +68,13 @@ export default class PermissionController {
     } catch (error) {
       next(error)
     }
+  }
+
+  checkHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.check(Number(id))
+      return this.response.success(res, 'success check count permission', data)
+    } catch (error) {}
   }
 }
