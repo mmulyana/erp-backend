@@ -45,12 +45,7 @@ export default class PermissionController {
   delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await prisma.permission.delete({
-        where: {
-          id: Number(id),
-        },
-      })
-
+      await this.repository.delete(Number(id))
       return this.response.success(res, 'success delete permission')
     } catch (error) {
       next(error)
