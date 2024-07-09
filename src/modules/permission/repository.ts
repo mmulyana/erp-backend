@@ -8,9 +8,27 @@ type CheckResponse = {
 
 interface IPermission {
   check(id: number): Promise<CheckResponse>
+  delete(id: number): Promise<void>
 }
 
 export default class PermissionRepository implements IPermission {
+  delete = async (id: number): Promise<void> => {
+    try {
+      await db.rolesPermission.deleteMany({
+        where: {
+          permissionId: id,
+        },
+      })
+
+      await db.permission.deleteMany({
+        where: {
+          id,
+        },
+      })
+    } catch (error) {
+      throw error
+    }
+  }
   check = async (id: number): Promise<CheckResponse> => {
     try {
       const rolePermissiondata = await db.rolesPermission.findMany({
