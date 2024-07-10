@@ -23,16 +23,9 @@ export default class RoleController {
 
   updateRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name } = req.body
+      const { name, permissionIds } = req.body
       const { id } = req.params
-      await prisma.roles.update({
-        data: {
-          name,
-        },
-        where: {
-          id: Number(id),
-        },
-      })
+      this.repository.update(Number(id), { name, permissionIds})
       return this.response.success(res, 'succes update roles')
     } catch (error) {
       next(error)
