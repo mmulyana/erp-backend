@@ -4,6 +4,7 @@ import extractPermission from '../../utils/extract-permission'
 
 type Payload = {
   name: string
+  permissionIds: number[]
 }
 
 export default class RolesRepository {
@@ -40,23 +41,21 @@ export default class RolesRepository {
 
   read = async (id: number) => {
     try {
-      const data = await prisma.user.findUnique({
+      const data = await prisma.roles.findUnique({
         where: {
           id,
         },
-        include: {
-          role: {
+        select: {
+          name: true,
+          id: true,
+          permissions: {
             select: {
               id: true,
-              name: true,
-              permissions: {
+              enabled: true,
+              permission: {
                 select: {
-                  enabled: true,
-                  permission: {
-                    select: {
-                      name: true,
-                    },
-                  },
+                  id: true,
+                  name: true,
                 },
               },
             },
@@ -65,8 +64,11 @@ export default class RolesRepository {
       })
 
       const role = {
-        ...data?.role,
-        permissions: extractPermission(data?.role?.permissions || []),
+        ...data,
+        permissions: data?.permissions
+          ? extractPermission(data?.permissions)
+          : [],
+        permissionIds: data?.permissions.map((d) => d.permission.id),
       }
       return { role }
     } catch (error) {
@@ -74,7 +76,26 @@ export default class RolesRepository {
     }
   }
 
-  update = async (id: number, payload: Payload) => {}
+  update = async (id: number, payload: Payload) => {
+    const permissionIds = await db.rolesPermission.findMany({
+      where: {
+        rolesId: id,
+      },
+      select: {
+        permission: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    })
+
+    const existingPermission = permissionIds.map(
+      (permission) => permission.permission.id
+    )
+    console.log('existing', existingPermission)
+    console.log('new permission', payload.permissionIds)
+  }
 
   delete = async (id: number) => {}
 
