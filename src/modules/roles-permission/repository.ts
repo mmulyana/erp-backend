@@ -3,7 +3,7 @@ import db from '../../lib/db'
 
 type Payload = {
   rolesId: number
-  permissionId: number
+  permissionId: number[]
   enabled: boolean
 }
 
@@ -18,10 +18,12 @@ interface IRolePermission {
 export default class RolePermissionRepository implements IRolePermission {
   create = async (payload: Payload) => {
     try {
-      await db.rolesPermission.create({
-        data: {
-          ...payload,
-        },
+      await db.rolesPermission.createMany({
+        data: payload.permissionId.map((permission) => ({
+          permissionId: permission,
+          rolesId: payload.rolesId,
+          enabled: true,
+        })),
       })
     } catch (error) {
       throw error
@@ -30,13 +32,18 @@ export default class RolePermissionRepository implements IRolePermission {
 
   update = async (payload: Payload, id: number) => {
     try {
-      await db.rolesPermission.update({
-        data: {
-          ...payload,
-        },
+      await db.rolesPermission.deleteMany({
         where: {
-          id,
-        },
+          rolesId: payload.rolesId
+        }
+      })
+
+      await db.rolesPermission.createMany({
+        data: payload.permissionId.map((permission) => ({
+          permissionId: permission,
+          rolesId: payload.rolesId,
+          enabled: true,
+        })),
       })
     } catch (error) {
       throw error
