@@ -2,7 +2,6 @@ import db from '../../lib/db'
 
 type CheckResponse = {
   count_role: number
-  count_account: number
   roleNames: string[]
 }
 
@@ -14,7 +13,7 @@ interface IPermission {
 export default class PermissionRepository implements IPermission {
   delete = async (id: number): Promise<void> => {
     try {
-      await db.rolesPermission.deleteMany({
+      await db.rolePermission.deleteMany({
         where: {
           permissionId: id,
         },
@@ -31,9 +30,9 @@ export default class PermissionRepository implements IPermission {
   }
   check = async (id: number): Promise<CheckResponse> => {
     try {
-      const rolePermissiondata = await db.rolesPermission.findMany({
+      const rolePermissiondata = await db.rolePermission.findMany({
         include: {
-          roles: {
+          role: {
             select: {
               id: true,
               name: true,
@@ -44,16 +43,9 @@ export default class PermissionRepository implements IPermission {
           permissionId: id,
         },
       })
-      const roles = rolePermissiondata.map((role) => role.roles.name)
-
-      const accounts = await db.user.findMany({
-        where: {
-          OR: rolePermissiondata.map((role) => ({ rolesId: role.rolesId })),
-        },
-      })
+      const roles = rolePermissiondata.map((role) => role.role.name)
 
       return {
-        count_account: accounts.length,
         count_role: rolePermissiondata.length,
         roleNames: roles,
       }

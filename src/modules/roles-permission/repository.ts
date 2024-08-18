@@ -1,4 +1,4 @@
-import { RolesPermission } from '@prisma/client'
+import { RolePermission } from '@prisma/client'
 import db from '../../lib/db'
 
 type Payload = {
@@ -11,18 +11,17 @@ interface IRolePermission {
   create(payload: Payload): Promise<void>
   update(payload: Payload, id: number): Promise<void>
   delete(id: number): Promise<void>
-  read(id: number): Promise<RolesPermission | null>
-  readAll(): Promise<RolesPermission[]>
+  read(id: number): Promise<RolePermission | null>
+  readAll(): Promise<RolePermission[]>
 }
 
 export default class RolePermissionRepository implements IRolePermission {
   create = async (payload: Payload) => {
     try {
-      await db.rolesPermission.createMany({
+      await db.rolePermission.createMany({
         data: payload.permissionId.map((permission) => ({
           permissionId: permission,
-          rolesId: payload.rolesId,
-          enabled: true,
+          roleId: payload.rolesId,
         })),
       })
     } catch (error) {
@@ -32,17 +31,16 @@ export default class RolePermissionRepository implements IRolePermission {
 
   update = async (payload: Payload, id: number) => {
     try {
-      await db.rolesPermission.deleteMany({
+      await db.rolePermission.deleteMany({
         where: {
-          rolesId: payload.rolesId
+          roleId: payload.rolesId
         }
       })
 
-      await db.rolesPermission.createMany({
+      await db.rolePermission.createMany({
         data: payload.permissionId.map((permission) => ({
           permissionId: permission,
-          rolesId: payload.rolesId,
-          enabled: true,
+          roleId: payload.rolesId,
         })),
       })
     } catch (error) {
@@ -50,9 +48,9 @@ export default class RolePermissionRepository implements IRolePermission {
     }
   }
 
-  read = async (id: number): Promise<RolesPermission | null> => {
+  read = async (id: number): Promise<RolePermission | null> => {
     try {
-      const data = await db.rolesPermission.findUnique({
+      const data = await db.rolePermission.findUnique({
         where: {
           id: Number(id),
         },
@@ -68,9 +66,9 @@ export default class RolePermissionRepository implements IRolePermission {
     }
   }
 
-  readAll = async (): Promise<RolesPermission[]> => {
+  readAll = async (): Promise<RolePermission[]> => {
     try {
-      const data = await db.rolesPermission.findMany()
+      const data = await db.rolePermission.findMany()
       return data || []
     } catch (error) {
       throw error
@@ -79,7 +77,7 @@ export default class RolePermissionRepository implements IRolePermission {
 
   delete = async (id: number): Promise<void> => {
     try {
-      const data = await db.rolesPermission.findUnique({
+      const data = await db.rolePermission.findUnique({
         where: {
           id: Number(id),
         },
@@ -89,7 +87,7 @@ export default class RolePermissionRepository implements IRolePermission {
         throw new Error('role permission not found')
       }
 
-      await db.rolesPermission.delete({
+      await db.rolePermission.delete({
         where: {
           id,
         },

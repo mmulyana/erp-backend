@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { CustomRequest } from '../../utils/types/common'
 import ApiResponse from '../../helper/api-response'
-import prisma from '../../../lib/prisma'
 import RolesRepository from './repository'
+import prisma from '../../../lib/prisma'
 import { Prisma } from '@prisma/client'
 
 export default class RoleController {
@@ -14,7 +14,7 @@ export default class RoleController {
       const { name, permissionIds } = req.body
 
       await this.repository.create(name, permissionIds || [])
-      
+
       return this.response.success(res, 'succes create roles')
     } catch (error) {
       next(error)
@@ -25,7 +25,7 @@ export default class RoleController {
     try {
       const { name, permissionIds } = req.body
       const { id } = req.params
-      this.repository.update(Number(id), { name, permissionIds})
+      this.repository.update(Number(id), { name, permissionIds })
       return this.response.success(res, 'succes update roles')
     } catch (error) {
       next(error)
@@ -35,7 +35,7 @@ export default class RoleController {
   deleteRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await prisma.roles.delete({
+      await prisma.role.delete({
         where: {
           id: Number(id),
         },
@@ -67,15 +67,8 @@ export default class RoleController {
 
   add = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, rolesId } = req.body
-      await prisma.user.update({
-        where: {
-          name,
-        },
-        data: {
-          rolesId,
-        },
-      })
+      const { name, roleId } = req.body
+
       return this.response.success(res, 'succes add roles')
     } catch (error) {
       next(error)
@@ -85,14 +78,7 @@ export default class RoleController {
   change = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, rolesId } = req.body
-      await prisma.user.update({
-        where: {
-          name,
-        },
-        data: {
-          rolesId,
-        },
-      })
+      
       return this.response.success(res, 'succes change roles')
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -107,14 +93,7 @@ export default class RoleController {
   remove = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name } = req.body
-      await prisma.user.update({
-        where: {
-          name,
-        },
-        data: {
-          rolesId: null,
-        },
-      })
+      
       return this.response.success(res, 'succes remove roles')
     } catch (error) {
       next(error)

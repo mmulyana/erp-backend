@@ -32,23 +32,22 @@ model Role {
 }
 
 model UserRole {
+  id     Int  @id @default(autoincrement())
   user   User @relation(fields: [userId], references: [id])
   userId Int
   role   Role @relation(fields: [roleId], references: [id])
   roleId Int
 
-  @@id([userId, roleId])
-
   @@map("userRoles")
 }
 
 model RolePermission {
+  id           Int        @id @default(autoincrement())
   role         Role       @relation(fields: [roleId], references: [id])
   roleId       Int
   permission   Permission @relation(fields: [permissionId], references: [id])
   permissionId Int
 
-  @@id([roleId, permissionId])
   @@map("rolePermissions")
 }
 
@@ -57,19 +56,19 @@ model Permission {
   name        String           @unique
   description String?
   groupId     Int
-  group       GroupPermission  @relation(fields: [groupId], references: [id])
+  group       PermissionGroup  @relation(fields: [groupId], references: [id])
   roles       RolePermission[]
 
   @@map("permissions")
 }
 
-model GroupPermission {
+model PermissionGroup {
   id          Int          @id
   name        String
-  description String
-  Permission  Permission[]
+  description String?
+  permissions Permission[]
 
-  @@map("groupPermissions")
+  @@map("permissionGroups")
 }
 
 // HRIS Module

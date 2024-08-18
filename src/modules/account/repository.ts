@@ -75,20 +75,9 @@ export default class AccountRepository {
           id,
         },
         include: {
-          role: {
+          roles: {
             select: {
               id: true,
-              name: true,
-              permissions: {
-                select: {
-                  enabled: true,
-                  permission: {
-                    select: {
-                      name: true,
-                    },
-                  },
-                },
-              },
             },
           },
         },
@@ -97,10 +86,7 @@ export default class AccountRepository {
       const user = {
         name: data?.name,
         email: data?.email,
-        roles: {
-          ...data?.role,
-          permissions: extractPermission(data?.role?.permissions || []),
-        },
+        roles: [],
       }
       return { user }
     } catch (error) {
@@ -171,32 +157,13 @@ export default class AccountRepository {
 
   readAll = async () => {
     try {
-      const data = await prisma.user.findMany({
-        include: {
-          role: {
-            select: {
-              name: true,
-              permissions: {
-                select: {
-                  enabled: true,
-                  permission: {
-                    select: {
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      })
+      const data = await prisma.user.findMany({})
       const users = data.map((user) => ({
         id: user.id,
         name: user.name,
         email: user.email,
         roles: {
-          name: user.role?.name,
-          permissions: extractPermission(user.role?.permissions || []),
+          permissions: [],
         },
       }))
       return { users }

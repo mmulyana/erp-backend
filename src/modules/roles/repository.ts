@@ -10,7 +10,7 @@ type Payload = {
 export default class RolesRepository {
   create = async (name: string, permissionIds?: number[]) => {
     try {
-      const existing = await prisma.roles.findFirst({
+      const existing = await prisma.role.findFirst({
         where: {
           name,
         },
@@ -19,17 +19,16 @@ export default class RolesRepository {
         throw new Error('Pilih name role baru')
       }
 
-      const role = await prisma.roles.create({
+      const role = await prisma.role.create({
         data: {
           name,
         },
       })
 
       if (permissionIds && permissionIds?.length > 0) {
-        await db.rolesPermission.createMany({
+        await db.rolePermission.createMany({
           data: permissionIds.map((id) => ({
-            enabled: true,
-            rolesId: role.id,
+            roleId: role.id,
             permissionId: id,
           })),
         })
@@ -41,7 +40,7 @@ export default class RolesRepository {
 
   read = async (id: number) => {
     try {
-      const data = await prisma.roles.findUnique({
+      const data = await prisma.role.findUnique({
         where: {
           id,
         },
@@ -51,7 +50,6 @@ export default class RolesRepository {
           permissions: {
             select: {
               id: true,
-              enabled: true,
               permission: {
                 select: {
                   id: true,
@@ -77,9 +75,9 @@ export default class RolesRepository {
   }
 
   update = async (id: number, payload: Payload) => {
-    const permissionIds = await db.rolesPermission.findMany({
+    const permissionIds = await db.rolePermission.findMany({
       where: {
-        rolesId: id,
+        roleId: id,
       },
       select: {
         permission: {
@@ -101,7 +99,7 @@ export default class RolesRepository {
 
   readAll = async () => {
     try {
-      const data = await prisma.roles.findMany({
+      const data = await prisma.role.findMany({
         orderBy: {
           name: 'asc',
         },
@@ -110,7 +108,6 @@ export default class RolesRepository {
           id: true,
           permissions: {
             select: {
-              enabled: true,
               permission: {
                 select: {
                   name: true,

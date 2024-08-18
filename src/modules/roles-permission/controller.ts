@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../helper/api-response'
-import prisma from '../../../lib/prisma'
 import RolePermissionRepository from './repository'
 
 export default class RolesPermissionController {
