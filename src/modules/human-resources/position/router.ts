@@ -16,7 +16,7 @@ export default class PositionRoutes {
 
     protected register() {
         this.router.patch('/:id', this.updateSchema.validate, this.controller.updateHandler)
-        this.router.post('/:id', this.createSchema.validate, this.controller.createHandler)
+        this.router.post('/', this.createSchema.validate, this.controller.createHandler)
         this.router.delete('/:id', this.controller.deleteHandler)
         this.router.get('/', this.controller.readAllHandler)
         this.router.get('/:id', this.controller.readHandler)
