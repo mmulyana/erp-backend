@@ -3,18 +3,6 @@ import db from '../../../lib/db'
 export default class UserRoleRepository {
   create = async (ids: number[], userId: number) => {
     try {
-      await db.userRole.createMany({
-        data: ids.map((id) => ({
-          roleId: id,
-          userId: userId,
-        })),
-      })
-    } catch (error) {
-      throw error
-    }
-  }
-  update = async (ids: number[], userId: number) => {
-    try {
       const result = await db.$transaction(async (prisma) => {
         await prisma.userRole.deleteMany({
           where: {
