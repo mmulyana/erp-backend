@@ -1,5 +1,5 @@
+import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import db from '../../../lib/db'
-import extractPermission from '../../../utils/extract-permission'
 
 type Payload = {
   name: string
@@ -38,6 +38,12 @@ export default class RolesRepository {
   }
 
   read = async (id: number) => {
+    const existingRole = await db.role.findUnique({ where: { id } })
+
+    if (!existingRole) {
+      throw Error(MESSAGE_ERROR.ROLE_NOT_FOUND)
+    }
+
     try {
       const data = await db.role.findUnique({
         where: {
@@ -62,9 +68,10 @@ export default class RolesRepository {
 
       const role = {
         ...data,
-        permissions: data?.permissions
-          ? extractPermission(data?.permissions)
-          : [],
+        permissions: data?.permissions.map((item) => ({
+          name: item.permission.name,
+          id: item.permission.id,
+        })),
         permissionIds: data?.permissions.map((d) => d.permission.id),
       }
       return { role }
@@ -74,27 +81,62 @@ export default class RolesRepository {
   }
 
   update = async (id: number, payload: Payload) => {
-    const permissionIds = await db.rolePermission.findMany({
+    try {
+      const existingRole = await db.role.findUnique({ where: { id } })
+
+      if (!existingRole) {
+        throw new Error(MESSAGE_ERROR.ROLE_NOT_FOUND)
+      }
+
+      if (payload.name !== '') {
+        await db.role.update({
+          where: { id },
+          data: { name: payload.name },
+        })
+      }
+
+      if (payload.permissionIds && payload.permissionIds.length > 0) {
+        const result = await db.$transaction(async (prisma) => {
+          await prisma.rolePermission.deleteMany({
+            where: { roleId: id },
+          })
+
+          const updateRole = await prisma.rolePermission.createMany({
+            data: payload.permissionIds.map((permissionId) => ({
+              permissionId,
+              roleId: id,
+            })),
+          })
+
+          return updateRole
+        })
+
+        return result
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  delete = async (id: number) => {
+    const existingRole = await db.role.findUnique({ where: { id } })
+
+    if (!existingRole) {
+      throw Error(MESSAGE_ERROR.ROLE_NOT_FOUND)
+    }
+
+    await db.rolePermission.deleteMany({
       where: {
         roleId: id,
       },
-      select: {
-        permission: {
-          select: {
-            id: true,
-          },
-        },
-      },
     })
 
-    const existingPermission = permissionIds.map(
-      (permission) => permission.permission.id
-    )
-    console.log('existing', existingPermission)
-    console.log('new permission', payload.permissionIds)
+    await db.role.delete({
+      where: {
+        id,
+      },
+    })
   }
-
-  delete = async (id: number) => {}
 
   readAll = async () => {
     try {
@@ -110,6 +152,7 @@ export default class RolesRepository {
               permission: {
                 select: {
                   name: true,
+                  id: true,
                 },
               },
             },
@@ -120,7 +163,10 @@ export default class RolesRepository {
       const roles = data.map((role) => ({
         id: role.id,
         name: role.name,
-        permissions: extractPermission(role.permissions),
+        permissions: role.permissions.map((item) => ({
+          name: item.permission.name,
+          id: item.permission.id,
+        })),
       }))
 
       return { roles }
