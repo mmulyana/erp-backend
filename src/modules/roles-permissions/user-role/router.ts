@@ -12,11 +12,11 @@ export default class UserRoleRoutes {
 
   constructor() {
     this.router = Router()
+    this.register()
   }
 
   register() {
     this.router.post('/add', this.createSchema.validate, this.controller.addRoles)
-    this.router.patch('/update', this.updateSchema.validate, this.controller.updateRoles)
     this.router.delete('/remove', this.deleteSchema.validate, this.controller.removeRoles)
   }
 }
