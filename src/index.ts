@@ -10,6 +10,8 @@ import userRole from './modules/roles-permissions/user-role/router'
 import PermissionRoutes from './modules/roles-permissions/permission/router'
 import PermissionGroupRoutes from './modules/roles-permissions/permission-group/router'
 
+import PositionRoutes from './modules/human-resources/position/router'
+
 class Application {
   private app: Express
   private port: number
@@ -41,6 +43,9 @@ class Application {
     v1.use('/account', this.authMiddleware.isAuthenticated, new AccountRouter().router)
     v1.use('/permission', this.authMiddleware.isAuthenticated, new PermissionRoutes().router)
     v1.use('/permission-group', this.authMiddleware.isAuthenticated, new PermissionGroupRoutes().router)
+    
+    // HRIS
+    v1.use('/position', this.authMiddleware.isAuthenticated, new PositionRoutes().router)
 
     this.app.use('/api/v1', v1)
 
