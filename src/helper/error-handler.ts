@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client'
 import { ErrorRequestHandler } from 'express'
 
 export const ErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  let code = 500
+  let code = err.code || 500
   let message = 'Something went wrong'
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
