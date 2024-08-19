@@ -1,5 +1,5 @@
+import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import db from '../../../lib/db'
-import { MESSAGE } from '../../../utils/constant/error'
 
 type Permission = {
   id: number
@@ -117,7 +117,7 @@ export default class PermissionGroupRepository {
       })
 
       if (data) {
-        throw new Error(MESSAGE.GROUP_NAME_ALREADY_USED)
+        throw new Error(MESSAGE_ERROR.GROUP_NAME_ALREADY_USED)
       }
 
       return true
@@ -135,7 +135,7 @@ export default class PermissionGroupRepository {
       })
 
       if (permissions.length > 0) {
-        throw new Error(MESSAGE.CANT_DELETE_GROUP)
+        throw new Error(MESSAGE_ERROR.CANT_DELETE_GROUP)
       }
 
       await db.permissionGroup.delete({
