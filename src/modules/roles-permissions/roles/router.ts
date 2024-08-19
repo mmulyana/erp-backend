@@ -10,9 +10,6 @@ export default class RolesRoutes {
 
   private createSchema: Validation = new Validation(RolesSchema.create)
   private updateSchema: Validation = new Validation(RolesSchema.update)
-  private addSchema: Validation = new Validation(RolesSchema.add)
-  private changeSchema: Validation = new Validation(RolesSchema.change)
-  private removeSchema: Validation = new Validation(RolesSchema.remove)
 
   constructor() {
     this.router = Router()
@@ -25,9 +22,5 @@ export default class RolesRoutes {
     this.router.post('/', this.createSchema.validate, this.controller.createRole)
     this.router.patch('/:id', this.updateSchema.validate, this.controller.updateRole)
     this.router.delete('/:id', this.controller.deleteRole)
-
-    this.router.post('/user/add', this.addSchema.validate, this.controller.add)
-    this.router.post('/user/change', this.changeSchema.validate, this.controller.change)
-    this.router.post('/user/remove', this.removeSchema.validate, this.controller.remove)
   }
 }

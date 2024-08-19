@@ -1,4 +1,3 @@
-import prisma from '../../../../lib/prisma'
 import db from '../../../lib/db'
 import extractPermission from '../../../utils/extract-permission'
 
@@ -10,7 +9,7 @@ type Payload = {
 export default class RolesRepository {
   create = async (name: string, permissionIds?: number[]) => {
     try {
-      const existing = await prisma.role.findFirst({
+      const existing = await db.role.findFirst({
         where: {
           name,
         },
@@ -19,7 +18,7 @@ export default class RolesRepository {
         throw new Error('Pilih name role baru')
       }
 
-      const role = await prisma.role.create({
+      const role = await db.role.create({
         data: {
           name,
         },
@@ -40,7 +39,7 @@ export default class RolesRepository {
 
   read = async (id: number) => {
     try {
-      const data = await prisma.role.findUnique({
+      const data = await db.role.findUnique({
         where: {
           id,
         },
@@ -99,7 +98,7 @@ export default class RolesRepository {
 
   readAll = async () => {
     try {
-      const data = await prisma.role.findMany({
+      const data = await db.role.findMany({
         orderBy: {
           name: 'asc',
         },

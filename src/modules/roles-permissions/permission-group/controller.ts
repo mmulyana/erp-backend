@@ -2,6 +2,7 @@ import { NextFunction, Response } from 'express'
 import ApiResponse from '../../../helper/api-response'
 import { CustomRequest } from '../../../utils/types/common'
 import PermissionGroupRepository from './repository'
+import { Prisma } from '@prisma/client'
 
 export default class PermissionGroupController {
   private response: ApiResponse = new ApiResponse()
