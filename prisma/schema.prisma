@@ -81,14 +81,20 @@ model Employee {
   address      String        @db.VarChar(100)
   phone        String?       @db.VarChar(20)
   hireDate     DateTime      @map("hire_date") @db.Date
-  jobTitle     String        @map("job_title") @db.VarChar(100)
   salary       Decimal       @db.Decimal(10, 2)
-  department   Department    @relation(fields: [departmentId], references: [id])
-  departmentId Int           @map("department_id")
+  position     Position      @relation(fields: [positionId], references: [id])
+  positionId   Int
   attendances  Attendance[]
   competencies Competency[]
   cashAdvances CashAdvance[]
   leaves       Leave[]
+}
+
+model Position {
+  id          Int        @id @default(autoincrement())
+  name        String     @db.VarChar(100)
+  description String?
+  employees   Employee[]
 }
 
 model Attendance {
@@ -101,12 +107,6 @@ model Attendance {
   isOnLeave  Boolean   @map("is_on_leave")
   leave      Leave?    @relation(fields: [leaveId], references: [id])
   leaveId    Int?      @map("leave_id")
-}
-
-model Department {
-  id        Int        @id @default(autoincrement())
-  name      String     @db.VarChar(100)
-  employees Employee[]
 }
 
 model Competency {
