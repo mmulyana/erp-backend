@@ -8,7 +8,6 @@ import AccountRouter from './modules/account/router'
 import RolesRoutes from './modules/roles-permissions/roles/router'
 import userRole from './modules/roles-permissions/user-role/router'
 import PermissionRoutes from './modules/roles-permissions/permission/router'
-import RolesPermissionRoutes from './modules/roles-permissions/roles-permission/router'
 import PermissionGroupRoutes from './modules/roles-permissions/permission-group/router'
 
 class Application {
@@ -35,14 +34,13 @@ class Application {
 
     let v1 = express.Router()
 
-    // authorization
+    // Auth
     v1.use('/auth', new AuthRoutes().router)
     v1.use('/roles', this.authMiddleware.isAuthenticated, new RolesRoutes().router)
-    v1.use('/permission', this.authMiddleware.isAuthenticated, new PermissionRoutes().router)
-    v1.use('/rolePermission', this.authMiddleware.isAuthenticated, new RolesPermissionRoutes().router)
-    v1.use('/account', this.authMiddleware.isAuthenticated, new AccountRouter().router)
-    v1.use('/permission-group', this.authMiddleware.isAuthenticated, new PermissionGroupRoutes().router)
     v1.use('/user-role', this.authMiddleware.isAuthenticated, new userRole().router)
+    v1.use('/account', this.authMiddleware.isAuthenticated, new AccountRouter().router)
+    v1.use('/permission', this.authMiddleware.isAuthenticated, new PermissionRoutes().router)
+    v1.use('/permission-group', this.authMiddleware.isAuthenticated, new PermissionGroupRoutes().router)
 
     this.app.use('/api/v1', v1)
 
