@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import PermissionGroupController from './controller'
-import Validation from '../../helper/validation'
+import Validation from '../../../helper/validation'
 import permissionGroupSchema from './schema'
 
 export default class PermissionGroupRoutes {

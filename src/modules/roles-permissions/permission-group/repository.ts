@@ -1,5 +1,5 @@
-import db from '../../lib/db'
-import { MESSAGE } from '../../utils/constant/error'
+import db from '../../../lib/db'
+import { MESSAGE } from '../../../utils/constant/error'
 
 type Permission = {
   id: number

@@ -1,4 +1,4 @@
-import db from '../../lib/db'
+import db from '../../../lib/db'
 
 type CheckResponse = {
   count_role: number

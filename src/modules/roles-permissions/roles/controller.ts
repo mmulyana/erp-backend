@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
-import { CustomRequest } from '../../utils/types/common'
-import ApiResponse from '../../helper/api-response'
+import { CustomRequest } from '../../../utils/types/common'
+import ApiResponse from '../../../helper/api-response'
 import RolesRepository from './repository'
-import prisma from '../../../lib/prisma'
+import prisma from '../../../../lib/prisma'
 import { Prisma } from '@prisma/client'
 
 export default class RoleController {

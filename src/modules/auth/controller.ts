@@ -1,9 +1,9 @@
-import prisma from '../../../lib/prisma'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import ApiResponse from '../../helper/api-response'
 import { compare, genSalt, hash } from 'bcryptjs'
 import { MESSAGE_SUCCESS } from '../../utils/constant/success'
+import db from '../../lib/db'
 dotenv.config()
 
 export default class AuthController {
@@ -31,7 +31,7 @@ export default class AuthController {
         }
       }
 
-      const user = await prisma.user.findFirst(query)
+      const user = await db.user.findFirst(query)
 
       if (!(user && (await compare(password, user.password)))) {
         throw new Error('Invalid name or email and password')
@@ -62,7 +62,7 @@ export default class AuthController {
     try {
       const { name, email, password } = req.body
 
-      const existingUser = await prisma.user.findFirst({
+      const existingUser = await db.user.findFirst({
         where: {
           OR: [
             {
@@ -89,7 +89,7 @@ export default class AuthController {
         },
       }
 
-      await prisma.user.create(payload)
+      await db.user.create(payload)
 
       this.responseHandler.success(res, MESSAGE_SUCCESS.REGISTER)
     } catch (error: any) {
@@ -101,7 +101,7 @@ export default class AuthController {
   checkName = async (req: any, res: any, next: any) => {
     try {
       const { name } = req.body
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await db.user.findUnique({
         where: {
           name,
         },
@@ -124,7 +124,7 @@ export default class AuthController {
   checkEmail = async (req: any, res: any, next: any) => {
     try {
       const { email } = req.body
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await db.user.findUnique({
         where: {
           email,
         },

@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import Validation from '../../helper/validation'
+import Validation from '../../../helper/validation'
 import permissionSchema from './schema'
 import PermissionController from './controller'
 

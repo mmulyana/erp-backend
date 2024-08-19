@@ -1,7 +1,7 @@
 import { Router } from 'express'
+import { AuthSchema } from './schema'
 import AuthController from './controller'
 import Validation from '../../helper/validation'
-import { AuthSchema } from './schema'
 
 export default class AuthRoutes {
   public router: Router

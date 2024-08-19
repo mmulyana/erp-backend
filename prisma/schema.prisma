@@ -63,7 +63,7 @@ model Permission {
 }
 
 model PermissionGroup {
-  id          Int          @id
+  id          Int          @id @default(autoincrement())
   name        String
   description String?
   permissions Permission[]

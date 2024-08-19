@@ -1,7 +1,7 @@
 import { Router } from 'express'
+import { AccountSchema } from './schema'
 import AccountController from './controller'
 import Validation from '../../helper/validation'
-import { AccountSchema } from './schema'
 
 export default class AccountRouter {
   public router: Router

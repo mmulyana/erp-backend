@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../helper/api-response'
-import prisma from '../../../lib/prisma'
+import ApiResponse from '../../../helper/api-response'
 import PermissionRepository from './repository'
+import db from '../../../lib/db'
 
 export default class PermissionController {
   private response: ApiResponse = new ApiResponse()
@@ -10,7 +10,7 @@ export default class PermissionController {
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, groupId } = req.body
-      await prisma.permission.create({
+      await db.permission.create({
         data: {
           name,
           groupId,
@@ -27,7 +27,7 @@ export default class PermissionController {
       const { id } = req.params
       const { name } = req.body
 
-      await prisma.permission.update({
+      await db.permission.update({
         data: {
           name,
         },
@@ -54,7 +54,7 @@ export default class PermissionController {
 
   read = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await prisma.permission.findMany({
+      const data = await db.permission.findMany({
         orderBy: {
           name: 'asc',
         },

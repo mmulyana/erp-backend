@@ -4,12 +4,12 @@ import { ErrorHandler } from './helper/error-handler'
 import { AuthMiddleware } from './middleware/auth-middleware'
 
 import AuthRoutes from './modules/auth/router'
-import RolesRoutes from './modules/roles/router'
-import PermissionRoutes from './modules/permission/router'
-import RolesPermissionRoutes from './modules/roles-permission/router'
 import AccountRouter from './modules/account/router'
-import PermissionGroupRoutes from './modules/permission-group/router'
-import userRole from './modules/user-role/router'
+import RolesRoutes from './modules/roles-permissions/roles/router'
+import userRole from './modules/roles-permissions/user-role/router'
+import PermissionRoutes from './modules/roles-permissions/permission/router'
+import RolesPermissionRoutes from './modules/roles-permissions/roles-permission/router'
+import PermissionGroupRoutes from './modules/roles-permissions/permission-group/router'
 
 class Application {
   private app: Express

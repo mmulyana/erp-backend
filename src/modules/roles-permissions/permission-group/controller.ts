@@ -1,6 +1,6 @@
 import { NextFunction, Response } from 'express'
-import ApiResponse from '../../helper/api-response'
-import { CustomRequest } from '../../utils/types/common'
+import ApiResponse from '../../../helper/api-response'
+import { CustomRequest } from '../../../utils/types/common'
 import PermissionGroupRepository from './repository'
 
 export default class PermissionGroupController {

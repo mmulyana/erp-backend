@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../helper/api-response'
+import ApiResponse from '../../../helper/api-response'
 import RolePermissionRepository from './repository'
 
 export default class RolesPermissionController {

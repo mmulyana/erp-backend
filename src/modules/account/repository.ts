@@ -1,9 +1,8 @@
-import { genSalt, hash } from 'bcryptjs'
-import prisma from '../../../lib/prisma'
-import extractPermission from '../../utils/extract-permission'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
-import { Prisma } from '@prisma/client'
 import { MESSAGE } from '../../utils/constant/error'
+import { genSalt, hash } from 'bcryptjs'
+import { Prisma } from '@prisma/client'
+import db from '../../lib/db'
 
 export interface Payload {
   name: string
@@ -29,7 +28,7 @@ interface Query {
 export default class AccountRepository {
   create = async (payload: Payload) => {
     try {
-      const existingUser = await prisma.user.findFirst({
+      const existingUser = await db.user.findFirst({
         where: {
           OR: [
             {
@@ -53,7 +52,7 @@ export default class AccountRepository {
           password,
         },
       }
-      const user = await prisma.user.create(query)
+      const user = await db.user.create(query)
       return { user }
     } catch (error: any) {
       if (
@@ -70,7 +69,7 @@ export default class AccountRepository {
 
   read = async (id: number) => {
     try {
-      const data = await prisma.user.findUnique({
+      const data = await db.user.findUnique({
         where: {
           id,
         },
@@ -96,7 +95,7 @@ export default class AccountRepository {
 
   readExisting = async (email: string, name: string) => {
     try {
-      const user = await prisma.user.findUnique({
+      const user = await db.user.findUnique({
         where: {
           email: email,
           name: name,
@@ -131,7 +130,7 @@ export default class AccountRepository {
       if (!!payload.password) {
         query.data.password = payload.password
       }
-      const data = await prisma.user.update(query)
+      const data = await db.user.update(query)
       let user: any = data
       delete user.password
       return { user }
@@ -147,7 +146,7 @@ export default class AccountRepository {
 
   delete = async (id: number) => {
     try {
-      await prisma.user.delete({
+      await db.user.delete({
         where: { id },
       })
     } catch (error) {
@@ -157,7 +156,7 @@ export default class AccountRepository {
 
   readAll = async () => {
     try {
-      const data = await prisma.user.findMany({})
+      const data = await db.user.findMany({})
       const users = data.map((user) => ({
         id: user.id,
         name: user.name,

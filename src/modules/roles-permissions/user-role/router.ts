@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import UserRoleController from './controller'
-import Validation from '../../helper/validation'
+import Validation from '../../../helper/validation'
 import { userRoleSchema } from './schema'
 
 export default class UserRoleRoutes {

@@ -1,5 +1,5 @@
 import { RolePermission } from '@prisma/client'
-import db from '../../lib/db'
+import db from '../../../lib/db'
 
 type Payload = {
   rolesId: number

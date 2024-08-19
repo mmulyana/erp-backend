@@ -1,6 +1,6 @@
-import prisma from '../../../lib/prisma'
-import db from '../../lib/db'
-import extractPermission from '../../utils/extract-permission'
+import prisma from '../../../../lib/prisma'
+import db from '../../../lib/db'
+import extractPermission from '../../../utils/extract-permission'
 
 type Payload = {
   name: string

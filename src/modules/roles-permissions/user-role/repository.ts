@@ -1,4 +1,4 @@
-import db from '../../lib/db'
+import db from '../../../lib/db'
 
 export default class UserRoleRepository {
   create = async (ids: number[], userId: number) => {
