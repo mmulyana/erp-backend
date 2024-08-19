@@ -21,18 +21,6 @@ export default class UserRoleController {
       next(error)
     }
   }
-  updateRoles = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { ids, userId } = req.body
-      const payload: number[] = this.getIds(ids)
-
-      this.repository.update(payload, Number(userId))
-
-      return this.response.success(res, 'success update roles for this user')
-    } catch (error) {
-      next(error)
-    }
-  }
   removeRoles = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId } = req.body
