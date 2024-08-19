@@ -6,6 +6,5 @@ export const MESSAGE_SUCCESS = {
     UPDATE: 'Posisi ini berhasil dirubah',
     DELETE: 'Posisi ini berhasil dihapus',
     READ: 'Posisi berhasil didapatkan',
-    NOT_FOUND: 'Posisi tidak ada',
   },
 }

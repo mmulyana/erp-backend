@@ -4,5 +4,8 @@ export const MESSAGE_ERROR = {
   GROUP_NAME_ALREADY_USED: 'Pilih nama grup baru',
   CANT_DELETE_GROUP:
     'Grup tidak bisa dihapus karena memiliki permission, silahkan hapus permission dahulu',
-  ROLE_NOT_FOUND: 'Role ini belum ditemukan'
+  ROLE_NOT_FOUND: 'Role ini belum ditemukan',
+  POSITION: {
+    NOT_FOUND: 'Posisi ini tidak ditemukan',
+  },
 }
