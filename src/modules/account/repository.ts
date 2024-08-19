@@ -76,16 +76,46 @@ export default class AccountRepository {
         include: {
           roles: {
             select: {
-              id: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
             },
           },
         },
       })
 
+      const rolesIds = data?.roles.map((role) => role.role.id)
+
+      const dataPermissions = await db.rolePermission.findMany({
+        where: {
+          roleId: {
+            in: rolesIds,
+          },
+        },
+        select: {
+          permission: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      })
+
+      const permissions = dataPermissions.map(
+        (permission) => permission.permission.name
+      )
+
       const user = {
         name: data?.name,
         email: data?.email,
-        roles: [],
+        roles: data?.roles.map((role) => ({
+          name: role.role.name,
+          id: role.role.id,
+        })),
+        permissions: [...new Set(permissions)],
       }
       return { user }
     } catch (error) {
