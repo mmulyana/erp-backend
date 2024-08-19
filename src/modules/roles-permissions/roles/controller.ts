@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
+import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import { CustomRequest } from '../../../utils/types/common'
 import ApiResponse from '../../../helper/api-response'
 import RolesRepository from './repository'
-import { Prisma } from '@prisma/client'
-import db from '../../../lib/db'
 
 export default class RoleController {
   private response: ApiResponse = new ApiResponse()
@@ -12,9 +11,7 @@ export default class RoleController {
   createRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, permissionIds } = req.body
-
       await this.repository.create(name, permissionIds || [])
-
       return this.response.success(res, 'succes create roles')
     } catch (error) {
       next(error)
@@ -25,9 +22,13 @@ export default class RoleController {
     try {
       const { name, permissionIds } = req.body
       const { id } = req.params
-      this.repository.update(Number(id), { name, permissionIds })
+      await this.repository.update(Number(id), { name, permissionIds })
       return this.response.success(res, 'succes update roles')
-    } catch (error) {
+    } catch (error: any) {
+      
+      if (error.message == MESSAGE_ERROR.ROLE_NOT_FOUND) {
+        error.code = 404
+      }
       next(error)
     }
   }
@@ -35,13 +36,12 @@ export default class RoleController {
   deleteRole = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await db.role.delete({
-        where: {
-          id: Number(id),
-        },
-      })
+      await this.repository.delete(Number(id))
       return this.response.success(res, 'succes delete roles')
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message == MESSAGE_ERROR.ROLE_NOT_FOUND) {
+        error.code = 404
+      }
       next(error)
     }
   }
@@ -51,7 +51,10 @@ export default class RoleController {
       const { id } = req.params
       const data = await this.repository.read(Number(id))
       return this.response.success(res, 'success read role', data)
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message == MESSAGE_ERROR.ROLE_NOT_FOUND) {
+        error.code = 404
+      }
       next(error)
     }
   }
