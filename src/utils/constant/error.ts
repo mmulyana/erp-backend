@@ -11,5 +11,6 @@ export const MESSAGE_ERROR = {
   EMPLOYEE: {
     NOT_FOUND: "Pegawai tidak ditemukan",
     ADDRESS_NOT_FOUND: "Alamat pegawai ini tidak ditemukan",
+    CONTACT_NOT_FOUND: "Kontak pegawai ini tidak ditemukan"
   }
 }
