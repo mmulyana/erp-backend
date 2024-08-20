@@ -73,21 +73,45 @@ model PermissionGroup {
 
 // HRIS Module
 model Employee {
-  id           Int           @id @default(autoincrement())
-  firstName    String        @db.VarChar(50)
-  lastName     String?       @db.VarChar(50)
-  nickname     String?       @db.VarChar(50)
-  email        String?       @db.VarChar(100)
-  address      String        @db.VarChar(100)
-  phone        String?       @db.VarChar(20)
-  hireDate     DateTime      @map("hire_date") @db.Date
-  salary       Decimal       @db.Decimal(10, 2)
-  position     Position      @relation(fields: [positionId], references: [id])
-  positionId   Int
+  id           Int                   @id @default(autoincrement())
+  firstName    String                @db.VarChar(50)
+  lastName     String?               @db.VarChar(50)
+  nickname     String?               @db.VarChar(50)
+  hireDate     DateTime?             @db.Date
+  salary       Decimal?              @db.Decimal(10, 2)
+  status       EmployeeStatus        @default(active)
+  position     Position?             @relation(fields: [positionId], references: [id])
+  positionId   Int?
   attendances  Attendance[]
   competencies Competency[]
   cashAdvances CashAdvance[]
   leaves       Leave[]
+  contact      Contact[]
+  address      Address[]
+  statusTracks EmployeeStatusTrack[]
+}
+
+model Contact {
+  id         Int         @id @default(autoincrement())
+  type       ContactType @default(phoneNumber)
+  value      String
+  employeeId Int
+  employee   Employee    @relation(fields: [employeeId], references: [id])
+}
+
+model Address {
+  id        Int         @id @default(autoincrement())
+  type      AddressType @default(domicile)
+  rt        String?
+  rw        String?
+  kampung   String?
+  desa      String?
+  kecamatan String?
+  kebupaten String?
+  provinsi  String?
+  kodePos   Int?
+  employeId Int
+  employee  Employee    @relation(fields: [employeId], references: [id])
 }
 
 model Position {
@@ -159,6 +183,19 @@ model ActivityLog {
   timestamp   DateTime @default(now())
 }
 
+model EmployeeStatusTrack {
+  id         Int            @id @default(autoincrement())
+  date       DateTime       @default(now()) @db.DateTime()
+  status     EmployeeStatus
+  employeeId Int
+  employee   Employee       @relation(fields: [employeeId], references: [id])
+}
+
+enum EmployeeStatus {
+  active
+  nonactive
+}
+
 enum Status {
   pending
   approved
@@ -171,4 +208,15 @@ enum LeaveType {
   personal
   maternity
   paternity
+}
+
+enum ContactType {
+  email
+  phoneNumber
+  socialMedia
+}
+
+enum AddressType {
+  domicile
+  origin
 }
