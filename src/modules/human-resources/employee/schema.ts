@@ -6,11 +6,17 @@ export const employeeSchema = z.object({
   nickname: z.string().optional(),
   hireDate: z.string().optional(),
   salary: z.number().optional(),
-  status: z.string().optional(),
+  status: z.enum(['active', 'nonactive']).optional(),
   positionId: z.number().optional(),
 })
 
-export const contactSchema = z.object({
+export const createContactSchema = z.object({
+  type: z.string().optional(),
+  value: z.string(),
+})
+
+export const updateContactSchema = z.object({
+  id: z.number(),
   type: z.string().optional(),
   value: z.string(),
 })
