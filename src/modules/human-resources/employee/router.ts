@@ -1,10 +1,12 @@
 import { Router } from 'express'
 import Validation from '../../../helper/validation'
 import { employeeSchema } from './schema'
+import EmployeeController from './controller'
 
 export default class EmployeeRouter {
   public router: Router
   private employeeSchema: Validation = new Validation(employeeSchema)
+  private controller: EmployeeController = new EmployeeController()
 
   constructor() {
     this.router = Router()
@@ -12,11 +14,11 @@ export default class EmployeeRouter {
   }
 
   protected register() {
-    this.router.patch('/id', this.employeeSchema.validate)
-    this.router.post('/', this.employeeSchema.validate)
-    this.router.delete('/id')
-    this.router.get('/id')
-    this.router.get('/')
+    this.router.patch('/:id', this.employeeSchema.validate, this.controller.updateHandler)
+    this.router.post('/', this.employeeSchema.validate, this.controller.createHandler)
+    this.router.delete('/:id', this.controller.deleteHandler)
+    this.router.get('/', this.controller.readAllHandler)
+    this.router.get('/:id', this.controller.readHandler)
 
     this.router.post('/address/:id')
     this.router.patch('/address/:id')
