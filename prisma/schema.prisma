@@ -124,50 +124,50 @@ model Position {
 model Attendance {
   id         Int       @id @default(autoincrement())
   employee   Employee  @relation(fields: [employeeId], references: [id])
-  employeeId Int       @map("employee_id")
+  employeeId Int
   date       DateTime  @db.Date
-  timeIn     DateTime? @map("time_in") @db.Time
-  timeOut    DateTime? @map("time_out") @db.Time
-  isOnLeave  Boolean   @map("is_on_leave")
+  timeIn     DateTime? @db.Time
+  timeOut    DateTime? @db.Time
+  isOnLeave  Boolean
   leave      Leave?    @relation(fields: [leaveId], references: [id])
-  leaveId    Int?      @map("leave_id")
+  leaveId    Int?
 }
 
 model Competency {
   id              Int           @id @default(autoincrement())
   employee        Employee      @relation(fields: [employeeId], references: [id])
-  employeeId      Int           @map("employee_id")
+  employeeId      Int
   name            String        @db.VarChar(100)
   certification   Certification @relation(fields: [certificationId], references: [id])
-  certificationId Int           @map("certification_id")
+  certificationId Int
 }
 
 model Certification {
   id                  Int          @id @default(autoincrement())
   name                String       @db.VarChar(100)
-  issuingOrganization String       @map("issuing_organization") @db.VarChar(100)
-  issueDate           DateTime     @map("issue_date") @db.Date
-  expiryDate          DateTime     @map("expiry_date") @db.Date
+  issuingOrganization String       @db.VarChar(100)
+  issueDate           DateTime     @db.Date
+  expiryDate          DateTime     @db.Date
   competencies        Competency[]
 }
 
 model CashAdvance {
   id           Int      @id @default(autoincrement())
   employee     Employee @relation(fields: [employeeId], references: [id])
-  employeeId   Int      @map("employee_id")
+  employeeId   Int
   amount       Decimal  @db.Decimal(10, 2)
-  requestDate  DateTime @map("request_date") @db.Date
-  approvalDate DateTime @map("approval_date") @db.Date
+  requestDate  DateTime @db.Date
+  approvalDate DateTime @db.Date
   status       Status
 }
 
 model Leave {
   id          Int          @id @default(autoincrement())
   employee    Employee     @relation(fields: [employeeId], references: [id])
-  employeeId  Int          @map("employee_id")
-  startDate   DateTime     @map("start_date") @db.Date
-  endDate     DateTime     @map("end_date") @db.Date
-  leaveType   LeaveType    @map("leave_type")
+  employeeId  Int
+  startDate   DateTime     @db.Date
+  endDate     DateTime     @db.Date
+  leaveType   LeaveType
   status      Status
   attendances Attendance[]
 }
