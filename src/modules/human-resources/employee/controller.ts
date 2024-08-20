@@ -58,7 +58,7 @@ export default class EmployeeController {
       next(error)
     }
   }
-  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
+  readAllHandler = async (_: Request, res: Response, next: NextFunction) => {
     try {
       const data = await this.repository.readAll()
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.READ, data)
@@ -91,7 +91,7 @@ export default class EmployeeController {
       next(error)
     }
   }
-  UpdateAddressHandler = async (
+  updateAddressHandler = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -114,13 +114,13 @@ export default class EmployeeController {
       next(error)
     }
   }
-  DeleteAddressHandler = async (
+  deleteAddressHandler = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const { addressId } = req.body
+      const { addressId } = req.params
       await this.repository.deleteAddress(Number(addressId))
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.REMOVE)
     } catch (error) {
@@ -147,28 +147,41 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
+      const { id } = req.params
+      const payload = {
+        type: req.body.type || undefined,
+        value: req.body.value,
+      }
+      await this.repository.createContact(Number(id), payload)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.CREATE)
     } catch (error) {
       next(error)
     }
   }
-  UpdateContactHandler = async (
+  updateContactHandler = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
+      const payload = {
+        type: req.body.type || undefined,
+        value: req.body.value,
+      }
+      await this.repository.updateContact(Number(req.body.id), payload)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.UPDATE)
     } catch (error) {
       next(error)
     }
   }
-  DeleteContactHandler = async (
+  deleteContactHandler = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
+      const { contactId } = req.body
+      await this.repository.deleteContact(Number(contactId))
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.REMOVE)
     } catch (error) {
       next(error)
@@ -180,7 +193,9 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.READ)
+      const { contactId } = req.query
+      const data = await this.repository.readContact(Number(contactId))
+      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.READ, data)
     } catch (error) {
       next(error)
     }
