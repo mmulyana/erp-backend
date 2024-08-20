@@ -1,12 +1,14 @@
 import { Router } from 'express'
 import Validation from '../../../helper/validation'
-import { employeeSchema } from './schema'
+import { AddressSchema, ContactSchema, DeleteAddressSchema, DeleteContactSchema, employeeSchema } from './schema'
 import EmployeeController from './controller'
 
 export default class EmployeeRouter {
   public router: Router
-  private employeeSchema: Validation = new Validation(employeeSchema)
   private controller: EmployeeController = new EmployeeController()
+  private employeeSchema: Validation = new Validation(employeeSchema)
+  private addressSchema: Validation = new Validation(AddressSchema)
+  private contactSchema: Validation = new Validation(ContactSchema)
 
   constructor() {
     this.router = Router()
@@ -20,15 +22,15 @@ export default class EmployeeRouter {
     this.router.get('/', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readHandler)
 
-    this.router.post('/address/:id')
-    this.router.patch('/address/:id')
-    this.router.delete('/address/:id')
-    this.router.get('/address/:id')
+    this.router.post('/address/:id', this.addressSchema.validate, this.controller.createAddressHandler)
+    this.router.patch('/address', this.addressSchema.validate, this.controller.updateAddressHandler)
+    this.router.delete('/address/:addressId', this.controller.deleteAddressHandler)
+    this.router.get('/address')
 
-    this.router.post('/contact/:id')
-    this.router.patch('/contact/:id')
-    this.router.delete('/contact/:id')
-    this.router.get('/contact/:id')
+    this.router.post('/contact/:id', this.contactSchema.validate, this.controller.createContactHandler)
+    this.router.patch('/contact',this.contactSchema.validate, this.controller.updateContactHandler)
+    this.router.delete('/contact/:contactId', this.controller.deleteContactHandler)
+    this.router.get('/contact', this.controller.readContactHandler)
 
     this.router.patch('/position/:id')
 
