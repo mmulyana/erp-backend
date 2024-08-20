@@ -110,8 +110,8 @@ model Address {
   kebupaten String?
   provinsi  String?
   kodePos   Int?
-  employeId Int
-  employee  Employee    @relation(fields: [employeId], references: [id])
+  employeeId Int
+  employee  Employee    @relation(fields: [employeeId], references: [id])
 }
 
 model Position {
