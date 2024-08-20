@@ -134,21 +134,21 @@ model Attendance {
 }
 
 model Competency {
-  id              Int           @id @default(autoincrement())
-  employee        Employee      @relation(fields: [employeeId], references: [id])
-  employeeId      Int
-  name            String        @db.VarChar(100)
-  certification   Certification @relation(fields: [certificationId], references: [id])
-  certificationId Int
+  id            Int             @id @default(autoincrement())
+  employee      Employee        @relation(fields: [employeeId], references: [id])
+  employeeId    Int
+  name          String          @db.VarChar(100)
+  certifications Certification[]
 }
 
 model Certification {
-  id                  Int          @id @default(autoincrement())
-  name                String       @db.VarChar(100)
-  issuingOrganization String       @db.VarChar(100)
-  issueDate           DateTime     @db.Date
-  expiryDate          DateTime     @db.Date
-  competencies        Competency[]
+  id                  Int        @id @default(autoincrement())
+  name                String     @db.VarChar(100)
+  issuingOrganization String     @db.VarChar(100)
+  issueDate           DateTime   @db.Date
+  expiryDate          DateTime   @db.Date
+  competencyId        Int
+  competency          Competency @relation(fields: [competencyId], references: [id])
 }
 
 model CashAdvance {
