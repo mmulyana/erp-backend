@@ -74,6 +74,17 @@ export default class EmployeeController {
   ) => {
     try {
       const { id } = req.params
+      const payload = {
+        type: req.body.type || undefined,
+        rt: req.body.rt || undefined,
+        rw: req.body.rw || undefined,
+        kampung: req.body.kampung || undefined,
+        desa: req.body.desa || undefined,
+        kecamatan: req.body.kecamatan || undefined,
+        kebupaten: req.body.kebupaten || undefined,
+        provinsi: req.body.provinsi || undefined,
+        kodePos: req.body.kodePos || undefined,
+      }
 
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.CREATE)
     } catch (error) {
@@ -87,7 +98,18 @@ export default class EmployeeController {
   ) => {
     try {
       const { id } = req.params
-
+      const payload = {
+        id: req.body.id,
+        type: req.body.type || undefined,
+        rt: req.body.rt || undefined,
+        rw: req.body.rw || undefined,
+        kampung: req.body.kampung || undefined,
+        desa: req.body.desa || undefined,
+        kecamatan: req.body.kecamatan || undefined,
+        kebupaten: req.body.kebupaten || undefined,
+        provinsi: req.body.provinsi || undefined,
+        kodePos: req.body.kodePos || undefined,
+      }
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.UPDATE)
     } catch (error) {
       next(error)
@@ -100,7 +122,7 @@ export default class EmployeeController {
   ) => {
     try {
       const { id } = req.params
-
+      const { addressId } = req.body
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.REMOVE)
     } catch (error) {
       next(error)
@@ -112,6 +134,7 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
+      const { addressId } = req.query
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.READ)
     } catch (error) {
       next(error)
