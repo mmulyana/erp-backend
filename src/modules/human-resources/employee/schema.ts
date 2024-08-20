@@ -47,9 +47,37 @@ export const updateAddressSchema = z.object({
 })
 
 export const deleteAddress = z.object({
-  id: z.number(),
+  addressId: z.number(),
 })
 
 export const positionSchema = z.object({
   positionId: z.number(),
+})
+
+export const createCompetency = z.object({
+  name: z.string(),
+  certifications: z
+    .object({
+      name: z.string(),
+      issuingOrganization: z.string(),
+      issueDate: z.string(),
+      expiryDate: z.string(),
+    })
+    .array()
+    .optional(),
+})
+
+export const updateCompetency = z.object({
+  id: z.number(),
+  name: z.string(),
+  certifications: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      issuingOrganization: z.string(),
+      issueDate: z.string(),
+      expiryDate: z.string(),
+    })
+    .array()
+    .optional(),
 })
