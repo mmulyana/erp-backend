@@ -32,5 +32,15 @@ export default class EmployeeRouter {
 
     this.router.patch('/status/active/:id')
     this.router.patch('/status/unactive/:id')
+
+    this.router.post('/competency/:id')
+    this.router.patch('/competency/:id')
+    this.router.delete('/competency/:id')
+    this.router.get('/competency/:id')
+
+    this.router.post('/certification/:id')
+    this.router.patch('/certification/:id')
+    this.router.delete('/certification/:id')
+    this.router.get('/certification/:id')
   }
 }
