@@ -10,20 +10,15 @@ export const employeeSchema = z.object({
   positionId: z.number().optional(),
 })
 
-export const createContactSchema = z.object({
-  type: z.string().optional(),
-  value: z.string(),
-})
-
-export const updateContactSchema = z.object({
-  id: z.number(),
-  type: z.string().optional(),
-  value: z.string(),
-})
-
-export const createAddressSchema = z.object({
+export const ContactSchema = z.object({
   id: z.number().optional(),
-  type: z.enum(["domicile", "origin"]).optional(),
+  type: z.enum(['email', 'phoneNumber', 'socialMedia']).optional(),
+  value: z.string(),
+})
+
+export const AddressSchema = z.object({
+  id: z.number().optional(),
+  type: z.enum(['domicile', 'origin']).optional(),
   rt: z.string().optional(),
   rw: z.string().optional(),
   kampung: z.string().optional(),
@@ -34,8 +29,12 @@ export const createAddressSchema = z.object({
   kodePos: z.number().optional(),
 })
 
-export const deleteAddress = z.object({
+export const DeleteAddressSchema = z.object({
   addressId: z.number(),
+})
+
+export const DeleteContactSchema = z.object({
+  contactId: z.number(),
 })
 
 export const positionSchema = z.object({
