@@ -107,7 +107,7 @@ export default class EmployeeRepository {
     }
   }
 
-  // Contact
+  // CONTACT
   createContact = async (employeeId: number, payload: Contact) => {
     try {
       await this.isExist(employeeId)
@@ -146,6 +146,33 @@ export default class EmployeeRepository {
     }
   }
 
+  updatePositionEmployee = async (id: number, positionId: number) => {
+    try {
+      await this.isExist(id)
+      await this.isPositionExist(positionId)
+      await db.employee.update({ data: { positionId }, where: { id } })
+    } catch (error) {
+      throw error
+    }
+  }
+
+  updateStatusEmployee = async (id: number, status: 'active' | 'nonactive') => {
+    try {
+      await this.isExist(id)
+      const date = new Date().toISOString()
+      await db.employee.update({ data: { status }, where: { id } })
+      await db.employeeStatusTrack.create({
+        data: {
+          status,
+          date,
+          employeeId: id,
+        },
+      })
+    } catch (error) {
+      throw error
+    }
+  }
+
   private isExist = async (id: number) => {
     const data = await db.employee.findUnique({ where: { id } })
     if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.NOT_FOUND)
@@ -157,5 +184,9 @@ export default class EmployeeRepository {
   private isContactExist = async (id: number) => {
     const data = await db.contact.findUnique({ where: { id } })
     if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.CONTACT_NOT_FOUND)
+  }
+  private isPositionExist = async (id: number) => {
+    const data = await db.position.findUnique({ where: { id } })
+    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.POSITION_NOT_FOUND)
   }
 }
