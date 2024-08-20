@@ -203,6 +203,13 @@ export default class EmployeeController {
 
   positionHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const { id } = req.params
+      const { positionId } = req.body
+
+      await this.repository.updatePositionEmployee(
+        Number(id),
+        Number(positionId)
+      )
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.POSITION)
     } catch (error) {
       next(error)
@@ -211,6 +218,8 @@ export default class EmployeeController {
 
   activeHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const { id } = req.params
+      await this.repository.updateStatusEmployee(Number(id), 'active')
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ACTIVE)
     } catch (error) {
       next(error)
@@ -218,6 +227,8 @@ export default class EmployeeController {
   }
   unactiveHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const { id } = req.params
+      await this.repository.updateStatusEmployee(Number(id), 'nonactive')
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.UNACTIVE)
     } catch (error) {
       next(error)
