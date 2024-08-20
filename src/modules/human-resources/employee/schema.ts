@@ -22,20 +22,7 @@ export const updateContactSchema = z.object({
 })
 
 export const createAddressSchema = z.object({
-  type: z.string().optional(),
-  rt: z.string().optional(),
-  rw: z.string().optional(),
-  kampung: z.string().optional(),
-  desa: z.string().optional(),
-  kecamatan: z.string().optional(),
-  kebupaten: z.string().optional(),
-  provinsi: z.string().optional(),
-  kodePos: z.number().optional(),
-})
-
-export const updateAddressSchema = z.object({
-  id: z.number(),
-  type: z.string().optional(),
+  type: z.enum(["domicile", "origin"]).optional(),
   rt: z.string().optional(),
   rw: z.string().optional(),
   kampung: z.string().optional(),
