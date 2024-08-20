@@ -1,15 +1,23 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
 import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
+import ApiResponse from '../../../helper/api-response'
+import EmployeeRepository from './repository'
 
 export default class EmployeeController {
   private response: ApiResponse = new ApiResponse()
+  private repository: EmployeeRepository = new EmployeeRepository()
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { firstName, lastName, nickname, hireDate, salary, positionId } =
-        req.body
-
+      const payload = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName || undefined,
+        nickname: req.body.nickname || undefined,
+        hireDate: req.body.hireDate || undefined,
+        salary: req.body.salary || undefined,
+        positionId: req.body.positionId || undefined,
+      }
+      await this.repository.create(payload)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CREATE)
     } catch (error) {
       next(error)
@@ -17,9 +25,16 @@ export default class EmployeeController {
   }
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { firstName, lastName, nickname, hireDate, salary, positionId } =
-        req.body
+      const payload = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName || undefined,
+        nickname: req.body.nickname || undefined,
+        hireDate: req.body.hireDate || undefined,
+        salary: req.body.salary || undefined,
+        positionId: req.body.positionId || undefined,
+      }
       const { id } = req.params
+      await this.repository.update(Number(id), payload)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.UPDATE)
     } catch (error) {
       next(error)
@@ -28,7 +43,7 @@ export default class EmployeeController {
   deleteHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-
+      await this.repository.delete(Number(id))
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.DELETE)
     } catch (error) {
       next(error)
@@ -37,15 +52,16 @@ export default class EmployeeController {
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.READ)
+      const data = await this.repository.read(Number(id))
+      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.READ, data)
     } catch (error) {
       next(error)
     }
   }
   readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.READ)
+      const data = await this.repository.readAll()
+      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.READ, data)
     } catch (error) {
       next(error)
     }
