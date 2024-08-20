@@ -8,4 +8,7 @@ export const MESSAGE_ERROR = {
   POSITION: {
     NOT_FOUND: 'Posisi ini tidak ditemukan',
   },
+  EMPLOYEE: {
+    NOT_FOUND: "Pegawai tidak ditemukan"
+  }
 }
