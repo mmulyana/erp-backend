@@ -1,19 +1,16 @@
 import { z } from 'zod'
 import {
-  createAddressSchema,
-  createContactSchema,
-  deleteAddress,
+  ContactSchema,
+  AddressSchema,
   employeeSchema,
   positionSchema,
-  updateContactSchema,
 } from './schema'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import db from '../../../lib/db'
 
 type Employee = z.infer<typeof employeeSchema>
-type CreateContact = z.infer<typeof createContactSchema>
-type UpdateContact = z.infer<typeof updateContactSchema>
-type Address = z.infer<typeof createAddressSchema>
+type Contact = z.infer<typeof ContactSchema>
+type Address = z.infer<typeof AddressSchema>
 type Position = z.infer<typeof positionSchema>
 
 export default class EmployeeRepository {
@@ -60,17 +57,16 @@ export default class EmployeeRepository {
   }
 
   // ADDRESS
-  createAddress = async (id: number, payload: Address) => {
+  createAddress = async (employeeId: number, payload: Address) => {
     try {
-      await this.isExist(id)
+      await this.isExist(employeeId)
       await db.address.create({
-        data: { ...payload, employeeId: id },
+        data: { ...payload, employeeId },
       })
     } catch (error) {
       throw error
     }
   }
-
   updateAddress = async (id: number, payload: Address) => {
     try {
       await this.isAddressExist(id)
@@ -84,7 +80,6 @@ export default class EmployeeRepository {
       throw error
     }
   }
-
   deleteAddress = async (id: number) => {
     try {
       await this.isAddressExist(id)
@@ -93,7 +88,6 @@ export default class EmployeeRepository {
       throw error
     }
   }
-
   readAddress = async (id: number, addressId?: number) => {
     try {
       if (!!addressId) {
@@ -113,6 +107,45 @@ export default class EmployeeRepository {
     }
   }
 
+  // Contact
+  createContact = async (employeeId: number, payload: Contact) => {
+    try {
+      await this.isExist(employeeId)
+      await db.contact.create({ data: { ...payload, employeeId } })
+    } catch (error) {
+      throw error
+    }
+  }
+  updateContact = async (id: number, payload: Contact) => {
+    try {
+      await this.isContactExist(id)
+      await db.contact.update({ data: payload, where: { id } })
+    } catch (error) {
+      throw error
+    }
+  }
+  deleteContact = async (id: number) => {
+    try {
+      await this.isContactExist(id)
+      await db.contact.delete({ where: { id } })
+    } catch (error) {
+      throw error
+    }
+  }
+  readContact = async (contactId?: number) => {
+    try {
+      if (!!contactId) {
+        await this.isContactExist(contactId)
+        const data = await db.contact.findUnique({ where: { id: contactId } })
+        return data
+      }
+      const data = await db.contact.findMany()
+      return data
+    } catch (error) {
+      throw error
+    }
+  }
+
   private isExist = async (id: number) => {
     const data = await db.employee.findUnique({ where: { id } })
     if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.NOT_FOUND)
@@ -120,5 +153,9 @@ export default class EmployeeRepository {
   private isAddressExist = async (id: number) => {
     const data = await db.address.findUnique({ where: { id } })
     if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.ADDRESS_NOT_FOUND)
+  }
+  private isContactExist = async (id: number) => {
+    const data = await db.contact.findUnique({ where: { id } })
+    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.CONTACT_NOT_FOUND)
   }
 }
