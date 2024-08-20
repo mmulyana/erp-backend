@@ -22,6 +22,7 @@ export const updateContactSchema = z.object({
 })
 
 export const createAddressSchema = z.object({
+  id: z.number().optional(),
   type: z.enum(["domicile", "origin"]).optional(),
   rt: z.string().optional(),
   rw: z.string().optional(),

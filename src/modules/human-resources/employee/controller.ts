@@ -85,7 +85,7 @@ export default class EmployeeController {
         provinsi: req.body.provinsi || undefined,
         kodePos: req.body.kodePos || undefined,
       }
-
+      await this.repository.createAddress(Number(id), payload)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.CREATE)
     } catch (error) {
       next(error)
@@ -97,9 +97,7 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      const { id } = req.params
       const payload = {
-        id: req.body.id,
         type: req.body.type || undefined,
         rt: req.body.rt || undefined,
         rw: req.body.rw || undefined,
@@ -110,6 +108,7 @@ export default class EmployeeController {
         provinsi: req.body.provinsi || undefined,
         kodePos: req.body.kodePos || undefined,
       }
+      await this.repository.updateAddress(Number(req.body.id), payload)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.UPDATE)
     } catch (error) {
       next(error)
@@ -121,8 +120,8 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      const { id } = req.params
       const { addressId } = req.body
+      await this.repository.deleteAddress(Number(addressId))
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.REMOVE)
     } catch (error) {
       next(error)
@@ -135,7 +134,8 @@ export default class EmployeeController {
   ) => {
     try {
       const { addressId } = req.query
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.READ)
+      const data = await this.repository.readAddress(Number(addressId))
+      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.READ, data)
     } catch (error) {
       next(error)
     }
