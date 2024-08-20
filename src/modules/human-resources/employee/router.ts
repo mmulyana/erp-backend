@@ -1,6 +1,6 @@
 import { Router } from 'express'
+import { AddressSchema, ContactSchema, employeeSchema, positionSchema } from './schema'
 import Validation from '../../../helper/validation'
-import { AddressSchema, ContactSchema, DeleteAddressSchema, DeleteContactSchema, employeeSchema } from './schema'
 import EmployeeController from './controller'
 
 export default class EmployeeRouter {
@@ -9,6 +9,7 @@ export default class EmployeeRouter {
   private employeeSchema: Validation = new Validation(employeeSchema)
   private addressSchema: Validation = new Validation(AddressSchema)
   private contactSchema: Validation = new Validation(ContactSchema)
+  private positionSchema: Validation = new Validation(positionSchema)
 
   constructor() {
     this.router = Router()
@@ -32,10 +33,10 @@ export default class EmployeeRouter {
     this.router.delete('/contact/:contactId', this.controller.deleteContactHandler)
     this.router.get('/contact', this.controller.readContactHandler)
 
-    this.router.patch('/position/:id')
+    this.router.patch('/position/:id', this.positionSchema.validate, this.controller.positionHandler)
 
-    this.router.patch('/status/active/:id')
-    this.router.patch('/status/unactive/:id')
+    this.router.patch('/status/active/:id', this.controller.activeHandler)
+    this.router.patch('/status/unactive/:id', this.controller.unactiveHandler)
 
     this.router.post('/competency/:id')
     this.router.patch('/competency/:id')
