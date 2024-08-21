@@ -61,5 +61,4 @@ export const certifchema = z.object({
   issuingOrganization: z.string(),
   issueDate: z.string(),
   expiryDate: z.string(),
-  competencyId: z.number(),
 })
