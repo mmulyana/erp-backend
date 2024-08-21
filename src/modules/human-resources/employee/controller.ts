@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
 import ApiResponse from '../../../helper/api-response'
-import EmployeeRepository from './repository'
+import EmployeeRepository, { FilterEmployee } from './repository'
+import type { Employee } from '@prisma/client'
 
 export default class EmployeeController {
   private response: ApiResponse = new ApiResponse()
@@ -9,15 +10,7 @@ export default class EmployeeController {
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const payload = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName || undefined,
-        nickname: req.body.nickname || undefined,
-        hireDate: req.body.hireDate || undefined,
-        salary: req.body.salary || undefined,
-        positionId: req.body.positionId || undefined,
-      }
-      await this.repository.create(payload)
+      await this.repository.create(req.body)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CREATE)
     } catch (error) {
       next(error)
@@ -25,16 +18,8 @@ export default class EmployeeController {
   }
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const payload = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName || undefined,
-        nickname: req.body.nickname || undefined,
-        hireDate: req.body.hireDate || undefined,
-        salary: req.body.salary || undefined,
-        positionId: req.body.positionId || undefined,
-      }
       const { id } = req.params
-      await this.repository.update(Number(id), payload)
+      await this.repository.update(Number(id), req.body)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.UPDATE)
     } catch (error) {
       next(error)
@@ -58,9 +43,18 @@ export default class EmployeeController {
       next(error)
     }
   }
-  readAllHandler = async (_: Request, res: Response, next: NextFunction) => {
+  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await this.repository.readAll()
+      const page = Number(req.query.page) || 1
+      const limit = Number(req.query.limit) || 10
+      let where: FilterEmployee = {}
+      if (req.query.fullname) {
+        where.fullname = String(req.query.fullname)
+      }
+      if (req.query.positionId) {
+        where.positionId = Number(req.query.positionId)
+      }
+      const data = await this.repository.readAll(page, limit, where)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.READ, data)
     } catch (error) {
       next(error)
