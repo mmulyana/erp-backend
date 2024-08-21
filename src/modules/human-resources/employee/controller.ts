@@ -247,4 +247,63 @@ export default class EmployeeController {
       next(error)
     }
   }
+
+  createCompetencyHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { employeeId } = req.params
+      const payload = {
+        name: req.body.name,
+        certifications: req.body.certifications || [],
+      }
+      await this.repository.createCompetency(Number(employeeId), payload)
+      return this.response.success(
+        res,
+        MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.CREATE
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  updateCompetencyHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.repository.updateCompetency({
+        id: Number(req.body.id),
+        name: req.body.name,
+      })
+      return this.response.success(
+        res,
+        MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.UPDATE
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  deleteCompetencyHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+    } catch (error) {
+      next(error)
+    }
+  }
+  readCompetencyHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+    } catch (error) {
+      next(error)
+    }
+  }
 }
