@@ -59,3 +59,11 @@ export const updateCompetencySchema = z.object({
   id: z.number(),
   name: z.string(),
 })
+
+export const certifchema = z.object({
+  name: z.string(),
+  issuingOrganization: z.string(),
+  issueDate: z.string(),
+  expiryDate: z.string(),
+  competencyId: z.number(),
+})
