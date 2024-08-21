@@ -50,7 +50,23 @@ export default class PositionRepository {
   }
   readAll = async () => {
     try {
-      const data = await db.position.findMany()
+      const data = await db.position.findMany({
+        select: {
+          name: true,
+          description: true,
+          _count: {
+            select: {
+              employees: true
+            }
+          },
+          employees: {
+            take: 3,
+            select: {
+              fullname: true
+            }
+          },
+        },
+      })
       return data
     } catch (error) {
       throw error
