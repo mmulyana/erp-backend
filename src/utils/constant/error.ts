@@ -9,15 +9,18 @@ export const MESSAGE_ERROR = {
     NOT_FOUND: 'Posisi ini tidak ditemukan',
   },
   EMPLOYEE: {
-    NOT_FOUND: "Pegawai tidak ditemukan",
-    ADDRESS_NOT_FOUND: "Alamat pegawai ini tidak ditemukan",
-    CONTACT_NOT_FOUND: "Kontak pegawai ini tidak ditemukan",
-    POSITION_NOT_FOUND: "Posisi yang diambil tidak ada",
-    COMPETENCY_NOT_FOUND: "Kompetensi tidak ditemukan",
-    CERTIF_NOT_FOUND: "Sertifikasi tidak ditemukan",
+    NOT_FOUND: 'Pegawai tidak ditemukan',
+    ADDRESS_NOT_FOUND: 'Alamat pegawai ini tidak ditemukan',
+    CONTACT_NOT_FOUND: 'Kontak pegawai ini tidak ditemukan',
+    POSITION_NOT_FOUND: 'Posisi yang diambil tidak ada',
+    COMPETENCY_NOT_FOUND: 'Kompetensi tidak ditemukan',
+    CERTIF_NOT_FOUND: 'Sertifikasi tidak ditemukan',
     STATUS: {
-      ACTIVE: "Pegawai masih aktif",
-      UNACTIVE: "Pegawai masih nonaktif"
-    }
-  }
+      ACTIVE: 'Pegawai masih aktif',
+      UNACTIVE: 'Pegawai masih nonaktif',
+    },
+  },
+  LEAVE: {
+    NOT_FOUND: 'Cuti tidak ditemukan',
+  },
 }
