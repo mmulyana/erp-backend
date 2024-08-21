@@ -1,17 +1,19 @@
 import { z } from 'zod'
 import {
-  ContactSchema,
-  AddressSchema,
+  contactSchema,
+  addressSchema,
   employeeSchema,
-  positionSchema,
+  createCompetencySchema,
+  updateCompetencySchema,
 } from './schema'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import db from '../../../lib/db'
 
 type Employee = z.infer<typeof employeeSchema>
-type Contact = z.infer<typeof ContactSchema>
-type Address = z.infer<typeof AddressSchema>
-type Position = z.infer<typeof positionSchema>
+type Contact = z.infer<typeof contactSchema>
+type Address = z.infer<typeof addressSchema>
+type Competency = z.infer<typeof createCompetencySchema>
+type UpdateCompetency = z.infer<typeof updateCompetencySchema>
 
 export default class EmployeeRepository {
   // EMPLOYEE
@@ -179,6 +181,62 @@ export default class EmployeeRepository {
         where: { employeeId: id },
         orderBy: { date: 'asc' },
       })
+      return data
+    } catch (error) {
+      throw error
+    }
+  }
+
+  createCompetency = async (employeeId: number, payload: Competency) => {
+    try {
+      const data = await db.competency.create({
+        data: { name: payload.name, employeeId },
+      })
+      if (!!payload.certifications?.length) {
+        await db.certification.createMany({
+          data: payload.certifications.map((certif: any) => ({
+            competencyId: data.id,
+            expiryDate: certif.expiryDate,
+            issueDate: certif.issueDate,
+            issuingOrganization: certif.issuingOrganization,
+            name: certif.name,
+          })),
+        })
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+  updateCompetency = async (payload: UpdateCompetency) => {
+    try {
+      await db.competency.update({
+        data: {
+          name: payload.name,
+        },
+        where: {
+          id: payload.id,
+        },
+      })
+    } catch (error) {
+      throw error
+    }
+  }
+  // competencyId
+  deleteCompetency = async (id: number) => {
+    try {
+      await db.competency.delete({ where: { id } })
+    } catch (error) {
+      throw error
+    }
+  }
+  // competencyId
+  readCompetency = async (id: number) => {
+    try {
+      if(!!id) {
+        const data = await db.competency.findUnique({where: {id}})
+        return data
+      }
+      const data = await db.competency.findMany()
       return data
     } catch (error) {
       throw error
