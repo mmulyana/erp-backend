@@ -28,5 +28,17 @@ export const MESSAGE_SUCCESS = {
     ACTIVE: 'Berhasil mengaktifkan pegawai ini',
     UNACTIVE: 'Berhasil menonaktifkan pegawai ini',
     TRACK: 'Data log activasi berhasil didapatkan',
+    COMPETENCY: {
+      CREATE: "Kompetensi berhasil ditambahkan",
+      UPDATE: "Kompetensi berhasil diubah",
+      DELETE: "Kompetensi berhasil dihapus",
+      READ: "Kompetensi berhasil didapat"
+    },
+    CERTIF: {
+      CREATE: "Sertifikat berhasil ditambahkan",
+      UPDATE: "Sertifikat berhasil diubah",
+      DELETE: "Sertifikat berhasil dihapus",
+      READ: "Sertifikat berhasil didapatkan"
+    }
   },
 }
