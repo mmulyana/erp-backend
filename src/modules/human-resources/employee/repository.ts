@@ -173,6 +173,18 @@ export default class EmployeeRepository {
     }
   }
 
+  readEmployeeTrack = async (id: number) => {
+    try {
+      const data = await db.employeeStatusTrack.findMany({
+        where: { employeeId: id },
+        orderBy: { date: 'asc' },
+      })
+      return data
+    } catch (error) {
+      throw error
+    }
+  }
+
   private isExist = async (id: number) => {
     const data = await db.employee.findUnique({ where: { id } })
     if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.NOT_FOUND)
