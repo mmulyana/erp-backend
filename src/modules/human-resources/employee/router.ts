@@ -59,5 +59,7 @@ export default class EmployeeRouter {
     this.router.patch('/certification/:certifId', this.certifSchema.validate, this.controller.updateCertifHandler)
     this.router.delete('/certification/:certifId', this.controller.deleteCertifHandler)
     this.router.get('/certification/:competencyId', this.controller.readCertifHandler)
+
+    this.router.get('/leave/:employeeId')
   }
 }
