@@ -292,6 +292,9 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
+      const { competencyId } = req.params
+      await this.repository.deleteCompetency(Number(competencyId))
+      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.DELETE)
     } catch (error) {
       next(error)
     }
@@ -302,6 +305,9 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
+      const { competencyId } = req.query
+      const data = await this.repository.readCompetency(Number(competencyId))
+      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.READ, data)
     } catch (error) {
       next(error)
     }
