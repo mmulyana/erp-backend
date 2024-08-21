@@ -1,8 +1,7 @@
 import { z } from 'zod'
 
 export const employeeSchema = z.object({
-  firstName: z.string(),
-  lastName: z.string().optional(),
+  fullname: z.string(),
   nickname: z.string().optional(),
   hireDate: z.string().optional(),
   salary: z.number().optional(),

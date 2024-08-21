@@ -74,8 +74,7 @@ model PermissionGroup {
 // HRIS Module
 model Employee {
   id           Int                   @id @default(autoincrement())
-  firstName    String                @db.VarChar(50)
-  lastName     String?               @db.VarChar(50)
+  fullname     String                @db.VarChar(50)
   nickname     String?               @db.VarChar(50)
   hireDate     DateTime?             @db.Date
   salary       Decimal?              @db.Decimal(10, 2)
@@ -100,18 +99,18 @@ model Contact {
 }
 
 model Address {
-  id        Int         @id @default(autoincrement())
-  type      AddressType @default(domicile)
-  rt        String?
-  rw        String?
-  kampung   String?
-  desa      String?
-  kecamatan String?
-  kebupaten String?
-  provinsi  String?
-  kodePos   Int?
+  id         Int         @id @default(autoincrement())
+  type       AddressType @default(domicile)
+  rt         String?
+  rw         String?
+  kampung    String?
+  desa       String?
+  kecamatan  String?
+  kebupaten  String?
+  provinsi   String?
+  kodePos    Int?
   employeeId Int
-  employee  Employee    @relation(fields: [employeeId], references: [id])
+  employee   Employee    @relation(fields: [employeeId], references: [id])
 }
 
 model Position {
@@ -134,10 +133,10 @@ model Attendance {
 }
 
 model Competency {
-  id            Int             @id @default(autoincrement())
-  employee      Employee        @relation(fields: [employeeId], references: [id])
-  employeeId    Int
-  name          String          @db.VarChar(100)
+  id             Int             @id @default(autoincrement())
+  employee       Employee        @relation(fields: [employeeId], references: [id])
+  employeeId     Int
+  name           String          @db.VarChar(100)
   certifications Certification[]
 }
 
