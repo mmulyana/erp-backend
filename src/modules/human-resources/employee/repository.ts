@@ -17,6 +17,11 @@ type Competency = z.infer<typeof createCompetencySchema>
 type UpdateCompetency = z.infer<typeof updateCompetencySchema>
 type Certification = z.infer<typeof certifchema>
 
+export type FilterEmployee = {
+  fullname?: string
+  positionId?: number
+}
+
 export default class EmployeeRepository {
   // EMPLOYEE
   create = async (payload: Employee) => {
@@ -51,10 +56,36 @@ export default class EmployeeRepository {
       throw error
     }
   }
-  readAll = async () => {
+  readAll = async (
+    page: number = 1,
+    limit: number = 10,
+    filter?: FilterEmployee
+  ) => {
     try {
-      const data = await db.employee.findMany()
-      return data
+      const skip = (page - 1) * limit
+      const where: any = {}
+
+      if (filter) {
+        if ('fullname' in filter) {
+          where.OR = [
+            { fullname: { contains: filter.fullname, mode: 'insensitive' } },
+            { nickname: { contains: filter.fullname, mode: 'insensitive' } },
+          ]
+        }
+
+        if ('positionId' in filter) {
+          where.positionId = filter.positionId
+        }
+      }
+      
+      const data = await db.employee.findMany({
+        skip,
+        take: limit,
+        where,
+      })
+
+      const total = await db.employee.count({ where })
+      return { data, total, page, limit }
     } catch (error) {
       throw error
     }

@@ -14,12 +14,8 @@ import EmployeeController from './controller'
 export default class EmployeeRouter {
   public router: Router
   private controller: EmployeeController = new EmployeeController()
-  private createComptencySchema: Validation = new Validation(
-    createCompetencySchema
-  )
-  private updateComptencySchema: Validation = new Validation(
-    updateCompetencySchema
-  )
+  private createComptencySchema: Validation = new Validation(createCompetencySchema)
+  private updateComptencySchema: Validation = new Validation(updateCompetencySchema)
   private employeeSchema: Validation = new Validation(employeeSchema)
   private positionSchema: Validation = new Validation(positionSchema)
   private addressSchema: Validation = new Validation(addressSchema)
