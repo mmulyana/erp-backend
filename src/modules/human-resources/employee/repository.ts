@@ -58,7 +58,11 @@ export default class EmployeeRepository {
           address: true,
           attendances: true,
           cashAdvances: true,
-          competencies: true,
+          competencies: {
+            include: {
+              certifications: true,
+            },
+          },
           contact: true,
           position: {
             select: {
@@ -151,7 +155,9 @@ export default class EmployeeRepository {
     try {
       if (!!addressId) {
         await this.isAddressExist(addressId)
-        const data = await db.address.findUnique({ where: { id: addressId } })
+        const data = await db.address.findUnique({
+          where: { employeeId, id: addressId },
+        })
         return data
       }
 
@@ -195,7 +201,9 @@ export default class EmployeeRepository {
     try {
       if (!!contactId) {
         await this.isContactExist(contactId)
-        const data = await db.contact.findUnique({ where: { id: contactId } })
+        const data = await db.contact.findUnique({
+          where: { employeeId, id: contactId },
+        })
         return data
       }
       const data = await db.contact.findMany({ where: { employeeId } })
@@ -293,19 +301,39 @@ export default class EmployeeRepository {
   // competencyId
   deleteCompetency = async (id: number) => {
     try {
+      const data = await db.competency.findUnique({
+        where: { id },
+        select: { certifications: true },
+      })
+      if (!!data?.certifications) {
+        await db.certification.deleteMany({ where: { competencyId: id } })
+      }
       await db.competency.delete({ where: { id } })
     } catch (error) {
       throw error
     }
   }
   // competencyId
-  readCompetency = async (id: number) => {
+  readCompetency = async (employeeId: number, id?: number) => {
     try {
+      await this.isExist(employeeId)
+
       if (!!id) {
-        const data = await db.competency.findUnique({ where: { id } })
+        await this.isCompetencyExist(id)
+        const data = await db.competency.findUnique({
+          include: {
+            certifications: true,
+          },
+          where: { employeeId, id },
+        })
         return data
       }
-      const data = await db.competency.findMany()
+      const data = await db.competency.findMany({
+        include: {
+          certifications: true,
+        },
+        where: { employeeId },
+      })
       return data
     } catch (error) {
       throw error
@@ -315,14 +343,28 @@ export default class EmployeeRepository {
   // Certif
   createCertif = async (competencyId: number, payload: Certification) => {
     try {
-      await db.certification.create({ data: { ...payload, competencyId } })
+      await db.certification.create({
+        data: {
+          ...payload,
+          expiryDate: new Date(payload.expiryDate).toISOString(),
+          issueDate: new Date(payload.issueDate).toISOString(),
+          competencyId,
+        },
+      })
     } catch (error) {
       throw error
     }
   }
   updateCertif = async (certifId: number, payload: Certification) => {
     try {
-      await db.certification.update({ data: payload, where: { id: certifId } })
+      await db.certification.update({
+        data: {
+          ...payload,
+          expiryDate: new Date(payload.expiryDate).toISOString(),
+          issueDate: new Date(payload.issueDate).toISOString(),
+        },
+        where: { id: certifId },
+      })
     } catch (error) {
       throw error
     }
@@ -334,15 +376,19 @@ export default class EmployeeRepository {
       throw error
     }
   }
-  readCertif = async (certifId?: number) => {
+  readCertif = async (competencyId: number, certifId?: number) => {
     try {
       if (!!certifId) {
+        await this.isCertifExist(certifId)
         const data = await db.certification.findUnique({
-          where: { id: certifId },
+          where: {
+            competencyId,
+            id: certifId,
+          },
         })
         return data
       }
-      const data = await db.certification.findMany()
+      const data = await db.certification.findMany({ where: { competencyId } })
       return data
     } catch (error) {
       throw error
@@ -364,5 +410,13 @@ export default class EmployeeRepository {
   private isPositionExist = async (id: number) => {
     const data = await db.position.findUnique({ where: { id } })
     if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.POSITION_NOT_FOUND)
+  }
+  private isCompetencyExist = async (id: number) => {
+    const data = await db.competency.findUnique({ where: { id } })
+    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.COMPETENCY_NOT_FOUND)
+  }
+  private isCertifExist = async (id: number) => {
+    const data = await db.certification.findUnique({ where: { id } })
+    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.CERTIF_NOT_FOUND)
   }
 }
