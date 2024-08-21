@@ -52,6 +52,7 @@ export default class PositionRepository {
     try {
       const data = await db.position.findMany({
         select: {
+          id: true,
           name: true,
           description: true,
           _count: {
