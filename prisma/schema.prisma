@@ -167,7 +167,7 @@ model Leave {
   startDate   DateTime     @db.Date
   endDate     DateTime     @db.Date
   leaveType   LeaveType
-  status      Status
+  status      Status       @default(pending)
   attendances Attendance[]
 }
 
