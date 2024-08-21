@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
-import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
-import ApiResponse from '../../../helper/api-response'
 import EmployeeRepository, { FilterEmployee } from './repository'
-import type { Employee } from '@prisma/client'
+import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
+import { MESSAGE_ERROR } from '../../../utils/constant/error'
+import ApiResponse from '../../../helper/api-response'
 
 export default class EmployeeController {
   private response: ApiResponse = new ApiResponse()
@@ -192,17 +192,28 @@ export default class EmployeeController {
 
   activeHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params
-      await this.repository.updateStatusEmployee(Number(id), 'active')
+      const { employeeId } = req.params
+      await this.repository.updateStatusEmployee(Number(employeeId), 'active')
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ACTIVE)
-    } catch (error) {
+    } catch (error: any) {
+      if (
+        [
+          MESSAGE_ERROR.EMPLOYEE.STATUS.ACTIVE,
+          MESSAGE_ERROR.EMPLOYEE.STATUS.UNACTIVE,
+        ].includes(error?.message)
+      ) {
+        error.code = 400
+      }
       next(error)
     }
   }
   unactiveHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params
-      await this.repository.updateStatusEmployee(Number(id), 'nonactive')
+      const { employeeId } = req.params
+      await this.repository.updateStatusEmployee(
+        Number(employeeId),
+        'nonactive'
+      )
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.UNACTIVE)
     } catch (error) {
       next(error)
@@ -214,8 +225,8 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      const { id } = req.params
-      const data = await this.repository.readEmployeeTrack(Number(id))
+      const { employeeId } = req.params
+      const data = await this.repository.readEmployeeTrack(Number(employeeId))
       return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.TRACK, data)
     } catch (error) {
       next(error)
@@ -248,10 +259,8 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      await this.repository.updateCompetency({
-        id: Number(req.body.id),
-        name: req.body.name,
-      })
+      const { competencyId } = req.params
+      await this.repository.updateCompetency(Number(competencyId), req.body)
       return this.response.success(
         res,
         MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.UPDATE
