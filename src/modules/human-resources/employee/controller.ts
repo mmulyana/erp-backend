@@ -67,19 +67,8 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      const { id } = req.params
-      const payload = {
-        type: req.body.type || undefined,
-        rt: req.body.rt || undefined,
-        rw: req.body.rw || undefined,
-        kampung: req.body.kampung || undefined,
-        desa: req.body.desa || undefined,
-        kecamatan: req.body.kecamatan || undefined,
-        kebupaten: req.body.kebupaten || undefined,
-        provinsi: req.body.provinsi || undefined,
-        kodePos: req.body.kodePos || undefined,
-      }
-      await this.repository.createAddress(Number(id), payload)
+      const { employeeId } = req.params
+      await this.repository.createAddress(Number(employeeId), req.body)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.CREATE)
     } catch (error) {
       next(error)
@@ -91,18 +80,8 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      const payload = {
-        type: req.body.type || undefined,
-        rt: req.body.rt || undefined,
-        rw: req.body.rw || undefined,
-        kampung: req.body.kampung || undefined,
-        desa: req.body.desa || undefined,
-        kecamatan: req.body.kecamatan || undefined,
-        kebupaten: req.body.kebupaten || undefined,
-        provinsi: req.body.provinsi || undefined,
-        kodePos: req.body.kodePos || undefined,
-      }
-      await this.repository.updateAddress(Number(req.body.id), payload)
+      const { addressId } = req.params
+      await this.repository.updateAddress(Number(addressId), req.body)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.UPDATE)
     } catch (error) {
       next(error)
@@ -127,8 +106,12 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
+      const { employeeId } = req.params
       const { addressId } = req.query
-      const data = await this.repository.readAddress(Number(addressId))
+      const data = await this.repository.readAddress(
+        Number(employeeId),
+        Number(addressId)
+      )
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.READ, data)
     } catch (error) {
       next(error)
@@ -141,12 +124,8 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      const { id } = req.params
-      const payload = {
-        type: req.body.type || undefined,
-        value: req.body.value,
-      }
-      await this.repository.createContact(Number(id), payload)
+      const { employeeId } = req.params
+      await this.repository.createContact(Number(employeeId), req.body)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.CREATE)
     } catch (error) {
       next(error)
@@ -158,11 +137,8 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      const payload = {
-        type: req.body.type || undefined,
-        value: req.body.value,
-      }
-      await this.repository.updateContact(Number(req.body.id), payload)
+      const { contactId } = req.params
+      await this.repository.updateContact(Number(contactId), req.body)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.UPDATE)
     } catch (error) {
       next(error)
@@ -174,7 +150,7 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      const { contactId } = req.body
+      const { contactId } = req.params
       await this.repository.deleteContact(Number(contactId))
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.REMOVE)
     } catch (error) {
@@ -188,7 +164,11 @@ export default class EmployeeController {
   ) => {
     try {
       const { contactId } = req.query
-      const data = await this.repository.readContact(Number(contactId))
+      const { employeeId } = req.params
+      const data = await this.repository.readContact(
+        Number(employeeId),
+        Number(contactId)
+      )
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.READ, data)
     } catch (error) {
       next(error)
