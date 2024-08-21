@@ -265,8 +265,8 @@ export default class EmployeeRepository {
         await db.certification.createMany({
           data: payload.certifications.map((certif: any) => ({
             competencyId: data.id,
-            expiryDate: certif.expiryDate,
-            issueDate: certif.issueDate,
+            expiryDate: new Date(certif.expiryDate).toISOString(),
+            issueDate: new Date(certif.issueDate).toISOString(),
             issuingOrganization: certif.issuingOrganization,
             name: certif.name,
           })),
