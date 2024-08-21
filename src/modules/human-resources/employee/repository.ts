@@ -5,6 +5,7 @@ import {
   employeeSchema,
   createCompetencySchema,
   updateCompetencySchema,
+  certifchema,
 } from './schema'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import db from '../../../lib/db'
@@ -14,6 +15,7 @@ type Contact = z.infer<typeof contactSchema>
 type Address = z.infer<typeof addressSchema>
 type Competency = z.infer<typeof createCompetencySchema>
 type UpdateCompetency = z.infer<typeof updateCompetencySchema>
+type Certification = z.infer<typeof certifchema>
 
 export default class EmployeeRepository {
   // EMPLOYEE
@@ -187,6 +189,7 @@ export default class EmployeeRepository {
     }
   }
 
+  // Competency
   createCompetency = async (employeeId: number, payload: Competency) => {
     try {
       const data = await db.competency.create({
@@ -232,11 +235,48 @@ export default class EmployeeRepository {
   // competencyId
   readCompetency = async (id: number) => {
     try {
-      if(!!id) {
-        const data = await db.competency.findUnique({where: {id}})
+      if (!!id) {
+        const data = await db.competency.findUnique({ where: { id } })
         return data
       }
       const data = await db.competency.findMany()
+      return data
+    } catch (error) {
+      throw error
+    }
+  }
+
+  // Certif
+  createCertif = async (competencyId: number, payload: Certification) => {
+    try {
+      await db.certification.create({ data: { ...payload, competencyId } })
+    } catch (error) {
+      throw error
+    }
+  }
+  updateCertif = async (certifId: number, payload: Certification) => {
+    try {
+      await db.certification.update({ data: payload, where: { id: certifId } })
+    } catch (error) {
+      throw error
+    }
+  }
+  deleteCertif = async (certifId: number) => {
+    try {
+      await db.certification.delete({ where: { id: certifId } })
+    } catch (error) {
+      throw error
+    }
+  }
+  readCertif = async (certifId?: number) => {
+    try {
+      if (!!certifId) {
+        const data = await db.certification.findUnique({
+          where: { id: certifId },
+        })
+        return data
+      }
+      const data = await db.certification.findMany()
       return data
     } catch (error) {
       throw error
