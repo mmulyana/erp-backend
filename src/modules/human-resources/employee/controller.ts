@@ -294,7 +294,10 @@ export default class EmployeeController {
     try {
       const { competencyId } = req.params
       await this.repository.deleteCompetency(Number(competencyId))
-      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.DELETE)
+      return this.response.success(
+        res,
+        MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.DELETE
+      )
     } catch (error) {
       next(error)
     }
@@ -307,7 +310,68 @@ export default class EmployeeController {
     try {
       const { competencyId } = req.query
       const data = await this.repository.readCompetency(Number(competencyId))
-      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.READ, data)
+      return this.response.success(
+        res,
+        MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.READ,
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  createCertifHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { competencyId } = req.params
+      await this.repository.createCertif(Number(competencyId), req.body)
+      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CERTIF.CREATE)
+    } catch (error) {
+      next(error)
+    }
+  }
+  updateCertifHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { certifId } = req.params
+      await this.repository.updateCertif(Number(certifId), req.body)
+      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CERTIF.UPDATE)
+    } catch (error) {
+      next(error)
+    }
+  }
+  deleteCertifHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { certifId } = req.params
+      await this.repository.deleteCertif(Number(certifId))
+      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CERTIF.DELETE)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readCertifHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { certifId } = req.query
+      const data = await this.repository.readCertif(Number(certifId))
+      return this.response.success(
+        res,
+        MESSAGE_SUCCESS.EMPLOYEE.CERTIF.READ,
+        data
+      )
     } catch (error) {
       next(error)
     }
