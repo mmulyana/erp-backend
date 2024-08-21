@@ -41,4 +41,10 @@ export const MESSAGE_SUCCESS = {
       READ: "Sertifikat berhasil didapatkan"
     }
   },
+  LEAVE: {
+    CREATE: "Cuti berhasil dibuat",
+    UPDATE: "Cuti berhasil diubah",
+    DELETE: "Cuti berhasil dihapus",
+    READ: "Cuti berhasil didapatkan",
+  }
 }
