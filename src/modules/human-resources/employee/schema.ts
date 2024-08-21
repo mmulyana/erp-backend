@@ -46,15 +46,13 @@ export const createCompetencySchema = z.object({
       name: z.string(),
       issuingOrganization: z.string(),
       issueDate: z.string(),
-      expiryDate: z.string(),
-      competencyId: z.number(),
+      expiryDate: z.string()
     })
     .array()
     .optional(),
 })
 
 export const updateCompetencySchema = z.object({
-  id: z.number(),
   name: z.string(),
 })
 
