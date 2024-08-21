@@ -60,6 +60,12 @@ export default class EmployeeRepository {
           cashAdvances: true,
           competencies: true,
           contact: true,
+          position: {
+            select: {
+              name: true,
+              description: true,
+            },
+          },
         },
         where: { id },
       })
@@ -213,7 +219,18 @@ export default class EmployeeRepository {
     try {
       await this.isExist(id)
       const date = new Date().toISOString()
+
+      const data = await db.employee.findUnique({ where: { id } })
+      if (status == 'active') {
+        if (!!data?.status) {
+          throw new Error(MESSAGE_ERROR.EMPLOYEE.STATUS.ACTIVE)
+        }
+      } else if (status == 'nonactive' && !data?.status) {
+        throw new Error(MESSAGE_ERROR.EMPLOYEE.STATUS.UNACTIVE)
+      }
+
       await db.employee.update({ data: { status }, where: { id } })
+
       await db.employeeStatusTrack.create({
         data: {
           status,
@@ -259,14 +276,14 @@ export default class EmployeeRepository {
       throw error
     }
   }
-  updateCompetency = async (payload: UpdateCompetency) => {
+  updateCompetency = async (id: number, payload: UpdateCompetency) => {
     try {
       await db.competency.update({
         data: {
           name: payload.name,
         },
         where: {
-          id: payload.id,
+          id,
         },
       })
     } catch (error) {
