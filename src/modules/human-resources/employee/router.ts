@@ -46,14 +46,14 @@ export default class EmployeeRouter {
 
     this.router.patch('/position/:id',this.positionSchema.validate,this.controller.positionHandler)
 
-    this.router.patch('/status/active/:id', this.controller.activeHandler)
-    this.router.patch('/status/unactive/:id', this.controller.unactiveHandler)
-    this.router.get('/status/track/:id', this.controller.employeeTrackHandler)
+    this.router.patch('/status/active/:employeeId', this.controller.activeHandler)
+    this.router.patch('/status/unactive/:employeeId', this.controller.unactiveHandler)
+    this.router.get('/status/track/:employeeId', this.controller.employeeTrackHandler)
 
     this.router.post('/competency/:employeeId',this.createComptencySchema.validate,this.controller.createCompetencyHandler)
-    this.router.patch('/competency',this.updateComptencySchema.validate,this.controller.updateCompetencyHandler)
+    this.router.patch('/competency/:competencyId',this.updateComptencySchema.validate,this.controller.updateCompetencyHandler)
     this.router.delete('/competency/:competencyId',this.controller.deleteCompetencyHandler)
-    this.router.get('/competency', this.controller.readCompetencyHandler)
+    this.router.get('/competency/:employeeId', this.controller.readCompetencyHandler)
 
     this.router.post('/certification/:competencyId', this.certifSchema.validate, this.controller.createCertifHandler)
     this.router.patch('/certification/:certifId', this.certifSchema.validate, this.controller.updateCertifHandler)
