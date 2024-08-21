@@ -12,6 +12,10 @@ export const MESSAGE_ERROR = {
     NOT_FOUND: "Pegawai tidak ditemukan",
     ADDRESS_NOT_FOUND: "Alamat pegawai ini tidak ditemukan",
     CONTACT_NOT_FOUND: "Kontak pegawai ini tidak ditemukan",
-    POSITION_NOT_FOUND: "Posisi yang diambil tidak ada"
+    POSITION_NOT_FOUND: "Posisi yang diambil tidak ada",
+    STATUS: {
+      ACTIVE: "Pegawai masih aktif",
+      UNACTIVE: "Pegawai masih nonaktif"
+    }
   }
 }
