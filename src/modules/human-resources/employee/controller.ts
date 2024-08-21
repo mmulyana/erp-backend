@@ -234,4 +234,17 @@ export default class EmployeeController {
       next(error)
     }
   }
+  employeeTrackHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readEmployeeTrack(Number(id))
+      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.TRACK, data)
+    } catch (error) {
+      next(error)
+    }
+  }
 }
