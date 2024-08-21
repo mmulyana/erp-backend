@@ -27,5 +27,6 @@ export const MESSAGE_SUCCESS = {
     POSITION: 'Berhasil menambahkan posisi',
     ACTIVE: 'Berhasil mengaktifkan pegawai ini',
     UNACTIVE: 'Berhasil menonaktifkan pegawai ini',
+    TRACK: 'Data log activasi berhasil didapatkan',
   },
 }
