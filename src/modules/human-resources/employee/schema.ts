@@ -16,7 +16,6 @@ export const contactSchema = z.object({
 })
 
 export const addressSchema = z.object({
-  id: z.number().optional(),
   type: z.enum(['domicile', 'origin']).optional(),
   rt: z.string().optional(),
   rw: z.string().optional(),

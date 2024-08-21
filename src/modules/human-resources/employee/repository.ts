@@ -50,7 +50,19 @@ export default class EmployeeRepository {
   read = async (id: number) => {
     try {
       await this.isExist(id)
-      const data = await db.employee.findUnique({ where: { id } })
+      const data = await db.employee.findUnique({
+        select: {
+          fullname: true,
+          nickname: true,
+          salary: true,
+          address: true,
+          attendances: true,
+          cashAdvances: true,
+          competencies: true,
+          contact: true,
+        },
+        where: { id },
+      })
       return data
     } catch (error) {
       throw error
@@ -77,11 +89,17 @@ export default class EmployeeRepository {
           where.positionId = filter.positionId
         }
       }
-      
+
       const data = await db.employee.findMany({
         skip,
         take: limit,
         where,
+        select: {
+          fullname: true,
+          nickname: true,
+          salary: true,
+          status: true,
+        },
       })
 
       const total = await db.employee.count({ where })
@@ -123,7 +141,7 @@ export default class EmployeeRepository {
       throw error
     }
   }
-  readAddress = async (id: number, addressId?: number) => {
+  readAddress = async (employeeId: number, addressId?: number) => {
     try {
       if (!!addressId) {
         await this.isAddressExist(addressId)
@@ -133,7 +151,7 @@ export default class EmployeeRepository {
 
       const data = await db.address.findMany({
         where: {
-          employeeId: id,
+          employeeId,
         },
       })
       return data
@@ -167,14 +185,14 @@ export default class EmployeeRepository {
       throw error
     }
   }
-  readContact = async (contactId?: number) => {
+  readContact = async (employeeId: number, contactId?: number) => {
     try {
       if (!!contactId) {
         await this.isContactExist(contactId)
         const data = await db.contact.findUnique({ where: { id: contactId } })
         return data
       }
-      const data = await db.contact.findMany()
+      const data = await db.contact.findMany({ where: { employeeId } })
       return data
     } catch (error) {
       throw error
