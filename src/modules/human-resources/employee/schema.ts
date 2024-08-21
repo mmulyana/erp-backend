@@ -10,13 +10,13 @@ export const employeeSchema = z.object({
   positionId: z.number().optional(),
 })
 
-export const ContactSchema = z.object({
+export const contactSchema = z.object({
   id: z.number().optional(),
   type: z.enum(['email', 'phoneNumber', 'socialMedia']).optional(),
   value: z.string(),
 })
 
-export const AddressSchema = z.object({
+export const addressSchema = z.object({
   id: z.number().optional(),
   type: z.enum(['domicile', 'origin']).optional(),
   rt: z.string().optional(),
@@ -29,11 +29,11 @@ export const AddressSchema = z.object({
   kodePos: z.number().optional(),
 })
 
-export const DeleteAddressSchema = z.object({
+export const deleteAddressSchema = z.object({
   addressId: z.number(),
 })
 
-export const DeleteContactSchema = z.object({
+export const deleteContactSchema = z.object({
   contactId: z.number(),
 })
 
@@ -41,7 +41,7 @@ export const positionSchema = z.object({
   positionId: z.number(),
 })
 
-export const createCompetency = z.object({
+export const createCompetencySchema = z.object({
   name: z.string(),
   certifications: z
     .object({
@@ -49,22 +49,13 @@ export const createCompetency = z.object({
       issuingOrganization: z.string(),
       issueDate: z.string(),
       expiryDate: z.string(),
+      competencyId: z.number(),
     })
     .array()
     .optional(),
 })
 
-export const updateCompetency = z.object({
+export const updateCompetencySchema = z.object({
   id: z.number(),
   name: z.string(),
-  certifications: z
-    .object({
-      id: z.number(),
-      name: z.string(),
-      issuingOrganization: z.string(),
-      issueDate: z.string(),
-      expiryDate: z.string(),
-    })
-    .array()
-    .optional(),
 })
