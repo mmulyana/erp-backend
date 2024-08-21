@@ -367,4 +367,18 @@ export default class EmployeeController {
       next(error)
     }
   }
+
+  readLeaveHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { employeeId } = req.params
+      const data = await this.repository.readLeave(Number(employeeId))
+      return this.response.success(res, MESSAGE_SUCCESS.LEAVE.READ, data)
+    } catch (error) {
+      next(error)
+    }
+  }
 }
