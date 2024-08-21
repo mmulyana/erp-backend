@@ -395,6 +395,16 @@ export default class EmployeeRepository {
     }
   }
 
+  readLeave = async (employeeId: number) => {
+    try {
+      await this.isExist(employeeId)
+      const data = await db.leave.findMany({ where: { employeeId } })
+      return data
+    } catch (error) {
+      throw error
+    }
+  }
+
   private isExist = async (id: number) => {
     const data = await db.employee.findUnique({ where: { id } })
     if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.NOT_FOUND)
