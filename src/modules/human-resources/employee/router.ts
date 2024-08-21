@@ -34,15 +34,15 @@ export default class EmployeeRouter {
     this.router.get('/', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readHandler)
 
-    this.router.post('/address/:id',this.addressSchema.validate,this.controller.createAddressHandler)
-    this.router.patch('/address',this.addressSchema.validate,this.controller.updateAddressHandler)
-    this.router.delete('/address/:addressId',this.controller.deleteAddressHandler)
-    this.router.get('/address')
+    this.router.post('/address/:employeeId', this.addressSchema.validate,this.controller.createAddressHandler)
+    this.router.patch('/address/:addressId', this.addressSchema.validate,this.controller.updateAddressHandler)
+    this.router.delete('/address/:addressId', this.controller.deleteAddressHandler)
+    this.router.get('/address/:employeeId', this.controller.readAddressHandler)
 
-    this.router.post('/contact/:id',this.contactSchema.validate,this.controller.createContactHandler)
-    this.router.patch('/contact',this.contactSchema.validate,this.controller.updateContactHandler)
+    this.router.post('/contact/:employeeId',this.contactSchema.validate,this.controller.createContactHandler)
+    this.router.patch('/contact/:contactId',this.contactSchema.validate,this.controller.updateContactHandler)
     this.router.delete('/contact/:contactId',this.controller.deleteContactHandler)
-    this.router.get('/contact', this.controller.readContactHandler)
+    this.router.get('/contact/:employeeId', this.controller.readContactHandler)
 
     this.router.patch('/position/:id',this.positionSchema.validate,this.controller.positionHandler)
 
