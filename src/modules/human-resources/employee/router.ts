@@ -37,6 +37,7 @@ export default class EmployeeRouter {
 
     this.router.patch('/status/active/:id', this.controller.activeHandler)
     this.router.patch('/status/unactive/:id', this.controller.unactiveHandler)
+    this.router.get('/status/track/:id', this.controller.employeeTrackHandler)
 
     this.router.post('/competency/:id')
     this.router.patch('/competency/:id')
