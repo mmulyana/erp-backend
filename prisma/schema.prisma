@@ -218,4 +218,5 @@ enum ContactType {
 enum AddressType {
   domicile
   origin
+  alternative
 }

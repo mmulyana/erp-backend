@@ -26,6 +26,8 @@ export const ErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     message = err.message
   }
 
+  if(err.message.includes("ditemukan")) code = 404
+
   res.status(code).json({
     status: code,
     message,
