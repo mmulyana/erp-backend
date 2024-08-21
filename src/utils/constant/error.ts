@@ -13,6 +13,8 @@ export const MESSAGE_ERROR = {
     ADDRESS_NOT_FOUND: "Alamat pegawai ini tidak ditemukan",
     CONTACT_NOT_FOUND: "Kontak pegawai ini tidak ditemukan",
     POSITION_NOT_FOUND: "Posisi yang diambil tidak ada",
+    COMPETENCY_NOT_FOUND: "Kompetensi tidak ditemukan",
+    CERTIF_NOT_FOUND: "Sertifikasi tidak ditemukan",
     STATUS: {
       ACTIVE: "Pegawai masih aktif",
       UNACTIVE: "Pegawai masih nonaktif"
