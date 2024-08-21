@@ -43,8 +43,8 @@ export default class EmployeeRouter {
 
     this.router.post('/competency/:employeeId', this.createComptencySchema.validate, this.controller.createCompetencyHandler)
     this.router.patch('/competency', this.updateComptencySchema.validate, this.controller.updateCompetencyHandler)
-    this.router.delete('/competency/:competencyId')
-    this.router.get('/competency')
+    this.router.delete('/competency/:competencyId', this.controller.deleteCompetencyHandler)
+    this.router.get('/competency', this.controller.readCompetencyHandler)
 
     this.router.post('/certification/:competencyId')
     this.router.patch('/certification/:certifId')
