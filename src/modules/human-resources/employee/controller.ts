@@ -292,7 +292,11 @@ export default class EmployeeController {
   ) => {
     try {
       const { competencyId } = req.query
-      const data = await this.repository.readCompetency(Number(competencyId))
+      const { employeeId } = req.params
+      const data = await this.repository.readCompetency(
+        Number(employeeId),
+        Number(competencyId)
+      )
       return this.response.success(
         res,
         MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.READ,
@@ -349,7 +353,11 @@ export default class EmployeeController {
   ) => {
     try {
       const { certifId } = req.query
-      const data = await this.repository.readCertif(Number(certifId))
+      const { competencyId } = req.params
+      const data = await this.repository.readCertif(
+        Number(competencyId),
+        Number(certifId)
+      )
       return this.response.success(
         res,
         MESSAGE_SUCCESS.EMPLOYEE.CERTIF.READ,
