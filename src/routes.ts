@@ -10,6 +10,7 @@ import PermissionGroupRoutes from './modules/roles-permissions/permission-group/
 
 import PositionRoutes from './modules/human-resources/position/router'
 import EmployeeRoutes from './modules/human-resources/employee/router'
+import LeaveRoutes from './modules/human-resources/leave/router'
 
 interface RouteConfig {
   path: string
@@ -30,7 +31,8 @@ export function setupRoutes(
     { path: '/permission', router: new PermissionRoutes().router, auth: true },
     { path: '/permission-group', router: new PermissionGroupRoutes().router, auth: true },
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },
-    { path: '/hris/employee', router: new EmployeeRoutes().router, auth: true }
+    { path: '/hris/employee', router: new EmployeeRoutes().router, auth: true },
+    { path: '/hris/leave', router: new LeaveRoutes().router, auth: true }
   ]
 
   routes.forEach(({ path, router, auth }) => {
