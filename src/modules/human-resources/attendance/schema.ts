@@ -2,8 +2,10 @@ import { z } from 'zod'
 
 export const attendanceSchema = z.object({
   employeeId: z.number(),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
-  leaveType: z.enum(['vacation', 'sick', 'personal', 'maternity', 'paternity']),
-  status: z.enum(['pending', 'approved', 'rejected']),
+  date: z.string().date(),
+  timeIn: z.string(),
+  timeOut: z.string(),
+  period: z.number(),
+  isOnLeave: z.boolean().optional(),
+  leaveId: z.number().optional(),
 })
