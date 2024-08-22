@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
 import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import ApiResponse from '../../../helper/api-response'
 import LeaveRepository from './repository'
 
