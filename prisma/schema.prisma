@@ -121,15 +121,15 @@ model Position {
 }
 
 model Attendance {
-  id         Int       @id @default(autoincrement())
-  employee   Employee  @relation(fields: [employeeId], references: [id])
+  id         Int      @id @default(autoincrement())
+  employee   Employee @relation(fields: [employeeId], references: [id])
   employeeId Int
-  date       DateTime  @db.Date
-  timeIn     DateTime? @db.Time
-  timeOut    DateTime? @db.Time
-  period     Int       @default(1)
-  isOnLeave  Boolean
-  leave      Leave?    @relation(fields: [leaveId], references: [id])
+  date       DateTime @db.Date
+  timeIn     String
+  timeOut    String
+  period     Int
+  isOnLeave  Boolean? @default(false)
+  leave      Leave?   @relation(fields: [leaveId], references: [id])
   leaveId    Int?
 }
 
@@ -185,7 +185,7 @@ model ActivityLog {
 
 model EmployeeStatusTrack {
   id         Int            @id @default(autoincrement())
-  date       DateTime       @default(now()) @db.DateTime()
+  date       DateTime
   status     EmployeeStatus
   employeeId Int
   employee   Employee       @relation(fields: [employeeId], references: [id])
