@@ -26,4 +26,7 @@ export const MESSAGE_ERROR = {
   ATTENDANCE: {
     NOT_FOUND: 'daftar hadir tidak ditemukan',
   },
+  CASH_ADVANCE: {
+    NOT_FOUND: 'kasbon tidak ditemukan',
+  },
 }
