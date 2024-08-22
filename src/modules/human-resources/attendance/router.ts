@@ -6,7 +6,7 @@ import Validation from '../../../helper/validation'
 export default class AttendanceRouter {
   public router: Router
   private attendanceSchema: Validation = new Validation(attendanceSchema)
-    private controller: AttendanceController = new AttendanceController()
+  private controller: AttendanceController = new AttendanceController()
 
   constructor() {
     this.router = Router()

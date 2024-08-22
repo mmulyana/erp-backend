@@ -12,6 +12,7 @@ import PositionRoutes from './modules/human-resources/position/router'
 import EmployeeRoutes from './modules/human-resources/employee/router'
 import LeaveRoutes from './modules/human-resources/leave/router'
 import AttendanceRoutes from './modules/human-resources/attendance/router'
+import CashAdvanceRoutes from './modules/human-resources/cash-advance/router'
 
 interface RouteConfig {
   path: string
@@ -34,7 +35,8 @@ export function setupRoutes(
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },
     { path: '/hris/employee', router: new EmployeeRoutes().router, auth: true },
     { path: '/hris/leave', router: new LeaveRoutes().router, auth: true },
-    { path: '/hris/attendance', router: new AttendanceRoutes().router, auth: true }
+    { path: '/hris/attendance', router: new AttendanceRoutes().router, auth: true },
+    { path: '/hris/cash-advance', router: new CashAdvanceRoutes().router, auth: true }
   ]
 
   routes.forEach(({ path, router, auth }) => {
