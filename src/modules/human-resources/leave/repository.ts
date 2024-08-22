@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { leaveSchema } from './schema'
 import db from '../../../lib/db'
+import { MESSAGE_ERROR } from '../../../utils/constant/error'
 
 type Leave = z.infer<typeof leaveSchema>
 
@@ -14,6 +15,7 @@ export default class LeaveRepository {
   }
   update = async (id: number, payload: Leave) => {
     try {
+      await this.isExist(id)
       await db.leave.update({ data: payload, where: { id } })
     } catch (error) {
       throw error
@@ -21,6 +23,7 @@ export default class LeaveRepository {
   }
   delete = async (id: number) => {
     try {
+      await this.isExist(id)
       await db.leave.delete({ where: { id } })
     } catch (error) {
       throw error
@@ -29,6 +32,7 @@ export default class LeaveRepository {
   read = async (id?: number) => {
     try {
       if (!!id) {
+        await this.isExist(id)
         const data = await db.leave.findUnique({ where: { id } })
         return data
       }
@@ -37,5 +41,10 @@ export default class LeaveRepository {
     } catch (error) {
       throw error
     }
+  }
+
+  private isExist = async (id: number) => {
+    const data = await db.leave.findUnique({ where: { id } })
+    if (!data) throw Error(MESSAGE_ERROR.LEAVE.NOT_FOUND)
   }
 }
