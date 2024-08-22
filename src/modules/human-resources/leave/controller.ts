@@ -4,7 +4,7 @@ import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import ApiResponse from '../../../helper/api-response'
 import LeaveRepository from './repository'
 
-export default class EmployeeController {
+export default class LeaveController {
   private response: ApiResponse = new ApiResponse()
   private repository: LeaveRepository = new LeaveRepository()
 
