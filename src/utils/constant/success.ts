@@ -29,22 +29,34 @@ export const MESSAGE_SUCCESS = {
     UNACTIVE: 'Berhasil menonaktifkan pegawai ini',
     TRACK: 'Data log activasi berhasil didapatkan',
     COMPETENCY: {
-      CREATE: "Kompetensi berhasil ditambahkan",
-      UPDATE: "Kompetensi berhasil diubah",
-      DELETE: "Kompetensi berhasil dihapus",
-      READ: "Kompetensi berhasil didapat"
+      CREATE: 'Kompetensi berhasil ditambahkan',
+      UPDATE: 'Kompetensi berhasil diubah',
+      DELETE: 'Kompetensi berhasil dihapus',
+      READ: 'Kompetensi berhasil didapat',
     },
     CERTIF: {
-      CREATE: "Sertifikat berhasil ditambahkan",
-      UPDATE: "Sertifikat berhasil diubah",
-      DELETE: "Sertifikat berhasil dihapus",
-      READ: "Sertifikat berhasil didapatkan"
-    }
+      CREATE: 'Sertifikat berhasil ditambahkan',
+      UPDATE: 'Sertifikat berhasil diubah',
+      DELETE: 'Sertifikat berhasil dihapus',
+      READ: 'Sertifikat berhasil didapatkan',
+    },
   },
   LEAVE: {
-    CREATE: "Cuti berhasil dibuat",
-    UPDATE: "Cuti berhasil diubah",
-    DELETE: "Cuti berhasil dihapus",
-    READ: "Cuti berhasil didapatkan",
-  }
+    CREATE: 'Cuti berhasil dibuat',
+    UPDATE: 'Cuti berhasil diubah',
+    DELETE: 'Cuti berhasil dihapus',
+    READ: 'Cuti berhasil didapatkan',
+  },
+  ATTENDANCE: {
+    CREATE: 'data kehadiaran berhasil disimpan',
+    UPDATE: 'data kehadiaran berhasil diubah',
+    DELETE: 'data kehadiaran berhasil dihapus',
+    READ: 'data kehadiaran berhasil didapatkan',
+  },
+  CASH_ADVANCE: {
+    CREATE: 'kasbon berhasil disimpan',
+    UPDATE: 'kasbon berhasil diubah',
+    DELETE: 'kasbon berhasil dihapus',
+    READ: 'kasbon berhasil didapatkan',
+  },
 }
