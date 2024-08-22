@@ -8,11 +8,11 @@ import UserRoleRoutes from './modules/roles-permissions/user-role/router'
 import PermissionRoutes from './modules/roles-permissions/permission/router'
 import PermissionGroupRoutes from './modules/roles-permissions/permission-group/router'
 
-import PositionRoutes from './modules/human-resources/position/router'
-import EmployeeRoutes from './modules/human-resources/employee/router'
-import LeaveRoutes from './modules/human-resources/leave/router'
-import AttendanceRoutes from './modules/human-resources/attendance/router'
-import CashAdvanceRoutes from './modules/human-resources/cash-advance/router'
+import PositionRoutes from './modules/hris/position/router'
+import EmployeeRoutes from './modules/hris/employee/router'
+import LeaveRoutes from './modules/hris/leave/router'
+import AttendanceRoutes from './modules/hris/attendance/router'
+import CashAdvanceRoutes from './modules/hris/cash-advance/router'
 
 interface RouteConfig {
   path: string
