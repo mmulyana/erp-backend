@@ -23,4 +23,7 @@ export const MESSAGE_ERROR = {
   LEAVE: {
     NOT_FOUND: 'Cuti tidak ditemukan',
   },
+  ATTENDANCE: {
+    NOT_FOUND: 'daftar hadir tidak ditemukan',
+  },
 }
