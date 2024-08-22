@@ -127,6 +127,7 @@ model Attendance {
   date       DateTime  @db.Date
   timeIn     DateTime? @db.Time
   timeOut    DateTime? @db.Time
+  period     Int       @default(1)
   isOnLeave  Boolean
   leave      Leave?    @relation(fields: [leaveId], references: [id])
   leaveId    Int?
