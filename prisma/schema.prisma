@@ -73,21 +73,55 @@ model PermissionGroup {
 
 // HRIS Module
 model Employee {
-  id           Int                   @id @default(autoincrement())
-  fullname     String                @db.VarChar(50)
-  nickname     String?               @db.VarChar(50)
-  hireDate     DateTime?             @db.Date
-  salary       Decimal?              @db.Decimal(10, 2)
-  status       EmployeeStatus        @default(active)
-  position     Position?             @relation(fields: [positionId], references: [id])
-  positionId   Int?
-  attendances  Attendance[]
-  competencies Competency[]
-  cashAdvances CashAdvance[]
-  leaves       Leave[]
-  contact      Contact[]
-  address      Address[]
-  statusTracks EmployeeStatusTrack[]
+  id                 Int                   @id @default(autoincrement())
+  fullname           String                @db.VarChar(50)
+  nickname           String?               @db.VarChar(50)
+  hireDate           DateTime?             @db.Date
+  salary_per_month   Decimal?              @db.Decimal(10, 2)
+  salary_per_day     Decimal?              @db.Decimal(10, 2)
+  salary_per_hour    Decimal?              @db.Decimal(10, 2)
+  status             EmployeeStatus        @default(active)
+  place_of_birth     String?
+  birthdate          String?
+  gender             Gender?
+  marital_status     MaritalStatus?
+  nik                String?
+  kk                 String?
+  religion           String?
+  positionId         Int?
+  position           Position?             @relation(fields: [positionId], references: [id])
+  attendances        Attendance[]
+  cashAdvances       CashAdvance[]
+  leaves             Leave[]
+  contact            Contact[]
+  address            Address[]
+  statusTracks       EmployeeStatusTrack[]
+  employeeCompetency EmployeeCompetency[]
+}
+
+model EmployeeCompetency {
+  id              Int           @id @default(autoincrement())
+  employeeId      Int
+  competencyId    Int
+  certificationId Int
+  employee        Employee      @relation(fields: [employeeId], references: [id])
+  competency      Competency    @relation(fields: [competencyId], references: [id])
+  certification   Certification @relation(fields: [certificationId], references: [id])
+}
+
+model Competency {
+  id                 Int                  @id @default(autoincrement())
+  name               String               @db.VarChar(100)
+  EmployeeCompetency EmployeeCompetency[]
+}
+
+model Certification {
+  id                  Int                  @id @default(autoincrement())
+  name                String               @db.VarChar(100)
+  issuingOrganization String               @db.VarChar(100)
+  issueDate           DateTime             @db.Date
+  expiryDate          DateTime             @db.Date
+  EmployeeCompetency  EmployeeCompetency[]
 }
 
 model Contact {
@@ -95,6 +129,7 @@ model Contact {
   type       ContactType @default(phoneNumber)
   value      String
   employeeId Int
+  isPrimary  Boolean     @default(false)
   employee   Employee    @relation(fields: [employeeId], references: [id])
 }
 
@@ -131,24 +166,6 @@ model Attendance {
   isOnLeave  Boolean? @default(false)
   leave      Leave?   @relation(fields: [leaveId], references: [id])
   leaveId    Int?
-}
-
-model Competency {
-  id             Int             @id @default(autoincrement())
-  employee       Employee        @relation(fields: [employeeId], references: [id])
-  employeeId     Int
-  name           String          @db.VarChar(100)
-  certifications Certification[]
-}
-
-model Certification {
-  id                  Int        @id @default(autoincrement())
-  name                String     @db.VarChar(100)
-  issuingOrganization String     @db.VarChar(100)
-  issueDate           DateTime   @db.Date
-  expiryDate          DateTime   @db.Date
-  competencyId        Int
-  competency          Competency @relation(fields: [competencyId], references: [id])
 }
 
 model CashAdvance {
@@ -220,4 +237,16 @@ enum AddressType {
   domicile
   origin
   alternative
+}
+
+enum Gender {
+  male
+  female
+}
+
+enum MaritalStatus {
+  single
+  married
+  divorced
+  widowed
 }

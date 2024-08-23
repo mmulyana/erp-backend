@@ -31,7 +31,7 @@ class Application {
     })
 
     const v1Router = express.Router()
-    setupRoutes(v1Router, this.authMiddleware)
+    setupRoutes(v1Router, this.authMiddleware, true)
 
     this.app.use('/api/v1', v1Router)
 
