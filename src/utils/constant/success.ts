@@ -59,4 +59,10 @@ export const MESSAGE_SUCCESS = {
     DELETE: 'kasbon berhasil dihapus',
     READ: 'kasbon berhasil didapatkan',
   },
+  COMPETENCY: {
+    CREATE: "Kompetensi berhasil disimpan",
+    UPDATE: "Kompetensi berhasil diubah",
+    DELETE: "Kompetensi berhasil dihapus",
+    READ: "Kompetensi berhasil didapatkan",
+  }
 }
