@@ -3,8 +3,7 @@ import {
   contactSchema,
   addressSchema,
   employeeSchema,
-  createCompetencySchema,
-  updateCompetencySchema,
+  competencySchema,
   certifchema,
 } from './schema'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
@@ -13,8 +12,7 @@ import db from '../../../lib/db'
 type Employee = z.infer<typeof employeeSchema>
 type Contact = z.infer<typeof contactSchema>
 type Address = z.infer<typeof addressSchema>
-type Competency = z.infer<typeof createCompetencySchema>
-type UpdateCompetency = z.infer<typeof updateCompetencySchema>
+type Competency = z.infer<typeof competencySchema>
 type Certification = z.infer<typeof certifchema>
 
 export type FilterEmployee = {
@@ -54,15 +52,9 @@ export default class EmployeeRepository {
         select: {
           fullname: true,
           nickname: true,
-          salary: true,
           address: true,
           attendances: true,
           cashAdvances: true,
-          competencies: {
-            include: {
-              certifications: true,
-            },
-          },
           contact: true,
           position: {
             select: {
@@ -107,7 +99,6 @@ export default class EmployeeRepository {
         select: {
           fullname: true,
           nickname: true,
-          salary: true,
           status: true,
         },
       })
@@ -266,17 +257,25 @@ export default class EmployeeRepository {
   // Competency
   createCompetency = async (employeeId: number, payload: Competency) => {
     try {
-      const data = await db.competency.create({
-        data: { name: payload.name, employeeId },
+      const existingCompetencies = await db.employeeCompetency.findMany({
+        where: { employeeId },
+        select: { competencyId: true },
       })
-      if (!!payload.certifications?.length) {
-        await db.certification.createMany({
-          data: payload.certifications.map((certif: any) => ({
-            competencyId: data.id,
-            expiryDate: new Date(certif.expiryDate).toISOString(),
-            issueDate: new Date(certif.issueDate).toISOString(),
-            issuingOrganization: certif.issuingOrganization,
-            name: certif.name,
+
+      const existingCompetencyIds = existingCompetencies.map(
+        (ec) => ec.competencyId
+      )
+
+      // Filter competencies that not exists
+      const newCompetencyIds = payload.competencyId.filter(
+        (id) => !existingCompetencyIds.includes(id)
+      )
+
+      if (newCompetencyIds.length > 0) {
+        await db.employeeCompetency.createMany({
+          data: newCompetencyIds.map((item) => ({
+            competencyId: item,
+            employeeId,
           })),
         })
       }
@@ -284,30 +283,9 @@ export default class EmployeeRepository {
       throw error
     }
   }
-  updateCompetency = async (id: number, payload: UpdateCompetency) => {
-    try {
-      await db.competency.update({
-        data: {
-          name: payload.name,
-        },
-        where: {
-          id,
-        },
-      })
-    } catch (error) {
-      throw error
-    }
-  }
   // competencyId
   deleteCompetency = async (id: number) => {
     try {
-      const data = await db.competency.findUnique({
-        where: { id },
-        select: { certifications: true },
-      })
-      if (!!data?.certifications) {
-        await db.certification.deleteMany({ where: { competencyId: id } })
-      }
       await db.competency.delete({ where: { id } })
     } catch (error) {
       throw error
@@ -320,17 +298,29 @@ export default class EmployeeRepository {
 
       if (!!id) {
         await this.isCompetencyExist(id)
-        const data = await db.competency.findUnique({
+        const employeeCompetency = await db.employeeCompetency.findUnique({
           include: {
-            certifications: true,
+            competency: true,
           },
           where: { employeeId, id },
         })
-        return data
+        const certifications = await db.certification.findMany({
+          where: {
+            competencyId: {
+              equals: employeeCompetency?.competency.id,
+            },
+          },
+        })
+        return {
+          data: {
+            competency: employeeCompetency?.competency,
+            certifications,
+          },
+        }
       }
-      const data = await db.competency.findMany({
+      const data = await db.employeeCompetency.findMany({
         include: {
-          certifications: true,
+          competency: true,
         },
         where: { employeeId },
       })
@@ -341,14 +331,14 @@ export default class EmployeeRepository {
   }
 
   // Certif
-  createCertif = async (competencyId: number, payload: Certification) => {
+  createCertif = async (employeeId: number, payload: Certification) => {
     try {
       await db.certification.create({
         data: {
           ...payload,
           expiryDate: new Date(payload.expiryDate).toISOString(),
           issueDate: new Date(payload.issueDate).toISOString(),
-          competencyId,
+          employeeId,
         },
       })
     } catch (error) {
@@ -371,6 +361,7 @@ export default class EmployeeRepository {
   }
   deleteCertif = async (certifId: number) => {
     try {
+      await this.isCertifExist(certifId)
       await db.certification.delete({ where: { id: certifId } })
     } catch (error) {
       throw error
