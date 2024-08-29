@@ -39,24 +39,12 @@ export const positionSchema = z.object({
   positionId: z.number(),
 })
 
-export const createCompetencySchema = z.object({
-  name: z.string(),
-  certifications: z
-    .object({
-      name: z.string(),
-      issuingOrganization: z.string(),
-      issueDate: z.string(),
-      expiryDate: z.string()
-    })
-    .array()
-    .optional(),
-})
-
-export const updateCompetencySchema = z.object({
-  name: z.string(),
+export const competencySchema = z.object({
+  competencyId: z.number().array(),
 })
 
 export const certifchema = z.object({
+  competencyId: z.number(),
   name: z.string(),
   issuingOrganization: z.string(),
   issueDate: z.string(),
