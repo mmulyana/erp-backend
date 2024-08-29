@@ -240,30 +240,10 @@ export default class EmployeeController {
   ) => {
     try {
       const { employeeId } = req.params
-      const payload = {
-        name: req.body.name,
-        certifications: req.body.certifications || [],
-      }
-      await this.repository.createCompetency(Number(employeeId), payload)
+      await this.repository.createCompetency(Number(employeeId), req.body)
       return this.response.success(
         res,
         MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.CREATE
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  updateCompetencyHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { competencyId } = req.params
-      await this.repository.updateCompetency(Number(competencyId), req.body)
-      return this.response.success(
-        res,
-        MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.UPDATE
       )
     } catch (error) {
       next(error)
