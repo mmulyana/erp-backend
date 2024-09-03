@@ -50,8 +50,8 @@ export default class EmployeeRepository {
       await this.isExist(id)
       const data = await db.employee.findUnique({
         select: {
+          id: true,
           fullname: true,
-          nickname: true,
           address: true,
           attendances: true,
           cashAdvances: true,
@@ -98,7 +98,7 @@ export default class EmployeeRepository {
         where,
         select: {
           fullname: true,
-          nickname: true,
+          id: true,
           status: true,
         },
       })
