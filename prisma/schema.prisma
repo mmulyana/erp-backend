@@ -76,7 +76,6 @@ model Employee {
   id                 Int                   @id @default(autoincrement())
   photo              String?
   fullname           String                @db.VarChar(50)
-  nickname           String?               @db.VarChar(50)
   hireDate           DateTime?             @db.Date
   salary_per_month   Decimal?              @db.Decimal(10, 2)
   salary_per_day     Decimal?              @db.Decimal(10, 2)
