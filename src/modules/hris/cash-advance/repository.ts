@@ -10,7 +10,6 @@ export default class CashAdvanceRepository {
       await db.cashAdvance.create({
         data: {
           ...payload,
-          approvalDate: new Date(payload.approvalDate).toISOString(),
           requestDate: new Date(payload.requestDate).toISOString(),
         },
       })
@@ -24,7 +23,6 @@ export default class CashAdvanceRepository {
       await db.cashAdvance.update({
         data: {
           ...payload,
-          approvalDate: new Date(payload.approvalDate).toISOString(),
           requestDate: new Date(payload.requestDate).toISOString(),
         },
         where: {
@@ -47,10 +45,37 @@ export default class CashAdvanceRepository {
     try {
       if (!!id) {
         await this.isExist(id)
-        const data = await db.cashAdvance.findUnique({ where: { id } })
+        const data = await db.cashAdvance.findUnique({
+          select: {
+            employee: {
+              select: {
+                id: true,
+                fullname: true,
+              },
+            },
+            amount: true,
+            id: true,
+            requestDate: true,
+            description: true,
+          },
+          where: { id },
+        })
         return data
       }
-      const data = await db.cashAdvance.findMany()
+      const data = await db.cashAdvance.findMany({
+        select: {
+          employee: {
+            select: {
+              id: true,
+              fullname: true,
+            },
+          },
+          amount: true,
+          id: true,
+          requestDate: true,
+          description: true,
+        },
+      })
       return data
     } catch (error) {
       throw error
