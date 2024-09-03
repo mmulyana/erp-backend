@@ -8,7 +8,13 @@ type Leave = z.infer<typeof leaveSchema>
 export default class LeaveRepository {
   create = async (payload: Leave) => {
     try {
-      await db.leave.create({ data: payload })
+      await db.leave.create({
+        data: {
+          ...payload,
+          startDate: new Date(payload.startDate).toISOString(),
+          endDate: new Date(payload.endDate).toISOString(),
+        },
+      })
     } catch (error) {
       throw error
     }
@@ -33,10 +39,33 @@ export default class LeaveRepository {
     try {
       if (!!id) {
         await this.isExist(id)
-        const data = await db.leave.findUnique({ where: { id } })
+        const data = await db.leave.findUnique({
+          where: { id },
+          select: {
+            id: true,
+            employee: {
+              select: { fullname: true },
+            },
+            startDate: true,
+            endDate: true,
+            leaveType: true,
+            description: true,
+          },
+        })
         return data
       }
-      const data = await db.leave.findMany()
+      const data = await db.leave.findMany({
+        select: {
+          id: true,
+          employee: {
+            select: { fullname: true },
+          },
+          startDate: true,
+          endDate: true,
+          leaveType: true,
+          description: true,
+        },
+      })
       return data
     } catch (error) {
       throw error
