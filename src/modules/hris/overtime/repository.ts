@@ -30,14 +30,25 @@ export default class OvertimeRepository {
       throw error
     }
   }
-  read = async (id?: number) => {
+  read = async (startDate: Date, id?: number) => {
     try {
       if (!!id) {
         const data = await db.overtime.findUnique({ where: { id } })
         return data
       }
 
-      const data = await db.overtime.findMany()
+      const data = await db.employee.findMany({
+        include: {
+          overtime: {
+            where: {
+              date: {
+                gte: new Date(startDate),
+              },
+            },
+          },
+          position: true
+        },
+      })
       return data
     } catch (error) {
       throw error
