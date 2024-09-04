@@ -64,5 +64,11 @@ export const MESSAGE_SUCCESS = {
     UPDATE: "Kompetensi berhasil diubah",
     DELETE: "Kompetensi berhasil dihapus",
     READ: "Kompetensi berhasil didapatkan",
+  },
+  OVERTIME: {
+    CREATE: "Overtime berhasil disimpan",
+    UPDATE: "Overtime berhasil diubah",
+    DELETE: "Overtime berhasil dihapus",
+    READ: "Overtime berhasil didapatkan",
   }
 }
