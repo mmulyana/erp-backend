@@ -1,9 +1,15 @@
 import { z } from 'zod'
 
-export const attendanceSchema = z.object({
+export const createAttendanceSchema = z.object({
   employeeId: z.number(),
-  date: z.string().date(),
+  date: z.string().datetime(),
   total_hour: z.number(),
-  isOnLeave: z.boolean().optional(),
-  leaveId: z.number().optional(),
+  type: z.string(),
+  leaveId: z.number().optional()
+})
+export const updateAttendanceSchema = z.object({
+  date: z.string().datetime(),
+  total_hour: z.number(),
+  type: z.string(),
+  leaveId: z.number().optional()
 })
