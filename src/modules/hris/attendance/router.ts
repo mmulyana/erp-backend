@@ -1,11 +1,12 @@
 import { Router } from 'express'
-import { attendanceSchema } from './schema'
 import AttendanceController from './controller'
 import Validation from '../../../helper/validation'
+import { createAttendanceSchema, updateAttendanceSchema } from './schema'
 
 export default class AttendanceRouter {
   public router: Router
-  private attendanceSchema: Validation = new Validation(attendanceSchema)
+  private createAttendanceSchema: Validation = new Validation(createAttendanceSchema)
+  private updateAttendanceSchema: Validation = new Validation(updateAttendanceSchema)
   private controller: AttendanceController = new AttendanceController()
 
   constructor() {
@@ -14,8 +15,8 @@ export default class AttendanceRouter {
   }
 
   protected register() {
-    this.router.post('/', this.attendanceSchema.validate, this.controller.createHandler)
-    this.router.patch('/:id', this.attendanceSchema.validate, this.controller.updateHandler)
+    this.router.post('/', this.createAttendanceSchema.validate, this.controller.createHandler)
+    this.router.patch('/:id', this.updateAttendanceSchema.validate, this.controller.updateHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readHandler)
   }
