@@ -39,35 +39,49 @@ export default class AttendanceRepository {
       throw error
     }
   }
-  read = async (id?: number) => {
+  read = async (
+    startDate: Date,
+    { search, id }: { search?: string; id?: number }
+  ) => {
     try {
       if (!!id) {
-        await this.isEmployeeExist(id)
-        const data = await db.employee.findUnique({
-          where: { id },
-          select: {
-            fullname: true,
-            position: {
-              select: {
-                name: true,
-              },
-            },
-            attendances: true,
-          },
-        })
+        const data = await db.attendance.findUnique({ where: { id } })
         return data
       }
-      const data = await db.employee.findMany({
-        select: {
-          fullname: true,
-          position: {
-            select: {
-              name: true,
+
+      const baseQuery = {
+        where: {},
+        include: {
+          attendances: {
+            where: {
+              date: {
+                equals: startDate,
+              },
             },
+            take: -1,
           },
-          attendances: true,
+          position: true,
         },
-      })
+      }
+
+      if (search) {
+        baseQuery.where = {
+          ...baseQuery.where,
+          OR: [
+            { fullname: { contains: search.toLowerCase() } },
+            { fullname: { contains: search.toUpperCase() } },
+            { fullname: { contains: search } },
+          ]
+        };
+      }
+      
+      const employees = await db.employee.findMany(baseQuery)
+
+      const data = employees.map((employee) => ({
+        ...employee,
+        attendances: employee.attendances || [],
+      }))
+
       return data
     } catch (error) {
       throw error
