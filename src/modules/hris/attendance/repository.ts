@@ -1,23 +1,21 @@
 import { z } from 'zod'
-import { attendanceSchema } from './schema'
 import db from '../../../lib/db'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
+import { createAttendanceSchema, updateAttendanceSchema } from './schema'
 
-type Attendance = z.infer<typeof attendanceSchema>
+type CreateAttendance = z.infer<typeof createAttendanceSchema>
+type UpdateAttendance = z.infer<typeof updateAttendanceSchema>
 export default class AttendanceRepository {
-  create = async (payload: Attendance) => {
+  create = async (payload: CreateAttendance) => {
     try {
       await db.attendance.create({
-        data: {
-          ...payload,
-          date: new Date(payload.date).toISOString(),
-        },
+        data: { ...payload, date: new Date(payload.date).toISOString() },
       })
     } catch (error) {
       throw error
     }
   }
-  update = async (id: number, payload: Attendance) => {
+  update = async (id: number, payload: UpdateAttendance) => {
     try {
       await this.isExist(id)
       await db.attendance.update({
@@ -55,10 +53,10 @@ export default class AttendanceRepository {
           attendances: {
             where: {
               date: {
-                equals: startDate,
+                gte: new Date(startDate.setHours(0, 0, 0, 0)),
+                lt: new Date(startDate.setHours(24, 0, 0, 0)),
               },
             },
-            take: -1,
           },
           position: true,
         },
@@ -71,16 +69,18 @@ export default class AttendanceRepository {
             { fullname: { contains: search.toLowerCase() } },
             { fullname: { contains: search.toUpperCase() } },
             { fullname: { contains: search } },
-          ]
-        };
+          ],
+        }
       }
-      
+
       const employees = await db.employee.findMany(baseQuery)
 
-      const data = employees.map((employee) => ({
-        ...employee,
-        attendances: employee.attendances || [],
-      }))
+      const data = employees.map((employee) => {
+        return {
+          ...employee,
+          attendances: employee.attendances || [],
+        }
+      })
 
       return data
     } catch (error) {
