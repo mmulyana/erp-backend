@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const overtimeSchema = z.object({
   employeeId: z.number(),
-  date: z.string().date(),
+  date: z.string().datetime(),
   total_hour: z.number(),
-  description: z.string(),
+  description: z.string().optional(),
 })
