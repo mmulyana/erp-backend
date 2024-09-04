@@ -30,25 +30,42 @@ export default class OvertimeRepository {
       throw error
     }
   }
-  read = async (startDate: Date, id?: number) => {
+  read = async (
+    startDate: Date,
+    { search, id }: { search?: string; id?: number }
+  ) => {
     try {
       if (!!id) {
         const data = await db.overtime.findUnique({ where: { id } })
         return data
       }
 
-      const data = await db.employee.findMany({
+      const baseQuery = {
+        where: {},
         include: {
           overtime: {
             where: {
               date: {
-                gte: new Date(startDate),
+                equals: startDate,
               },
             },
           },
-          position: true
+          position: true,
         },
-      })
+      }
+
+      if (search) {
+        baseQuery.where = {
+          ...baseQuery.where,
+          OR: [
+            { fullname: { contains: search.toLowerCase() } },
+            { fullname: { contains: search.toUpperCase() } },
+            { fullname: { contains: search } },
+          ]
+        };
+      }
+
+      const data = await db.employee.findMany(baseQuery)
       return data
     } catch (error) {
       throw error
