@@ -35,8 +35,17 @@ export default class AttendanceController {
   }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.query
-      const data = await this.repository.read(Number(id))
+      const { id, date, name } = req.query
+      const startDate = date ? new Date(date as string) : new Date()
+      const searchName = name ? String(name) : undefined
+
+      if (isNaN(startDate.getTime())) {
+        throw Error('Invalid date format')
+      }
+      const data = await this.repository.read(startDate, {
+        search: searchName,
+        id: Number(id),
+      })
       return this.response.success(res, MESSAGE_SUCCESS.ATTENDANCE.READ, data)
     } catch (error) {
       next(error)
