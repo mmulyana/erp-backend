@@ -35,12 +35,17 @@ export default class OvertimeController {
   }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id, startDate } = req.query
-      const start = startDate ? new Date(startDate as string) : new Date();
-      if (isNaN(start.getTime())) {
+      const { id, date, name } = req.query
+      const startDate = date ? new Date(date as string) : new Date()
+      const searchName = name ? String(name) : undefined
+
+      if (isNaN(startDate.getTime())) {
         throw Error('Invalid date format')
       }
-      const data = await this.repository.read(start, Number(id))
+      const data = await this.repository.read(startDate, {
+        search: searchName,
+        id: Number(id),
+      })
       return this.response.success(res, MESSAGE_SUCCESS.OVERTIME.READ, data)
     } catch (error) {
       next(error)
