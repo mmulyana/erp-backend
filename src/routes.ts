@@ -12,6 +12,7 @@ import PositionRoutes from './modules/hris/position/router'
 import EmployeeRoutes from './modules/hris/employee/router'
 import LeaveRoutes from './modules/hris/leave/router'
 import AttendanceRoutes from './modules/hris/attendance/router'
+import OvertimeRoutes from './modules/hris/overtime/router'
 import CashAdvanceRoutes from './modules/hris/cash-advance/router'
 import CompetencyRoutes from './modules/hris/competency/router'
 
@@ -39,6 +40,7 @@ export function setupRoutes(
     { path: '/hris/attendance', router: new AttendanceRoutes().router, auth: true },
     { path: '/hris/cash-advance', router: new CashAdvanceRoutes().router, auth: true },
     { path: '/hris/competency', router: new CompetencyRoutes().router, auth: true },
+    { path: '/hris/overtime', router: new OvertimeRoutes().router, auth: true },
   ]
 
   routes.forEach(({ path, router, auth }) => {
