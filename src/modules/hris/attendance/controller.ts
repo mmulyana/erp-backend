@@ -39,9 +39,6 @@ export default class AttendanceController {
       const startDate = date ? new Date(date as string) : new Date()
       const searchName = name ? String(name) : undefined
 
-      if (isNaN(startDate.getTime())) {
-        throw Error('Invalid date format')
-      }
       const data = await this.repository.read(startDate, {
         search: searchName,
         id: Number(id),
