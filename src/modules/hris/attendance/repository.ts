@@ -46,6 +46,15 @@ export default class AttendanceRepository {
         const data = await db.attendance.findUnique({ where: { id } })
         return data
       }
+      const parsedDate = new Date(startDate)
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error(
+          `Invalid startDate: ${startDate}. Please provide a valid date string.`
+        )
+      }
+
+      const dayStart = new Date(parsedDate.setHours(0, 0, 0, 0))
+      const dayEnd = new Date(parsedDate.setHours(23, 59, 59, 999))
 
       const baseQuery = {
         where: {},
@@ -53,8 +62,8 @@ export default class AttendanceRepository {
           attendances: {
             where: {
               date: {
-                gte: new Date(startDate.setHours(0, 0, 0, 0)),
-                lt: new Date(startDate.setHours(24, 0, 0, 0)),
+                gte: dayStart,
+                lt: dayEnd,
               },
             },
           },
