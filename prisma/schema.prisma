@@ -99,6 +99,8 @@ model Employee {
   employeeCompetency EmployeeCompetency[]
   certifications     Certification[]
   overtime           Overtime[]
+  EmployeeAssigned   EmployeeAssigned[]
+  comments           ProjectComment[]
 }
 
 model EmployeeCompetency {
@@ -216,6 +218,91 @@ model EmployeeStatusTrack {
   status     EmployeeStatus
   employeeId Int
   employee   Employee       @relation(fields: [employeeId], references: [id])
+}
+
+model BoardContainer {
+  id       String       @id
+  name     String
+  color    String
+  position Int
+  items    BoardItems[]
+}
+
+model BoardItems {
+  id          String         @id
+  name        String
+  position    Int
+  containerId String
+  container   BoardContainer @relation(fields: [containerId], references: [id])
+  Project     Project[]
+}
+
+model Project {
+  id           Int                @id @default(autoincrement())
+  name         String
+  startDate    DateTime           @default(now())
+  budget       Decimal?           @db.Decimal(10, 2)
+  priority     Priority           @default(low)
+  labels       ProjectHasLabel[]
+  employees    EmployeeAssigned[]
+  boardItemsId String
+  clientId     Int?
+  client       Client?            @relation(fields: [clientId], references: [id])
+  boardItems   BoardItems         @relation(fields: [boardItemsId], references: [id])
+}
+
+model ProjectComment {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  comment    String
+  attachment String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+}
+
+model ProjectHasLabel {
+  id        Int          @id @default(autoincrement())
+  projectId Int
+  labelId   Int
+  project   Project      @relation(fields: [projectId], references: [id])
+  label     ProjectLabel @relation(fields: [labelId], references: [id])
+}
+
+model EmployeeAssigned {
+  id         Int      @id @default(autoincrement())
+  projectId  Int
+  employeeId Int
+  isPic      Boolean  @default(false)
+  project    Project  @relation(fields: [projectId], references: [id])
+  employee   Employee @relation(fields: [employeeId], references: [id])
+}
+
+model ProjectLabel {
+  id       Int               @id @default(autoincrement())
+  name     String
+  color    String
+  projects ProjectHasLabel[]
+}
+
+model Client {
+  id        Int           @id @default(autoincrement())
+  name      String
+  companyId Int
+  company   CompanyClient @relation(fields: [companyId], references: [id])
+  Project   Project[]
+}
+
+model CompanyClient {
+  id       Int      @id @default(autoincrement())
+  name     String
+  photoUrl String?
+  users    Client[]
+}
+
+enum Priority {
+  urgent
+  high
+  medium
+  low
 }
 
 enum EmployeeStatus {
