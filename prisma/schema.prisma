@@ -230,11 +230,10 @@ model BoardContainer {
 
 model BoardItems {
   id          String         @id
-  name        String
   position    Int
   containerId String
   container   BoardContainer @relation(fields: [containerId], references: [id])
-  Project     Project[]
+  project     Project?
 }
 
 model Project {
@@ -245,7 +244,7 @@ model Project {
   priority     Priority           @default(low)
   labels       ProjectHasLabel[]
   employees    EmployeeAssigned[]
-  boardItemsId String
+  boardItemsId String             @unique
   clientId     Int?
   client       Client?            @relation(fields: [clientId], references: [id])
   boardItems   BoardItems         @relation(fields: [boardItemsId], references: [id])
