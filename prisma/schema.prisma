@@ -237,17 +237,18 @@ model BoardItems {
 }
 
 model Project {
-  id           Int                @id @default(autoincrement())
-  name         String
-  startDate    DateTime?
-  budget       Decimal?           @db.Decimal(10, 2)
-  priority     Priority           @default(low)
-  labels       ProjectHasLabel[]
-  employees    EmployeeAssigned[]
-  boardItemsId String             @unique
-  clientId     Int?
-  client       Client?            @relation(fields: [clientId], references: [id])
-  boardItems   BoardItems         @relation(fields: [boardItemsId], references: [id])
+  id             Int                @id @default(autoincrement())
+  name           String
+  startDate      DateTime?
+  budget         Decimal?           @db.Decimal(10, 2)
+  priority       Priority           @default(low)
+  labels         ProjectHasLabel[]
+  employees      EmployeeAssigned[]
+  boardItemsId   String             @unique
+  clientId       Int?
+  client         Client?            @relation(fields: [clientId], references: [id])
+  boardItems     BoardItems         @relation(fields: [boardItemsId], references: [id])
+  comments ProjectComment[]
 }
 
 model ProjectComment {
@@ -255,6 +256,8 @@ model ProjectComment {
   employeeId Int
   comment    String
   attachment String
+  projectId  Int
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: NoAction)
   employee   Employee @relation(fields: [employeeId], references: [id])
 }
 
