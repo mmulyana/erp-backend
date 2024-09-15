@@ -60,15 +60,21 @@ export const MESSAGE_SUCCESS = {
     READ: 'kasbon berhasil didapatkan',
   },
   COMPETENCY: {
-    CREATE: "Kompetensi berhasil disimpan",
-    UPDATE: "Kompetensi berhasil diubah",
-    DELETE: "Kompetensi berhasil dihapus",
-    READ: "Kompetensi berhasil didapatkan",
+    CREATE: 'Kompetensi berhasil disimpan',
+    UPDATE: 'Kompetensi berhasil diubah',
+    DELETE: 'Kompetensi berhasil dihapus',
+    READ: 'Kompetensi berhasil didapatkan',
   },
   OVERTIME: {
-    CREATE: "Overtime berhasil disimpan",
-    UPDATE: "Overtime berhasil diubah",
-    DELETE: "Overtime berhasil dihapus",
-    READ: "Overtime berhasil didapatkan",
-  }
+    CREATE: 'Overtime berhasil disimpan',
+    UPDATE: 'Overtime berhasil diubah',
+    DELETE: 'Overtime berhasil dihapus',
+    READ: 'Overtime berhasil didapatkan',
+  },
+  PROJECT: {
+    CREATE: 'Project berhasil disimpan',
+    UPDATE: 'Project berhasil diubah',
+    DELETE: 'Project berhasil dihapus',
+    READ: 'Project berhasil didapatkan',
+  },
 }
