@@ -239,7 +239,7 @@ model BoardItems {
 model Project {
   id           Int                @id @default(autoincrement())
   name         String
-  startDate    DateTime           @default(now())
+  startDate    DateTime?
   budget       Decimal?           @db.Decimal(10, 2)
   priority     Priority           @default(low)
   labels       ProjectHasLabel[]
