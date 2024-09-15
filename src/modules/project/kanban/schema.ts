@@ -20,3 +20,8 @@ export const boardItems = z.object({
 
 export type Container = z.infer<typeof boardContainer>
 export type Items = z.infer<typeof boardItems>
+export type OrderItems = {
+  itemId: string
+  containerId: string
+  position: number
+}

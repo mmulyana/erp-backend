@@ -1,15 +1,11 @@
 import { generateUUID } from '../../../utils/generate-uuid'
-import { boardContainer, boardItems } from './schema'
+import { boardContainer, boardItems, OrderItems } from './schema'
 import db from '../../../lib/db'
 import { z } from 'zod'
 
 type Container = z.infer<typeof boardContainer>
 type Items = z.infer<typeof boardItems>
-export type OrderItems = {
-  itemId: string
-  containerId: string
-  position: number
-}
+
 export default class KanbanRepository {
   createBoard = async (payload: Container) => {
     try {

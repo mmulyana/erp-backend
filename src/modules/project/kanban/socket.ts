@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io'
-import KanbanRepository, { OrderItems } from './repository'
-import { Container, Items } from './schema'
+import KanbanRepository from './repository'
+import { Container, Items, OrderItems } from './schema'
 import { EVENT_INITIAL_DATA, EVENT_UPDATED_DATA } from '@/utils/constant/socket'
 
 export default class KanbanSocket {
