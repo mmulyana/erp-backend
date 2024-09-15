@@ -5,6 +5,11 @@ import { z } from 'zod'
 
 type Container = z.infer<typeof boardContainer>
 type Items = z.infer<typeof boardItems>
+export type OrderItems = {
+  itemId: string
+  containerId: string
+  position: number
+}
 export default class KanbanRepository {
   createBoard = async (payload: Container) => {
     try {
@@ -41,6 +46,9 @@ export default class KanbanRepository {
           items: {
             orderBy: {
               position: 'asc',
+            },
+            include: {
+              project: true,
             },
           },
         },
@@ -101,7 +109,6 @@ export default class KanbanRepository {
       throw error
     }
   }
-  updateItem = async () => {}
   deleteItem = async (id: string) => {
     try {
       const items = await db.boardItems.findFirst({
@@ -110,6 +117,66 @@ export default class KanbanRepository {
       })
       await db.project.delete({ where: { id: items?.project?.id } })
       await db.boardItems.delete({ where: { id } })
+    } catch (error) {
+      throw error
+    }
+  }
+
+  updateProject = async (
+    id: number,
+    payload: Omit<Items, 'position' | 'employees' | 'labels'>
+  ) => {
+    try {
+      await db.project.update({ data: payload, where: { id } })
+    } catch (error) {
+      throw error
+    }
+  }
+
+  updateOrderItems = async (payload: OrderItems) => {
+    try {
+      await db.$transaction(async (prismaClient) => {
+        const item = await prismaClient.boardItems.findUnique({
+          where: { id: payload.itemId },
+          include: { container: true },
+        })
+
+        if (!item) throw new Error('item not found')
+
+        const oldContainerId = item.container.id
+
+        // update position item from old container
+        await prismaClient.boardItems.updateMany({
+          where: {
+            containerId: oldContainerId,
+            position: { gt: item.position },
+          },
+          data: {
+            position: { decrement: 1 },
+          },
+        })
+
+        // update item in new container that position greater updated items
+        await prismaClient.boardItems.updateMany({
+          where: {
+            containerId: payload.containerId,
+            position: { gte: payload.position },
+          },
+          data: {
+            position: { increment: 1 },
+          },
+        })
+
+        await prismaClient.boardItems.update({
+          where: { id: payload.itemId },
+          data: {
+            containerId: payload.containerId,
+            position: payload.position,
+          },
+        })
+      })
+
+      return await this.readBoard()
     } catch (error) {
       throw error
     }
