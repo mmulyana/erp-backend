@@ -9,7 +9,7 @@ export default class AttendanceRepository {
   create = async (payload: CreateAttendance) => {
     try {
       await db.attendance.create({
-        data: { ...payload, date: new Date(payload.date).toISOString() },
+        data: { ...payload, date: new Date(payload.date).toUTCString() },
       })
     } catch (error) {
       throw error
@@ -21,7 +21,7 @@ export default class AttendanceRepository {
       await db.attendance.update({
         data: {
           ...payload,
-          date: new Date(payload.date).toISOString(),
+          date: new Date(payload.date).toUTCString(),
         },
         where: { id },
       })
@@ -38,7 +38,7 @@ export default class AttendanceRepository {
     }
   }
   read = async (
-    startDate: Date,
+    startDate: string,
     { search, id }: { search?: string; id?: number }
   ) => {
     try {
@@ -87,7 +87,10 @@ export default class AttendanceRepository {
       const data = employees.map((employee) => {
         return {
           ...employee,
-          attendances: employee.attendances || [],
+          attendances: employee.attendances.map((attendance => ({
+            ...attendance,
+            date: new Date(attendance.date).toLocaleString(),            
+          }))) || [],
         }
       })
 
