@@ -36,7 +36,7 @@ export default class AttendanceController {
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id, date, name } = req.query
-      const startDate = date ? new Date(date as string) : new Date()
+      const startDate = date ? new Date(date as string).toUTCString() : new Date().toUTCString()
       const searchName = name ? String(name) : undefined
 
       const data = await this.repository.read(startDate, {
