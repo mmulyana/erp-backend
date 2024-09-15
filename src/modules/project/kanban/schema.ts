@@ -4,6 +4,7 @@ export const boardContainer = z.object({
   name: z.string(),
   color: z.string(),
 })
+
 export const boardItems = z.object({
   containerId: z.string(),
 
@@ -16,3 +17,6 @@ export const boardItems = z.object({
   employees: z.number().array().optional(),
   clientId: z.number().optional(),
 })
+
+export type Container = z.infer<typeof boardContainer>
+export type Items = z.infer<typeof boardItems>
