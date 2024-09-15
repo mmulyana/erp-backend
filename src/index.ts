@@ -3,19 +3,33 @@ import { ErrorHandler } from './helper/error-handler'
 import { AuthMiddleware } from './middleware/auth-middleware'
 import { setupRoutes } from './routes'
 import cors from 'cors'
+import { Server } from 'socket.io'
+import http from 'http'
+import KanbanSocket from './modules/project/kanban/socket'
 
 class Application {
   private app: Express
-  private port: number
-  private host: string
+  private HttpServer: http.Server
+  private PORT: number
+  private WS_PORT: number
+  private HOST: string
   private authMiddleware: AuthMiddleware = new AuthMiddleware()
+  private io: Server
 
   constructor() {
     this.app = express()
-    this.port = Number(process.env.PORT) || 5000
-    this.host = process.env.HOST || 'localhost'
+    this.HttpServer = http.createServer()
+    this.PORT = Number(process.env.REST_PORT) || 5000
+    this.WS_PORT = Number(process.env.WS_PORT) || 5001
+    this.HOST = process.env.HOST || 'localhost'
     this.plugin()
     this.setupRoutes()
+    this.io = new Server(this.HttpServer, {
+      cors: {
+        origin: '*',
+      },
+    })
+    this.setupSocket()
     this.start()
   }
 
@@ -44,9 +58,24 @@ class Application {
     this.app.use(ErrorHandler)
   }
 
+  private setupSocket(): void {
+    this.io.on('connection', (socket) => {
+      console.log('New client connected')
+      new KanbanSocket(socket)
+    })
+  }
+
   private start(): void {
-    this.app.listen(this.port, this.host, () => {
-      console.log(`server is running at http://${this.host}:${this.port}`)
+    // API server
+    this.app.listen(this.PORT, this.HOST, () => {
+      console.log(`API server is running at http://${this.HOST}:${this.PORT}`)
+    })
+
+    // WebSocket server
+    this.HttpServer.listen(this.WS_PORT, () => {
+      console.log(
+        `WebSocket server is running at ws://${this.HOST}:${this.WS_PORT}`
+      )
     })
   }
 }
