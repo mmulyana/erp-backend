@@ -252,13 +252,20 @@ model Project {
 }
 
 model ProjectComment {
-  id         Int      @id @default(autoincrement())
-  employeeId Int
-  comment    String
+  id          Int                        @id @default(autoincrement())
+  employeeId  Int
+  comment     String
+  projectId   Int
+  project     Project                    @relation(fields: [projectId], references: [id], onDelete: NoAction)
+  employee    Employee                   @relation(fields: [employeeId], references: [id])
+  attachments ProjectCommentAttachment[]
+}
+
+model ProjectCommentAttachment {
+  id         Int            @id @default(autoincrement())
   attachment String
-  projectId  Int
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: NoAction)
-  employee   Employee @relation(fields: [employeeId], references: [id])
+  commentId  Int
+  comment    ProjectComment @relation(fields: [commentId], references: [id])
 }
 
 model ProjectHasLabel {
