@@ -237,18 +237,18 @@ model BoardItems {
 }
 
 model Project {
-  id             Int                @id @default(autoincrement())
-  name           String
-  startDate      DateTime?
-  budget         Decimal?           @db.Decimal(10, 2)
-  priority       Priority           @default(low)
-  labels         ProjectHasLabel[]
-  employees      EmployeeAssigned[]
-  boardItemsId   String             @unique
-  clientId       Int?
-  client         Client?            @relation(fields: [clientId], references: [id])
-  boardItems     BoardItems         @relation(fields: [boardItemsId], references: [id])
-  comments ProjectComment[]
+  id           Int                @id @default(autoincrement())
+  name         String
+  startDate    DateTime?
+  budget       Decimal?           @db.Decimal(10, 2)
+  priority     Priority           @default(low)
+  labels       ProjectHasLabel[]
+  employees    EmployeeAssigned[]
+  boardItemsId String             @unique
+  clientId     Int?
+  client       Client?            @relation(fields: [clientId], references: [id])
+  boardItems   BoardItems         @relation(fields: [boardItemsId], references: [id])
+  comments     ProjectComment[]
 }
 
 model ProjectComment {
@@ -286,18 +286,18 @@ model ProjectLabel {
 }
 
 model Client {
-  id        Int           @id @default(autoincrement())
+  id        Int            @id @default(autoincrement())
   name      String
-  companyId Int
-  company   CompanyClient @relation(fields: [companyId], references: [id])
+  companyId Int?
+  company   CompanyClient? @relation(fields: [companyId], references: [id])
   Project   Project[]
 }
 
 model CompanyClient {
-  id       Int      @id @default(autoincrement())
-  name     String
-  photoUrl String?
-  users    Client[]
+  id    Int      @id @default(autoincrement())
+  name  String
+  logo  String?
+  users Client[]
 }
 
 enum Priority {
