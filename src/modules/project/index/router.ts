@@ -1,5 +1,5 @@
-import Validation from '@/helper/validation'
 import { Router } from 'express'
+import Validation from '../../../helper/validation'
 import { createProjectSchema, updateProjectSchema } from './schema'
 import ProjectController from './controller'
 
