@@ -1,7 +1,7 @@
-import ApiResponse from '@/helper/api-response'
 import { NextFunction, Request, Response } from 'express'
 import ProjectRepository from './repository'
-import { MESSAGE_SUCCESS } from '@/utils/constant/success'
+import ApiResponse from '../../../helper/api-response'
+import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
 
 export default class ProjectController {
   private response: ApiResponse = new ApiResponse()
