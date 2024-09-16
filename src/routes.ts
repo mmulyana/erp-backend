@@ -16,6 +16,10 @@ import OvertimeRoutes from './modules/hris/overtime/router'
 import CashAdvanceRoutes from './modules/hris/cash-advance/router'
 import CompetencyRoutes from './modules/hris/competency/router'
 import ProjectRoutes from './modules/project/index/router'
+import ClientRoutes from './modules/project/client/router'
+import LabelRoutes from './modules/project/label/router'
+import CompanyRoutes from './modules/project/company/router'
+import BoardRoutes from './modules/project/board/router'
 
 interface RouteConfig {
   path: string
@@ -43,6 +47,10 @@ export function setupRoutes(
     { path: '/hris/competency', router: new CompetencyRoutes().router, auth: true },
     { path: '/hris/overtime', router: new OvertimeRoutes().router, auth: true },
     { path: '/project', router: new ProjectRoutes().router, auth: true },
+    { path: '/project/client', router: new ClientRoutes().router, auth: true },
+    { path: '/project/label', router: new LabelRoutes().router, auth: true },
+    { path: '/project/company', router: new CompanyRoutes().router, auth: true },
+    { path: '/project/board', router: new BoardRoutes().router, auth: true },
   ]
 
   routes.forEach(({ path, router, auth }) => {
