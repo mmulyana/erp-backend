@@ -101,4 +101,10 @@ export const MESSAGE_SUCCESS = {
     DELETE: 'board berhasil dihapus',
     READ: 'board berhasil didapatkan',
   },
+  COMMENT: {
+    CREATE: 'komentar berhasil disimpan',
+    UPDATE: 'komentar berhasil diubah',
+    DELETE: 'komentar berhasil dihapus',
+    READ: 'komentar berhasil didapatkan',
+  },
 }
