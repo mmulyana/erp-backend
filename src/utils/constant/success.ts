@@ -77,4 +77,28 @@ export const MESSAGE_SUCCESS = {
     DELETE: 'Project berhasil dihapus',
     READ: 'Project berhasil didapatkan',
   },
+  CLIENT: {
+    CREATE: 'Klien/User berhasil disimpan',
+    UPDATE: 'Klien/User berhasil diubah',
+    DELETE: 'Klien/User berhasil dihapus',
+    READ: 'Klien/User berhasil didapatkan',
+  },
+  LABEL: {
+    CREATE: 'Label berhasil disimpan',
+    UPDATE: 'Label berhasil diubah',
+    DELETE: 'Label berhasil dihapus',
+    READ: 'Label berhasil didapatkan',
+  },
+  COMPANY: {
+    CREATE: 'Perusahaan berhasil disimpan',
+    UPDATE: 'Perusahaan berhasil diubah',
+    DELETE: 'Perusahaan berhasil dihapus',
+    READ: 'Perusahaan berhasil didapatkan',
+  },
+  BOARD: {
+    CREATE: 'board berhasil disimpan',
+    UPDATE: 'board berhasil diubah',
+    DELETE: 'board berhasil dihapus',
+    READ: 'board berhasil didapatkan',
+  },
 }
