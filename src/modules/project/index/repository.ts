@@ -1,6 +1,6 @@
-import db from '@/lib/db'
-import { generateUUID } from '@/utils/generate-uuid'
+import { generateUUID } from '../../../utils/generate-uuid'
 import { Project } from './schema'
+import db from '../../../lib/db'
 
 export default class ProjectRepository {
   create = async (payload: Project) => {
@@ -60,7 +60,13 @@ export default class ProjectRepository {
       throw error
     }
   }
-  update = async (id: number, payload: Omit<Project, 'containerId'>) => {
+  update = async (
+    id: number,
+    payload: Omit<Project, 'containerId'> & {
+      labels: number[]
+      employees: number[]
+    }
+  ) => {
     try {
       const existingProject = await db.project.findUnique({
         where: { id: id },
@@ -79,7 +85,7 @@ export default class ProjectRepository {
         (label) => label.labelId
       )
 
-      const labelsToAdd = payload.labels.filter(
+      const labelsToAdd = payload?.labels.filter(
         (id) => !existingLabelIds.includes(id)
       )
       const labelsToRemove = existingLabelIds.filter(
