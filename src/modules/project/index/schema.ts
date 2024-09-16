@@ -12,11 +12,11 @@ export const createProjectSchema = z.object({
 })
 export const updateProjectSchema = z.object({
   name: z.string(),
-  startDate: z.string().datetime(),
+  startDate: z.string().datetime().optional(),
   budget: z.number().optional(),
-  priority: z.enum(['urgent', 'high', 'medium', 'low']),
-  labels: z.number().array(),
-  employees: z.number().array(),
+  priority: z.enum(['urgent', 'high', 'medium', 'low']).optional(),
+  labels: z.number().array().optional(),
+  employees: z.number().array().optional(),
   clientId: z.number().optional(),
 })
 
