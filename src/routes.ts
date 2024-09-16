@@ -20,6 +20,7 @@ import ClientRoutes from './modules/project/client/router'
 import LabelRoutes from './modules/project/label/router'
 import CompanyRoutes from './modules/project/company/router'
 import BoardRoutes from './modules/project/board/router'
+import CommentRoutes from './modules/project/comment/router'
 
 interface RouteConfig {
   path: string
@@ -51,6 +52,7 @@ export function setupRoutes(
     { path: '/project/label', router: new LabelRoutes().router, auth: true },
     { path: '/project/company', router: new CompanyRoutes().router, auth: true },
     { path: '/project/board', router: new BoardRoutes().router, auth: true },
+    { path: '/project/comment', router: new CommentRoutes().router, auth: true },
   ]
 
   routes.forEach(({ path, router, auth }) => {
