@@ -141,35 +141,46 @@ export default class KanbanRepository {
 
         const oldContainerId = item.container.id
 
-        // update position item from old container
-        await prismaClient.boardItems.updateMany({
-          where: {
-            containerId: oldContainerId,
-            position: { gt: item.position },
-          },
-          data: {
-            position: { decrement: 1 },
-          },
-        })
+        const [oldContainerItems, newContainerItems] = await Promise.all([
+          prismaClient.boardItems.findMany({
+            where: {
+              containerId: oldContainerId,
+              position: { gt: item.position },
+            },
+            orderBy: { position: 'asc' },
+          }),
+          prismaClient.boardItems.findMany({
+            where: {
+              containerId: payload.containerId,
+              position: { gte: payload.position },
+            },
+            orderBy: { position: 'asc' },
+          }),
+        ])
 
-        // update item in new container that position greater updated items
-        await prismaClient.boardItems.updateMany({
-          where: {
-            containerId: payload.containerId,
-            position: { gte: payload.position },
-          },
-          data: {
-            position: { increment: 1 },
-          },
-        })
+        const updateOperations = [
+          ...oldContainerItems.map((oldItem, index) =>
+            prismaClient.boardItems.update({
+              where: { id: oldItem.id },
+              data: { position: oldItem.position - 1 },
+            })
+          ),
+          ...newContainerItems.map((newItem, index) =>
+            prismaClient.boardItems.update({
+              where: { id: newItem.id },
+              data: { position: newItem.position + 1 },
+            })
+          ),
+          prismaClient.boardItems.update({
+            where: { id: payload.itemId },
+            data: {
+              containerId: payload.containerId,
+              position: payload.position,
+            },
+          }),
+        ]
 
-        await prismaClient.boardItems.update({
-          where: { id: payload.itemId },
-          data: {
-            containerId: payload.containerId,
-            position: payload.position,
-          },
-        })
+        await Promise.all(updateOperations)
       })
 
       return await this.readBoard()
