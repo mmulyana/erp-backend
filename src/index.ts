@@ -61,7 +61,11 @@ class Application {
   private setupSocket(): void {
     this.io.on('connection', (socket) => {
       console.log('New client connected')
-      new KanbanSocket(socket)
+      new KanbanSocket(socket, this.io).socket
+    })
+
+    this.io.on('disconnect', () => {
+      console.log('User disconnected')
     })
   }
 
