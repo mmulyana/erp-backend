@@ -44,7 +44,54 @@ export default class KanbanRepository {
               position: 'asc',
             },
             include: {
-              project: true,
+              project: {
+                select: {
+                  id: true,
+                  name: true,
+                  startDate: true,
+                  budget: true,
+                  priority: true,
+                  boardItemsId: true,
+                  clientId: true,
+                  boardItems: true,
+                  labels: {
+                    select: {
+                      label: true,
+                    },
+                  },
+                  employees: {
+                    select: {
+                      employee: {
+                        select: {
+                          fullname: true,
+                          photo: true,
+                        },
+                      },
+                    },
+                  },
+                  comments: {
+                    select: {
+                      comment: true,
+                    },
+                  },
+                  client: {
+                    select: {
+                      name: true,
+                      company: {
+                        select: {
+                          logo: true,
+                        },
+                      },
+                    },
+                  },
+                  _count: {
+                    select: {
+                      employees: true,
+                      comments: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
