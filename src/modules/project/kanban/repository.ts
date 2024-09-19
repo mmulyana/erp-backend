@@ -176,61 +176,23 @@ export default class KanbanRepository {
     }
   }
 
-  updateOrderItems = async (payload: OrderItems) => {
+  updateOrderItems = async (payload: OrderItems[]) => {
     try {
       await db.$transaction(async (prismaClient) => {
-        const item = await prismaClient.boardItems.findUnique({
-          where: { id: payload.itemId },
-          include: { container: true },
-        })
-
-        if (!item) throw new Error('item not found')
-
-        const oldContainerId = item.container.id
-
-        const [oldContainerItems, newContainerItems] = await Promise.all([
-          prismaClient.boardItems.findMany({
-            where: {
-              containerId: oldContainerId,
-              position: { gt: item.position },
-            },
-            orderBy: { position: 'asc' },
-          }),
-          prismaClient.boardItems.findMany({
-            where: {
-              containerId: payload.containerId,
-              position: { gte: payload.position },
-            },
-            orderBy: { position: 'asc' },
-          }),
-        ])
-
         const updateOperations = [
-          ...oldContainerItems.map((oldItem, index) =>
-            prismaClient.boardItems.update({
-              where: { id: oldItem.id },
-              data: { position: oldItem.position - 1 },
-            })
-          ),
-          ...newContainerItems.map((newItem, index) =>
+          ...payload.map((newItem) =>
             prismaClient.boardItems.update({
               where: { id: newItem.id },
-              data: { position: newItem.position + 1 },
+              data: {
+                position: newItem.position,
+                containerId: newItem.containerId,
+              },
             })
           ),
-          prismaClient.boardItems.update({
-            where: { id: payload.itemId },
-            data: {
-              containerId: payload.containerId,
-              position: payload.position,
-            },
-          }),
         ]
 
         await Promise.all(updateOperations)
       })
-
-      return await this.readBoard()
     } catch (error) {
       throw error
     }

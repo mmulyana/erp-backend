@@ -56,7 +56,7 @@ export default class KanbanSocket {
     await this.handleUpdatedData()
   }
 
-  handleOrderItem = async (payload: OrderItems) => {
+  handleOrderItem = async (payload: OrderItems[]) => {
     await this.repository.updateOrderItems(payload)
     await this.handleUpdatedData()
   }
