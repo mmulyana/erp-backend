@@ -309,17 +309,20 @@ model CompanyClient {
 
 // MODULE INVENTORY
 model Goods {
-  id            Int               @id @default(autoincrement())
+  id            Int                @id @default(autoincrement())
   nama          String
   qty           Int
+  total_price   Decimal
   locationId    Int
   measurementId Int
   categoryId    Int
   brandId       Int
-  location      Location          @relation(fields: [locationId], references: [id])
-  measurement   Measurements      @relation(fields: [measurementId], references: [id])
-  brand         Brand             @relation(fields: [brandId], references: [id])
-  categories    GoodsToCategory[]
+  location      Location           @relation(fields: [locationId], references: [id])
+  measurement   Measurements       @relation(fields: [measurementId], references: [id])
+  brand         Brand              @relation(fields: [brandId], references: [id])
+  category      goodsCategory      @relation(fields: [categoryId], references: [id])
+  labels        GoodsToLabels[]
+  transaction   TransactionGoods[]
 }
 
 model Location {
@@ -329,41 +332,44 @@ model Location {
 }
 
 model Measurements {
-  id    Int     @id @default(autoincrement())
-  name  String
-  goods Goods[]
+  id               Int                @id @default(autoincrement())
+  name             String
+  goods            Goods[]
+  TransactionGoods TransactionGoods[]
 }
 
-model GoodsToCategory {
-  id              Int           @id @default(autoincrement())
-  goodsId         Int
-  goodsCategoryId Int
-  goods           Goods         @relation(fields: [goodsId], references: [id])
-  goodCategory    GoodsCategory @relation(fields: [goodsCategoryId], references: [id])
+model GoodsToLabels {
+  id           Int        @id @default(autoincrement())
+  goodsId      Int
+  goodsLabelId Int
+  goods        Goods      @relation(fields: [goodsId], references: [id])
+  goodCategory GoodsLabel @relation(fields: [goodsLabelId], references: [id])
 }
 
-model GoodsCategory {
-  id              Int               @id @default(autoincrement())
+model GoodsLabel {
+  id              Int             @id @default(autoincrement())
   name            String
   color           String
-  goodsToCategory GoodsToCategory[]
+  goodsToCategory GoodsToLabels[]
 }
 
 model Brand {
-  id       Int     @id @default(autoincrement())
-  name     String
-  photoUrl String?
-  goods    Goods[]
+  id          Int                @id @default(autoincrement())
+  name        String
+  photoUrl    String?
+  goods       Goods[]
+  transaction TransactionGoods[]
 }
 
 model Supplier {
-  id       Int             @id @default(autoincrement())
-  name     String
-  phone    String
-  address  String
-  status   StatusSupplier  @default(active)
-  photoUrl String?
-  tags     SupplierToTag[]
+  id          Int                @id @default(autoincrement())
+  name        String
+  phone       String
+  address     String
+  status      StatusSupplier     @default(active)
+  photoUrl    String?
+  tags        SupplierToTag[]
+  transaction TransactionGoods[]
 }
 
 model SupplierEmployee {
@@ -387,6 +393,27 @@ model SupplierToTag {
   tagId      Int
   supplier   Supplier    @relation(fields: [supplierId], references: [id])
   tag        SupplierTag @relation(fields: [tagId], references: [id])
+}
+
+model goodsCategory {
+  id    Int     @id @default(autoincrement())
+  name  String
+  goods Goods[]
+}
+
+model TransactionGoods {
+  id             Int           @id @default(autoincrement())
+  goodsId        Int
+  brandId        Int
+  qty            Int
+  price          Decimal
+  supplierId     Int
+  date           DateTime
+  good           Goods         @relation(fields: [goodsId], references: [id])
+  brand          Brand         @relation(fields: [brandId], references: [id])
+  Measurements   Measurements? @relation(fields: [measurementsId], references: [id])
+  measurementsId Int?
+  supplier       Supplier      @relation(fields: [supplierId], references: [id])
 }
 
 enum Priority {
