@@ -22,6 +22,11 @@ import CompanyRoutes from './modules/project/company/router'
 import BoardRoutes from './modules/project/board/router'
 import CommentRoutes from './modules/project/comment/router'
 
+// INVENTORY
+import BrandRoutes from './modules/inventory/brand/router'
+import multer from 'multer'
+
+
 interface RouteConfig {
   path: string
   router: Router
@@ -31,8 +36,10 @@ interface RouteConfig {
 export function setupRoutes(
   app: Router,
   authMiddleware: AuthMiddleware,
-  withoutAuth: boolean = false
+  withoutAuth: boolean = false,
+  uploadImg: multer.Multer
 ): void {
+
   const routes: RouteConfig[] = [
     { path: '/auth', router: new AuthRoutes().router },
     { path: '/roles', router: new RolesRoutes().router, auth: true },
@@ -53,6 +60,9 @@ export function setupRoutes(
     { path: '/project/company', router: new CompanyRoutes().router, auth: true },
     { path: '/project/board', router: new BoardRoutes().router, auth: true },
     { path: '/project/comment', router: new CommentRoutes().router, auth: true },
+    
+    // INVENTORY
+    { path: '/inventory/brand', router: new BrandRoutes(uploadImg).router, auth: true },
   ]
 
   routes.forEach(({ path, router, auth }) => {
