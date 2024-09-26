@@ -13,7 +13,7 @@ export default class CategoryController {
       await this.repository.create(req.body)
       return this.response.success(res, this.message.successCreate())
     } catch (error) {
-      throw error
+      next(error)
     }
   }
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -22,7 +22,7 @@ export default class CategoryController {
       await this.repository.update(Number(id), req.body)
       return this.response.success(res, this.message.successUpdate())
     } catch (error) {
-      throw error
+      next(error)
     }
   }
   deleteHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -31,7 +31,7 @@ export default class CategoryController {
       await this.repository.delete(Number(id))
       return this.response.success(res, this.message.successDelete())
     } catch (error) {
-      throw error
+      next(error)
     }
   }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -40,7 +40,7 @@ export default class CategoryController {
       const data = await this.repository.read(name?.toString())
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
-      throw error
+      next(error)
     }
   }
 }
