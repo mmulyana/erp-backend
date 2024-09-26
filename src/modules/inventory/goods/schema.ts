@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const goodsSchema = z.object({
   name: z.string(),
   qty: z.number(),
+  available: z.number(),
   locationId: z.number(),
   measurementId: z.number(),
   categoryId: z.number(),
