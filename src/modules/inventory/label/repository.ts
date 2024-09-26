@@ -3,46 +3,36 @@ import { Label } from './schema'
 
 export default class LabelRepository {
   create = async (payload: Label) => {
-    try {
-      await db.goodsLabel.create({ data: payload })
-    } catch (error) {
-      throw error
-    }
+    await db.goodsLabel.create({ data: payload })
   }
   update = async (id: number, payload: Label) => {
+    await this.isExist(id)
     await db.goodsLabel.update({ data: payload, where: { id } })
-    try {
-    } catch (error) {
-      throw error
-    }
   }
   delete = async (id: number) => {
-    try {
-      await db.goodsLabel.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.goodsLabel.delete({ where: { id } })
   }
   read = async (name?: string) => {
-    try {
-      const baseQuery = {
-        where: {},
-      }
-
-      if (name) {
-        baseQuery.where = {
-          ...baseQuery.where,
-          OR: [
-            { name: { contains: name.toLowerCase() } },
-            { name: { contains: name.toUpperCase() } },
-            { name: { contains: name } },
-          ],
-        }
-      }
-
-      return await db.goodsLabel.findMany(baseQuery)
-    } catch (error) {
-      throw error
+    const baseQuery = {
+      where: {},
     }
+
+    if (name) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        OR: [
+          { name: { contains: name.toLowerCase() } },
+          { name: { contains: name.toUpperCase() } },
+          { name: { contains: name } },
+        ],
+      }
+    }
+
+    return await db.goodsLabel.findMany(baseQuery)
+  }
+  isExist = async (id: number) => {
+    const data = await db.goodsLabel.findUnique({ where: { id } })
+    if (!data) throw Error('Label tidak ditemukan')
   }
 }
