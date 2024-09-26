@@ -10,14 +10,16 @@ export default class EmployeeSupplierRepository {
     }
   }
   update = async (id: number, payload: EmployeeSupplierSchema) => {
-    await db.supplierEmployee.update({ data: payload, where: { id } })
     try {
+      await this.isExist(id)
+      await db.supplierEmployee.update({ data: payload, where: { id } })
     } catch (error) {
       throw error
     }
   }
   delete = async (id: number) => {
     try {
+      await this.isExist(id)
       await db.supplierEmployee.delete({ where: { id } })
     } catch (error) {
       throw error
@@ -44,5 +46,9 @@ export default class EmployeeSupplierRepository {
     } catch (error) {
       throw error
     }
+  }
+  isExist = async (id: number) => {
+    const data = await db.supplierEmployee.findUnique({ where: { id } })
+    if (!data) throw Error('Pegawai supplier ini tidak ditemukan')
   }
 }
