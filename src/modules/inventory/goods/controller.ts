@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../../helper/api-response'
-import BrandRepository from './repository'
+import Repository from './repository'
 import Message from '../../../utils/constant/message'
 
 export default class GoodsController {
   private response: ApiResponse = new ApiResponse()
-  private repository: BrandRepository = new BrandRepository()
+  private repository: Repository = new Repository()
   private message: Message = new Message('Merek')
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
