@@ -313,6 +313,7 @@ model Goods {
   name          String
   qty           Int
   total_price   Decimal
+  photoUrl      String?
   locationId    Int
   measurementId Int
   categoryId    Int
@@ -407,6 +408,7 @@ model TransactionGoods {
   brandId        Int
   qty            Int
   price          Decimal
+  photoUrl       String?
   supplierId     Int
   date           DateTime
   good           Goods         @relation(fields: [goodsId], references: [id])
