@@ -237,18 +237,19 @@ model BoardItems {
 }
 
 model Project {
-  id           Int                @id @default(autoincrement())
-  name         String
-  startDate    DateTime?
-  budget       Decimal?           @db.Decimal(10, 2)
-  priority     Priority           @default(low)
-  labels       ProjectHasLabel[]
-  employees    EmployeeAssigned[]
-  boardItemsId String             @unique
-  clientId     Int?
-  client       Client?            @relation(fields: [clientId], references: [id])
-  boardItems   BoardItems         @relation(fields: [boardItemsId], references: [id])
-  comments     ProjectComment[]
+  id               Int                @id @default(autoincrement())
+  name             String
+  startDate        DateTime?
+  budget           Decimal?           @db.Decimal(10, 2)
+  priority         Priority           @default(low)
+  labels           ProjectHasLabel[]
+  employees        EmployeeAssigned[]
+  boardItemsId     String             @unique
+  clientId         Int?
+  client           Client?            @relation(fields: [clientId], references: [id])
+  boardItems       BoardItems         @relation(fields: [boardItemsId], references: [id])
+  comments         ProjectComment[]
+  TransactionGoods TransactionGoods[]
 }
 
 model ProjectComment {
@@ -312,6 +313,7 @@ model Goods {
   id            Int                @id @default(autoincrement())
   name          String
   qty           Int
+  available     Int
   total_price   Decimal
   photoUrl      String?
   locationId    Int
@@ -333,10 +335,9 @@ model Location {
 }
 
 model Measurements {
-  id               Int                @id @default(autoincrement())
-  name             String
-  goods            Goods[]
-  TransactionGoods TransactionGoods[]
+  id    Int     @id @default(autoincrement())
+  name  String
+  goods Goods[]
 }
 
 model GoodsToLabels {
@@ -355,11 +356,10 @@ model GoodsLabel {
 }
 
 model Brand {
-  id          Int                @id @default(autoincrement())
-  name        String
-  photoUrl    String?
-  goods       Goods[]
-  transaction TransactionGoods[]
+  id       Int     @id @default(autoincrement())
+  name     String
+  photoUrl String?
+  goods    Goods[]
 }
 
 model Supplier {
@@ -406,19 +406,28 @@ model goodsCategory {
 }
 
 model TransactionGoods {
-  id             Int           @id @default(autoincrement())
-  goodsId        Int
-  brandId        Int
-  qty            Int
-  price          Decimal
-  photoUrl       String?
-  supplierId     Int
-  date           DateTime
-  good           Goods         @relation(fields: [goodsId], references: [id])
-  brand          Brand         @relation(fields: [brandId], references: [id])
-  Measurements   Measurements? @relation(fields: [measurementsId], references: [id])
-  measurementsId Int?
-  supplier       Supplier      @relation(fields: [supplierId], references: [id])
+  id          Int             @id @default(autoincrement())
+  goodsId     Int
+  qty         Int
+  price       Decimal
+  photoUrl    String?
+  supplierId  Int
+  date        DateTime
+  type        TransactionType
+  description String?
+  projectId   Int?
+  isReturned  Boolean?
+  project     Project?        @relation(fields: [projectId], references: [id])
+  good        Goods           @relation(fields: [goodsId], references: [id])
+  supplier    Supplier        @relation(fields: [supplierId], references: [id])
+}
+
+enum TransactionType {
+  in
+  out
+  opname
+  borrowed
+  returned
 }
 
 enum Priority {
