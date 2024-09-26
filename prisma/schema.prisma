@@ -371,14 +371,17 @@ model Supplier {
   photoUrl    String?
   tags        SupplierToTag[]
   transaction TransactionGoods[]
+  employees   SupplierEmployee[]
 }
 
 model SupplierEmployee {
-  id       Int            @id @default(autoincrement())
-  name     String
-  position String?
-  phone    String
-  status   StatusSupplier @default(active)
+  id         Int            @id @default(autoincrement())
+  name       String
+  position   String?
+  phone      String?
+  status     StatusSupplier @default(active)
+  supplierId Int
+  supplier   Supplier       @relation(fields: [supplierId], references: [id])
 }
 
 model SupplierTag {
