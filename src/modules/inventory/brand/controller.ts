@@ -10,10 +10,6 @@ export default class BrandController {
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.file) {
-        return this.response.error(res, this.message.fileRequired())
-      }
-
       await this.repository.create({
         name: req.body.name,
         photoUrl: req.file?.filename,
