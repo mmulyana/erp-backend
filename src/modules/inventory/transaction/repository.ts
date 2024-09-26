@@ -22,6 +22,7 @@ export default class BrandRepository {
     payload: Partial<Transaction> & { photoUrl?: string }
   ) => {
     try {
+      await this.isExist(id)
       const transaction = await db.transactionGoods.findUnique({
         where: { id },
       })
@@ -54,6 +55,7 @@ export default class BrandRepository {
   }
   delete = async (id: number) => {
     try {
+      await this.isExist(id)
       const data = await db.transactionGoods.findUnique({ where: { id } })
 
       if (data?.photoUrl) {
@@ -210,5 +212,10 @@ export default class BrandRepository {
       where: { id: goodsId },
       data: updateData,
     })
+  }
+
+  isExist = async (id: number) => {
+    const data = await db.transactionGoods.findUnique({ where: { id } })
+    if (!data) throw Error('Transaksi tidak ditemukan')
   }
 }
