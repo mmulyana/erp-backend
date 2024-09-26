@@ -10,7 +10,10 @@ export default class SupplierController {
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.repository.create(req.body)
+      await this.repository.create({
+        ...req.body,
+        photoUrl: req.file?.filename,
+      })
       return this.response.success(res, this.message.successCreate())
     } catch (error) {
       throw error
@@ -19,13 +22,20 @@ export default class SupplierController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), req.body)
+      await this.repository.update(Number(id), {
+        ...req.body,
+        photoUrl: req.file?.filename,
+      })
       return this.response.success(res, this.message.successUpdate())
     } catch (error) {
       throw error
     }
   }
-  updateTagsHandler = async (req: Request, res: Response, next: NextFunction) => {
+  updateTagsHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { id } = req.params
       await this.repository.updateTag(Number(id), req.body)
