@@ -25,7 +25,7 @@ export default class SupplierController {
       throw error
     }
   }
-  updateTags = async (req: Request, res: Response, next: NextFunction) => {
+  updateTagsHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
       await this.repository.updateTag(Number(id), req.body)
