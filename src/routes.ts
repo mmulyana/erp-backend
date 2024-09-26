@@ -9,6 +9,7 @@ import UserRoleRoutes from './modules/roles-permissions/user-role/router'
 import PermissionRoutes from './modules/roles-permissions/permission/router'
 import PermissionGroupRoutes from './modules/roles-permissions/permission-group/router'
 
+// HRIS
 import PositionRoutes from './modules/hris/position/router'
 import EmployeeRoutes from './modules/hris/employee/router'
 import LeaveRoutes from './modules/hris/leave/router'
@@ -16,6 +17,8 @@ import AttendanceRoutes from './modules/hris/attendance/router'
 import OvertimeRoutes from './modules/hris/overtime/router'
 import CashAdvanceRoutes from './modules/hris/cash-advance/router'
 import CompetencyRoutes from './modules/hris/competency/router'
+
+// PROJECT
 import ProjectRoutes from './modules/project/index/router'
 import ClientRoutes from './modules/project/client/router'
 import LabelRoutes from './modules/project/label/router'
@@ -34,7 +37,6 @@ import TagRoutes from './modules/inventory/tags/router'
 import GoodsLabelRoutes from './modules/inventory/label/router'
 import GoodsRoutes from './modules/inventory/goods/router'
 
-
 interface RouteConfig {
   path: string
   router: Router
@@ -49,12 +51,15 @@ export function setupRoutes(
 ): void {
 
   const routes: RouteConfig[] = [
+    // COMMON
     { path: '/auth', router: new AuthRoutes().router },
     { path: '/roles', router: new RolesRoutes().router, auth: true },
     { path: '/user-role', router: new UserRoleRoutes().router, auth: true },
     { path: '/account', router: new AccountRouter().router, auth: true },
     { path: '/permission', router: new PermissionRoutes().router, auth: true },
     { path: '/permission-group', router: new PermissionGroupRoutes().router, auth: true },
+    
+    // HRIS
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },
     { path: '/hris/employee', router: new EmployeeRoutes().router, auth: true },
     { path: '/hris/leave', router: new LeaveRoutes().router, auth: true },
@@ -62,6 +67,8 @@ export function setupRoutes(
     { path: '/hris/cash-advance', router: new CashAdvanceRoutes().router, auth: true },
     { path: '/hris/competency', router: new CompetencyRoutes().router, auth: true },
     { path: '/hris/overtime', router: new OvertimeRoutes().router, auth: true },
+    
+    // PROJECT
     { path: '/project', router: new ProjectRoutes().router, auth: true },
     { path: '/project/client', router: new ClientRoutes().router, auth: true },
     { path: '/project/label', router: new LabelRoutes().router, auth: true },
