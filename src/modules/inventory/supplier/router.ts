@@ -1,4 +1,3 @@
-import { Router } from 'express'
 import Validation from '../../../helper/validation'
 import Controller from './controller'
 import { supplierSchema, updateTagSchema } from './schema'

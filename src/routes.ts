@@ -25,6 +25,14 @@ import CommentRoutes from './modules/project/comment/router'
 
 // INVENTORY
 import BrandRoutes from './modules/inventory/brand/router'
+import CategoryRoutes from './modules/inventory/category/router'
+import EmployeeSupplierRoutes from './modules/inventory/employee-supplier/router'
+import SupplierRoutes from './modules/inventory/supplier/router'
+import LocationRoutes from './modules/inventory/location/router'
+import MeasurementRoutes from './modules/inventory/measurement/router'
+import TagRoutes from './modules/inventory/tags/router'
+import GoodsLabelRoutes from './modules/inventory/label/router'
+import GoodsRoutes from './modules/inventory/goods/router'
 
 
 interface RouteConfig {
@@ -63,6 +71,14 @@ export function setupRoutes(
     
     // INVENTORY
     { path: '/inventory/brand', router: new BrandRoutes(uploadImg).router, auth: true },
+    { path: '/inventory/category', router: new CategoryRoutes().router, auth: true },
+    { path: '/inventory/supplier', router: new SupplierRoutes(uploadImg).router, auth: true },
+    { path: '/inventory/supplier/employee', router: new EmployeeSupplierRoutes().router, auth: true },
+    { path: '/inventory/location', router: new LocationRoutes().router, auth: true },
+    { path: '/inventory/measurement', router: new MeasurementRoutes().router, auth: true },
+    { path: '/inventory/tag', router: new TagRoutes().router, auth: true },
+    { path: '/inventory/label', router: new GoodsLabelRoutes().router, auth: true },
+    { path: '/inventory/goods', router: new GoodsRoutes(uploadImg).router, auth: true },
   ]
 
   routes.forEach(({ path, router, auth }) => {
