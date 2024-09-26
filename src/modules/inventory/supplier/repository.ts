@@ -81,6 +81,10 @@ export default class SupplierRepository {
   }
   delete = async (id: number) => {
     try {
+      const data = await db.supplier.findUnique({ where: { id } })
+      if (data?.photoUrl) {
+        removeImg(data?.photoUrl)
+      }
       await db.supplier.delete({ where: { id } })
     } catch (error) {
       throw error
