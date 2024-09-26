@@ -16,6 +16,7 @@ export default class BrandRepository {
     payload: Partial<Brand> & { photoUrl?: string }
   ) => {
     try {
+      await this.isExist(id)
       if (payload.photoUrl) {
         const data = await db.brand.findUnique({ where: { id } })
         if (data?.photoUrl) {
@@ -33,6 +34,7 @@ export default class BrandRepository {
   }
   delete = async (id: number) => {
     try {
+      await this.isExist(id)
       const data = await db.brand.findUnique({ where: { id } })
 
       if (data?.photoUrl) {
@@ -69,5 +71,9 @@ export default class BrandRepository {
     } catch (error) {
       throw error
     }
+  }
+  isExist = async (id: number) => {
+    const data = await db.brand.findUnique({ where: { id } })
+    if (!data) throw Error('Merek tidak ditemukan')
   }
 }
