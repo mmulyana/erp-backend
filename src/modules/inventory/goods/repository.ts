@@ -1,6 +1,4 @@
-import path from 'path'
 import db from '../../../lib/db'
-import fs from 'fs'
 import { Goods } from '@prisma/client'
 import { removeImg } from '../../../utils/file'
 
