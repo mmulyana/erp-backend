@@ -10,14 +10,16 @@ export default class LocationRepository {
     }
   }
   update = async (id: number, payload: Location) => {
-    await db.location.update({ data: payload, where: { id } })
     try {
+      await this.isExist(id)
+      await db.location.update({ data: payload, where: { id } })
     } catch (error) {
       throw error
     }
   }
   delete = async (id: number) => {
     try {
+      await this.isExist(id)
       await db.location.delete({ where: { id } })
     } catch (error) {
       throw error
@@ -44,5 +46,9 @@ export default class LocationRepository {
     } catch (error) {
       throw error
     }
+  }
+  isExist = async (id: number) => {
+    const data = await db.location.findUnique({ where: { id } })
+    if (!data) throw Error('Lokasi tidak ditemukan')
   }
 }
