@@ -8,4 +8,8 @@ export const goodsSchema = z.object({
   categoryId: z.number(),
   brandId: z.number(),
 })
+export const updateGoodsSchema = goodsSchema.extend({
+  total_price: z.number(),
+})
 export type Goods = z.infer<typeof goodsSchema>
+export type updateGoods = z.infer<typeof updateGoodsSchema>
