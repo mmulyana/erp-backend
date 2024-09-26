@@ -1,14 +1,18 @@
 import db from '../../../lib/db'
+import { removeImg } from '../../../utils/file'
 import { Supplier } from './schema'
 
 export default class SupplierRepository {
-  create = async (payload: Supplier) => {
+  create = async (payload: Supplier & { photoUrl?: string }) => {
     try {
       await db.supplier.create({
         data: {
           address: payload.address,
           name: payload.name,
           phone: payload.phone,
+          ...(payload.photoUrl !== ''
+            ? { photoUrl: payload.photoUrl }
+            : undefined),
           tags: {
             connect: payload.tags?.map((tagId) => ({ id: tagId })) || [],
           },
@@ -18,16 +22,26 @@ export default class SupplierRepository {
       throw error
     }
   }
-  update = async (id: number, payload: Supplier) => {
-    await db.supplier.update({
-      data: {
-        address: payload.address,
-        name: payload.name,
-        phone: payload.phone,
-      },
-      where: { id },
-    })
+  update = async (id: number, payload: Supplier & { photoUrl?: string }) => {
     try {
+      if (payload.photoUrl) {
+        const data = await db.supplier.findUnique({ where: { id } })
+        if (data?.photoUrl) {
+          removeImg(data?.photoUrl)
+        }
+      }
+
+      await db.supplier.update({
+        data: {
+          address: payload.address,
+          name: payload.name,
+          phone: payload.phone,
+          ...(payload.photoUrl !== ''
+            ? { photoUrl: payload.photoUrl }
+            : undefined),
+        },
+        where: { id },
+      })
     } catch (error) {
       throw error
     }
@@ -45,8 +59,12 @@ export default class SupplierRepository {
 
       const currentTagIds = supplier.tags.map((tag) => tag.tagId)
 
-      const tagsToConnect = tagIds.filter((tagId) => !currentTagIds.includes(tagId))
-      const tagsToDisconnect = currentTagIds.filter((tagId) => !tagIds.includes(tagId))
+      const tagsToConnect = tagIds.filter(
+        (tagId) => !currentTagIds.includes(tagId)
+      )
+      const tagsToDisconnect = currentTagIds.filter(
+        (tagId) => !tagIds.includes(tagId)
+      )
 
       await db.supplier.update({
         where: { id },
