@@ -310,7 +310,7 @@ model CompanyClient {
 // MODULE INVENTORY
 model Goods {
   id            Int                @id @default(autoincrement())
-  nama          String
+  name          String
   qty           Int
   total_price   Decimal
   locationId    Int
@@ -364,8 +364,8 @@ model Brand {
 model Supplier {
   id          Int                @id @default(autoincrement())
   name        String
-  phone       String
-  address     String
+  phone       String?
+  address     String?
   status      StatusSupplier     @default(active)
   photoUrl    String?
   tags        SupplierToTag[]
