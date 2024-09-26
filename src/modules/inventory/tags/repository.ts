@@ -10,14 +10,16 @@ export default class TagRepository {
     }
   }
   update = async (id: number, payload: Tag) => {
-    await db.supplierTag.update({ data: payload, where: { id } })
     try {
+      await this.isExist(id)
+      await db.supplierTag.update({ data: payload, where: { id } })
     } catch (error) {
       throw error
     }
   }
   delete = async (id: number) => {
     try {
+      await this.isExist(id)
       await db.supplierTag.delete({ where: { id } })
     } catch (error) {
       throw error
@@ -44,5 +46,9 @@ export default class TagRepository {
     } catch (error) {
       throw error
     }
+  }
+  isExist = async (id: number) => {
+    const data = await db.supplierTag.findUnique({ where: { id } })
+    if (!data) throw Error('tag tidak ditemukan')
   }
 }
