@@ -24,6 +24,7 @@ export default class SupplierRepository {
   }
   update = async (id: number, payload: Supplier & { photoUrl?: string }) => {
     try {
+      await this.isExist(id)
       if (payload.photoUrl) {
         const data = await db.supplier.findUnique({ where: { id } })
         if (data?.photoUrl) {
@@ -81,6 +82,7 @@ export default class SupplierRepository {
   }
   delete = async (id: number) => {
     try {
+      await this.isExist(id)
       const data = await db.supplier.findUnique({ where: { id } })
       if (data?.photoUrl) {
         removeImg(data?.photoUrl)
@@ -111,5 +113,9 @@ export default class SupplierRepository {
     } catch (error) {
       throw error
     }
+  }
+  isExist = async (id: number) => {
+    const data = await db.supplier.findUnique({ where: { id } })
+    if (!data) throw Error('Supplier tidak ditemukan')
   }
 }
