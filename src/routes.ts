@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { AuthMiddleware } from './middleware/auth-middleware'
+import multer from 'multer'
 
 import AuthRoutes from './modules/auth/router'
 import AccountRouter from './modules/account/router'
@@ -24,7 +25,6 @@ import CommentRoutes from './modules/project/comment/router'
 
 // INVENTORY
 import BrandRoutes from './modules/inventory/brand/router'
-import multer from 'multer'
 
 
 interface RouteConfig {
