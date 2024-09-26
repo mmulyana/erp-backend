@@ -36,6 +36,7 @@ import MeasurementRoutes from './modules/inventory/measurement/router'
 import TagRoutes from './modules/inventory/tags/router'
 import GoodsLabelRoutes from './modules/inventory/label/router'
 import GoodsRoutes from './modules/inventory/goods/router'
+import TransactionRoutes from './modules/inventory/transaction/router'
 
 interface RouteConfig {
   path: string
@@ -86,6 +87,7 @@ export function setupRoutes(
     { path: '/inventory/tag', router: new TagRoutes().router, auth: true },
     { path: '/inventory/label', router: new GoodsLabelRoutes().router, auth: true },
     { path: '/inventory/goods', router: new GoodsRoutes(uploadImg).router, auth: true },
+    { path: '/inventory/transaction', router: new TransactionRoutes(uploadImg).router, auth: true },
   ]
 
   routes.forEach(({ path, router, auth }) => {
