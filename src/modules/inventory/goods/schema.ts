@@ -2,15 +2,14 @@ import { z } from 'zod'
 
 export const goodsSchema = z.object({
   name: z.string(),
-  qty: z.number(),
-  available: z.number(),
-  locationId: z.number(),
-  measurementId: z.number(),
-  categoryId: z.number(),
-  brandId: z.number(),
+  minimum: z.string(),
+  qty: z.string(),
+  available: z.string(),
+  locationId: z.string(),
+  measurementId: z.string(),
+  categoryId: z.string(),
+  brandId: z.string(),
 })
-export const updateGoodsSchema = goodsSchema.extend({
-  total_price: z.number(),
-})
+export const updateGoodsSchema = goodsSchema.partial()
 export type Goods = z.infer<typeof goodsSchema>
 export type updateGoods = z.infer<typeof updateGoodsSchema>
