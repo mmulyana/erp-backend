@@ -6,7 +6,7 @@ import SupplierRepository from './repository'
 export default class SupplierController {
   private response: ApiResponse = new ApiResponse()
   private repository: SupplierRepository = new SupplierRepository()
-  private message: Message = new Message('Label')
+  private message: Message = new Message('Supplier')
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
