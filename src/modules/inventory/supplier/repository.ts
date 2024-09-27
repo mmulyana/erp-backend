@@ -10,11 +10,17 @@ export default class SupplierRepository {
           address: payload.address,
           name: payload.name,
           phone: payload.phone,
+          status: payload.status,
           ...(payload.photoUrl !== ''
             ? { photoUrl: payload.photoUrl }
             : undefined),
           tags: {
-            connect: payload.tags?.map((tagId) => ({ id: tagId })) || [],
+            create:
+              payload.tags?.map((tagId) => ({
+                tag: {
+                  connect: { id: Number(tagId) },
+                },
+              })) || [],
           },
         },
       })
@@ -37,6 +43,7 @@ export default class SupplierRepository {
           address: payload.address,
           name: payload.name,
           phone: payload.phone,
+          status: payload.status,
           ...(payload.photoUrl !== ''
             ? { photoUrl: payload.photoUrl }
             : undefined),
@@ -47,18 +54,25 @@ export default class SupplierRepository {
       throw error
     }
   }
-  updateTag = async (id: number, tagIds: number[]) => {
+  updateTag = async (id: number, payload: { tagIds: number[] }) => {
     try {
+      const { tagIds } = payload
       const supplier = await db.supplier.findUnique({
         where: { id },
-        include: { tags: true },
+        include: {
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+        },
       })
 
       if (!supplier) {
         throw new Error('Supplier not found')
       }
 
-      const currentTagIds = supplier.tags.map((tag) => tag.tagId)
+      const currentTagIds = supplier.tags.map((tag) => tag.tag.id)
 
       const tagsToConnect = tagIds.filter(
         (tagId) => !currentTagIds.includes(tagId)
@@ -71,8 +85,16 @@ export default class SupplierRepository {
         where: { id },
         data: {
           tags: {
-            connect: tagsToConnect.map((tagId) => ({ id: tagId })),
-            disconnect: tagsToDisconnect.map((tagId) => ({ id: tagId })),
+            deleteMany: {
+              tagId: {
+                in: tagsToDisconnect,
+              },
+            },
+            create: tagsToConnect.map((tagId) => ({
+              tag: {
+                connect: { id: tagId },
+              },
+            })),
           },
         },
       })
@@ -96,6 +118,10 @@ export default class SupplierRepository {
     try {
       const baseQuery = {
         where: {},
+        include: {
+          employees: true,
+          tags: true,
+        },
       }
 
       if (name) {
