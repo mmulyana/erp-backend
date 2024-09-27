@@ -30,7 +30,7 @@ export default class SupplierRouter extends RouterWithFile {
       this.controller.updateHandler
     )
     this.router.patch(
-      '/:id',
+      '/:id/tags',
       this.updateTagSchema.validate,
       this.controller.updateTagsHandler
     )
