@@ -6,7 +6,7 @@ import Message from '../../../utils/constant/message'
 export default class GoodsController {
   private response: ApiResponse = new ApiResponse()
   private repository: Repository = new Repository()
-  private message: Message = new Message('Merek')
+  private message: Message = new Message('Barang')
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -24,7 +24,9 @@ export default class GoodsController {
       const { id } = req.params
       await this.repository.update(Number(id), {
         ...req.body,
-        photoUrl: req.file?.filename,
+        ...(req.file?.filename
+          ? { newPhotoUrl: req.file?.filename }
+          : undefined),
       })
       return this.response.success(res, this.message.successUpdate())
     } catch (error) {
