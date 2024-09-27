@@ -6,9 +6,9 @@ export const supplierSchema = z.object({
   email: z.string().optional(),
   address: z.string().optional(),
   status: z.enum(['active', 'nonactive']),
-  tags: z.number().array().optional(),
+  tags: z.string().array().optional(),
 })
-export const updateTagSchema = supplierSchema.pick({
-  tags: true,
+export const updateTagSchema = z.object({
+  tagIds: z.number().array().optional(),
 })
 export type Supplier = z.infer<typeof supplierSchema>
