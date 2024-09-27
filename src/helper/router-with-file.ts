@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response, Router } from 'express'
+import { removeImg } from '../utils/file'
 import multer from 'multer'
 import path from 'path'
 import sharp from 'sharp'
-import fs from 'fs'
 
 export default class RouterWithFile {
   public router: Router
@@ -24,7 +24,7 @@ export default class RouterWithFile {
     }
 
     const { filename: image } = req.file
-    const imagePath = path.join('public/img', image)
+    const imagePath = path.join('public', 'img', image)
     const outputPath = path.join('public/img', `compressed_${image}`)
 
     try {
@@ -34,11 +34,7 @@ export default class RouterWithFile {
         .webp({ quality: this.COMPRESSION_QUALITY })
         .toFile(outputPath)
 
-      fs.unlink(path.join('public/img', image), (err) => {
-        if (err) {
-          console.error(`Error deleting original file: ${err}`)
-        }
-      })
+      await removeImg(imagePath)
 
       req.file.path = outputPath
       req.file.filename = `compressed_${image}`
