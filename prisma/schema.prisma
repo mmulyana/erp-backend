@@ -324,7 +324,6 @@ model Goods {
   measurement   Measurements       @relation(fields: [measurementId], references: [id])
   brand         Brand              @relation(fields: [brandId], references: [id])
   category      goodsCategory      @relation(fields: [categoryId], references: [id])
-  labels        GoodsToLabels[]
   transaction   TransactionGoods[]
 }
 
@@ -338,21 +337,6 @@ model Measurements {
   id    Int     @id @default(autoincrement())
   name  String
   goods Goods[]
-}
-
-model GoodsToLabels {
-  id           Int        @id @default(autoincrement())
-  goodsId      Int
-  goodsLabelId Int
-  goods        Goods      @relation(fields: [goodsId], references: [id])
-  goodCategory GoodsLabel @relation(fields: [goodsLabelId], references: [id])
-}
-
-model GoodsLabel {
-  id              Int             @id @default(autoincrement())
-  name            String
-  color           String
-  goodsToCategory GoodsToLabels[]
 }
 
 model Brand {

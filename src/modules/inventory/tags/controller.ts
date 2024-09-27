@@ -6,7 +6,7 @@ import MeasurementsRepository from './repository'
 export default class TagController {
   private response: ApiResponse = new ApiResponse()
   private repository: MeasurementsRepository = new MeasurementsRepository()
-  private message: Message = new Message('Label')
+  private message: Message = new Message('Tag')
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
