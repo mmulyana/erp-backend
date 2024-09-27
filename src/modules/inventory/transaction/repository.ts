@@ -90,9 +90,6 @@ export default class BrandRepository {
     if (type == 'in') {
       await db.goods.update({
         data: {
-          total_price: {
-            increment: total_price,
-          },
           qty: {
             increment: qty,
           },
@@ -104,9 +101,6 @@ export default class BrandRepository {
     if (type == 'out') {
       await db.goods.update({
         data: {
-          total_price: {
-            decrement: total_price,
-          },
           qty: {
             decrement: qty,
           },
@@ -121,9 +115,6 @@ export default class BrandRepository {
     if (type == 'out') {
       await db.goods.update({
         data: {
-          total_price: {
-            decrement: total_price,
-          },
           qty: {
             decrement: qty,
           },
@@ -186,7 +177,6 @@ export default class BrandRepository {
         break
     }
 
-    // Apply the effects of the new transaction
     switch (newType) {
       case 'in':
         updateData.available = { increment: newQty }
