@@ -314,13 +314,13 @@ model Goods {
   name          String
   qty           Int
   available     Int
-  total_price   Decimal
+  minimum       Int
   photoUrl      String?
-  locationId    Int
+  locationId    Int?
   measurementId Int
   categoryId    Int
   brandId       Int
-  location      Location           @relation(fields: [locationId], references: [id])
+  location      Location?          @relation(fields: [locationId], references: [id])
   measurement   Measurements       @relation(fields: [measurementId], references: [id])
   brand         Brand              @relation(fields: [brandId], references: [id])
   category      goodsCategory      @relation(fields: [categoryId], references: [id])
