@@ -7,4 +7,9 @@ export const schema = z.object({
   status: z.enum(['active', 'nonactive']),
   supplierId: z.number(),
 })
+export const updateSchema = schema
+  .omit({
+    supplierId: true,
+  })
+  .partial()
 export type EmployeeSupplierSchema = z.infer<typeof schema>
