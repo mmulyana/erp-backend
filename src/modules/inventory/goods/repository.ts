@@ -90,6 +90,12 @@ export default class GoodsRepository {
     try {
       const baseQuery = {
         where: {},
+        include: {
+          brand: true,
+          category: true,
+          location: true,
+          measurement: true,
+        },
       }
 
       if (name) {
