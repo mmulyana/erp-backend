@@ -25,12 +25,18 @@ export default class EmployeeSupplierRepository {
       throw error
     }
   }
-  read = async (name?: string) => {
+  read = async (id?: number, name?: string) => {
     try {
       const baseQuery = {
         where: {},
       }
 
+      if (Number(id)) {
+        baseQuery.where = {
+          ...baseQuery.where,
+          OR: [{ supplierId: Number(id) }],
+        }
+      }
       if (name) {
         baseQuery.where = {
           ...baseQuery.where,
