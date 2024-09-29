@@ -120,7 +120,11 @@ export default class SupplierRepository {
         where: {},
         include: {
           employees: true,
-          tags: true,
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
         },
       }
 
