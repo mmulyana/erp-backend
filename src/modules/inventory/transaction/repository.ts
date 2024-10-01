@@ -6,12 +6,22 @@ import { TransactionType } from '@prisma/client'
 export default class BrandRepository {
   create = async (payload: Transaction & { photoUrl?: string }) => {
     try {
-      await db.transactionGoods.create({ data: payload })
+      const date = new Date(payload.date)
+      await db.transactionGoods.create({
+        data: {
+          price: Number(payload.price),
+          qty: Number(payload.qty),
+          type: payload.type,
+          goodsId: Number(payload.goodsId),
+          supplierId: Number(payload.supplierId),
+          date,
+        },
+      })
       await this.updateGoods(
-        payload.goodsId,
+        Number(payload.goodsId),
         payload.type,
-        payload.qty,
-        payload.price
+        Number(payload.qty),
+        Number(payload.price)
       )
     } catch (error) {
       throw error
@@ -27,7 +37,7 @@ export default class BrandRepository {
         where: { id },
       })
       const goods = await db.goods.findUnique({
-        where: { id: payload.goodsId },
+        where: { id: Number(payload.goodsId) },
       })
 
       if (!transaction) throw Error('transaksi tidak ada')
@@ -38,7 +48,7 @@ export default class BrandRepository {
         transaction.type,
         payload.type as TransactionType,
         transaction.qty,
-        payload.qty as number
+        Number(payload.qty)
       )
 
       // handle when theres new photo
@@ -48,7 +58,19 @@ export default class BrandRepository {
         }
       }
 
-      await db.transactionGoods.update({ data: payload, where: { id } })
+      const date = payload.date ? new Date(payload.date) : new Date()
+
+      await db.transactionGoods.update({
+        data: {
+          price: Number(payload.price),
+          qty: Number(payload.qty),
+          type: payload.type,
+          goodsId: Number(payload.goodsId),
+          supplierId: Number(payload.supplierId),
+          date,
+        },
+        where: { id },
+      })
     } catch (error) {
       throw error
     }
@@ -67,16 +89,27 @@ export default class BrandRepository {
       throw error
     }
   }
-  read = async () => {
-    try {
-      const baseQuery = {
-        where: {},
-      }
-
-      return await db.transactionGoods.findMany(baseQuery)
-    } catch (error) {
-      throw error
+  read = async (type?: string) => {
+    let baseQuery = {
+      where: {},
+      include: {
+        project: true,
+        good: true,
+        supplier: true,
+      },
     }
+
+    if (type) {
+      baseQuery = {
+        ...baseQuery,
+        where: {
+          ...baseQuery.where,
+          type: type,
+        },
+      }
+    }
+
+    return await db.transactionGoods.findMany(baseQuery)
   }
 
   updateGoods = async (
@@ -85,27 +118,14 @@ export default class BrandRepository {
     qty: number,
     price: number
   ) => {
-    const total_price = qty * price
-
     if (type == 'in') {
       await db.goods.update({
         data: {
           qty: {
             increment: qty,
           },
-        },
-        where: { id },
-      })
-    }
-
-    if (type == 'out') {
-      await db.goods.update({
-        data: {
-          qty: {
-            decrement: qty,
-          },
           available: {
-            decrement: qty,
+            increment: qty,
           },
         },
         where: { id },
