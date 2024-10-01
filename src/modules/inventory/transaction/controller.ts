@@ -42,7 +42,8 @@ export default class TransactionController {
   }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await this.repository.read()
+      const { type } = req.query
+      const data = await this.repository.read(type?.toString())
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
