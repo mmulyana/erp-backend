@@ -91,10 +91,31 @@ export default class BrandRepository {
   read = async (type?: string) => {
     let baseQuery = {
       where: {},
-      include: {
-        project: true,
-        good: true,
-        supplier: true,
+      select: {
+        good: {
+          select: {
+            id: true,
+            name: true,
+            measurement: {
+              select: {
+                name: true,
+              },
+            },
+            brand: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        supplier: {
+          select: {
+            name: true,
+          },
+        },
+        date: true,
+        qty: true,
+        price: true
       },
     }
 
@@ -107,7 +128,6 @@ export default class BrandRepository {
         },
       }
     }
-
     return await db.transactionGoods.findMany({
       ...baseQuery,
       orderBy: {

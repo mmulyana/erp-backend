@@ -8,5 +8,7 @@ export const schema = z.object({
   date: z.string(),
   type: z.enum(['in', 'out', 'opname', 'borrowed', 'returned']),
   description: z.string().optional(),
+  projectId: z.string().optional(),
+  isReturned: z.boolean().optional(),
 })
 export type Transaction = z.infer<typeof schema>
