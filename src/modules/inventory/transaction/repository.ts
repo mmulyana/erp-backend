@@ -20,8 +20,7 @@ export default class BrandRepository {
       await this.updateGoods(
         Number(payload.goodsId),
         payload.type,
-        Number(payload.qty),
-        Number(payload.price)
+        Number(payload.qty)
       )
     } catch (error) {
       throw error
@@ -109,15 +108,15 @@ export default class BrandRepository {
       }
     }
 
-    return await db.transactionGoods.findMany(baseQuery)
+    return await db.transactionGoods.findMany({
+      ...baseQuery,
+      orderBy: {
+        date: 'desc',
+      },
+    })
   }
 
-  updateGoods = async (
-    id: number,
-    type: TransactionType,
-    qty: number,
-    price: number
-  ) => {
+  updateGoods = async (id: number, type: TransactionType, qty: number) => {
     if (type == 'in') {
       await db.goods.update({
         data: {
