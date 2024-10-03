@@ -395,7 +395,7 @@ model TransactionGoods {
   qty         Int
   price       Decimal
   photoUrl    String?
-  supplierId  Int
+  supplierId  Int?
   date        DateTime
   type        TransactionType
   description String?
@@ -403,7 +403,7 @@ model TransactionGoods {
   isReturned  Boolean?
   project     Project?        @relation(fields: [projectId], references: [id])
   good        Goods           @relation(fields: [goodsId], references: [id])
-  supplier    Supplier        @relation(fields: [supplierId], references: [id])
+  supplier    Supplier?        @relation(fields: [supplierId], references: [id])
 }
 
 enum TransactionType {
