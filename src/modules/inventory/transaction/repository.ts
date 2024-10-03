@@ -13,8 +13,14 @@ export default class BrandRepository {
           qty: Number(payload.qty),
           type: payload.type,
           goodsId: Number(payload.goodsId),
-          supplierId: Number(payload.supplierId),
+          ...(payload.supplierId
+            ? { supplierId: Number(payload.supplierId) }
+            : undefined),
           date,
+          isReturned: payload.isReturned === 'true',
+          ...(payload.projectId
+            ? { projectId: Number(payload.projectId) }
+            : undefined),
         },
       })
       await this.updateGoods(
@@ -115,7 +121,7 @@ export default class BrandRepository {
         },
         date: true,
         qty: true,
-        price: true
+        price: true,
       },
     }
 
