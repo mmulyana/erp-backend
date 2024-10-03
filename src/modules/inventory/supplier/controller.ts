@@ -55,8 +55,8 @@ export default class SupplierController {
   }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name } = req.query
-      const data = await this.repository.read(name?.toString())
+      const { name, tag } = req.query
+      const data = await this.repository.read(name?.toString(), Number(tag))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
