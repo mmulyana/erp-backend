@@ -8,10 +8,12 @@ export default class RouterWithFile {
   public router: Router
   protected COMPRESSION_QUALITY = 80
   protected upload: multer.Multer
+  protected name = 'img'
 
-  constructor(upload: multer.Multer) {
+  constructor(upload: multer.Multer, name: string) {
     this.router = Router()
     this.upload = upload
+    this.name = name
   }
 
   protected compressImage = async (
@@ -23,27 +25,14 @@ export default class RouterWithFile {
       return next()
     }
 
-    const { filename: image } = req.file
-    const imagePath = path.join('public', 'img', image)
-    const outputPath = path.join('public/img', `compressed_${image}`)
+    req.file.filename = `${this.name}-${Date.now()}.jpeg`
 
-    try {
-      await sharp(imagePath)
-        .jpeg({ quality: this.COMPRESSION_QUALITY })
-        .png({ quality: this.COMPRESSION_QUALITY })
-        .webp({ quality: this.COMPRESSION_QUALITY })
-        .toFile(outputPath)
+    sharp(req.file.buffer)
+      .toFormat('jpeg')
+      .jpeg({ quality: this.COMPRESSION_QUALITY })
+      .toFile(`public/img/${req.file.filename}`)
 
-      await removeImg(imagePath)
-
-      req.file.path = outputPath
-      req.file.filename = `compressed_${image}`
-
-      next()
-    } catch (error) {
-      console.error(`Error compressing image: ${error}`)
-      next()
-    }
+    next()
   }
 
   protected register(): void {}
