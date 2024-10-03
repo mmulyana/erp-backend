@@ -192,6 +192,16 @@ export default class BrandRepository {
         where: { id },
       })
     }
+
+    if (type == 'opname') {
+      await db.goods.update({
+        data: {
+          available: qty,
+          qty: qty,
+        },
+        where: { id },
+      })
+    }
   }
 
   updateGoodsQty = async (
@@ -242,6 +252,8 @@ export default class BrandRepository {
         updateData.available = { increment: newQty }
         break
     }
+
+    console.log(updateData)
 
     await db.goods.update({
       where: { id: goodsId },
