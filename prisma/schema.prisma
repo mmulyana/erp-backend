@@ -393,7 +393,7 @@ model TransactionGoods {
   id          Int             @id @default(autoincrement())
   goodsId     Int
   qty         Int
-  price       Decimal
+  price       Decimal?
   photoUrl    String?
   supplierId  Int?
   date        DateTime
