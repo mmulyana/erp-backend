@@ -10,7 +10,7 @@ export default class SupplierRouter extends RouterWithFile {
   private controller: Controller = new Controller()
 
   constructor(upload: Multer) {
-    super(upload)
+    super(upload, 'supplier')
     this.register()
   }
 

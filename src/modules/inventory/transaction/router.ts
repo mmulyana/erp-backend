@@ -9,7 +9,7 @@ export default class TransactionRouter extends RouterWithFile {
   private controller: Controller = new Controller()
 
   constructor(upload: Multer) {
-    super(upload)
+    super(upload, 'transactions')
     this.register()
   }
 

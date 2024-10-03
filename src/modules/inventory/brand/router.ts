@@ -9,7 +9,7 @@ export default class BrandRouter extends RouterWithFile {
   private controller: BrandController = new BrandController()
 
   constructor(upload: multer.Multer) {
-    super(upload)
+    super(upload, 'brand')
     this.register()
   }
 
