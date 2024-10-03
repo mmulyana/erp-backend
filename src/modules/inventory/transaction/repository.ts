@@ -9,10 +9,10 @@ export default class BrandRepository {
       const date = new Date(payload.date)
       await db.transactionGoods.create({
         data: {
-          price: Number(payload.price),
           qty: Number(payload.qty),
           type: payload.type,
           goodsId: Number(payload.goodsId),
+          ...(payload.price ? { price: Number(payload.price) } : undefined),
           ...(payload.supplierId
             ? { supplierId: Number(payload.supplierId) }
             : undefined),
