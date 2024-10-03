@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
-import path from 'path'
 
-export async function removeImg(filePath: string) {
+export async function removeImg(filename: string) {
+  let filePath = 'public/img/' + filename
   try {
     await fs.unlink(filePath)
     console.log(`Successfully deleted file: ${filePath}`)
