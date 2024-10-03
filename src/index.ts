@@ -33,14 +33,7 @@ class Application {
   }
 
   private setupMulter(): multer.Multer {
-    const storage = multer.diskStorage({
-      destination: (req, file, cb) => {
-        cb(null, 'public/img')
-      },
-      filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname))
-      },
-    })
+    const storage = multer.memoryStorage()
 
     return multer({ storage: storage })
   }
