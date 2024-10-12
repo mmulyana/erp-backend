@@ -36,5 +36,6 @@ export default class SupplierRouter extends RouterWithFile {
     )
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readHandler)
+    this.router.get('/:id', this.controller.readOneHandler)
   }
 }
