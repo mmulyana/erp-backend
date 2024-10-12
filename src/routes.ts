@@ -74,7 +74,7 @@ export function setupRoutes(
     { path: '/project', router: new ProjectRoutes().router, auth: true },
     { path: '/project/client', router: new ClientRoutes().router, auth: true },
     { path: '/project/label', router: new LabelRoutes().router, auth: true },
-    { path: '/project/company', router: new CompanyRoutes().router, auth: true },
+    { path: '/project/client/company', router: new CompanyRoutes().router, auth: true },
     { path: '/project/board', router: new BoardRoutes().router, auth: true },
     { path: '/project/comment', router: new CommentRoutes().router, auth: true },
     
