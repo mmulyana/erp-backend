@@ -62,4 +62,13 @@ export default class SupplierController {
       next(error)
     }
   }
+  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readOne(Number(id))
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
 }
