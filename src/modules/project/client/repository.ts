@@ -3,31 +3,19 @@ import { Client } from './schema'
 
 export default class ClientRepository {
   create = async (data: Client) => {
-    try {
-      await db.client.create({ data })
-    } catch (error) {
-      throw error
-    }
+    await db.client.create({ data })
   }
   update = async (id: number, data: Client) => {
-    try {
-      await db.client.update({ data, where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await db.client.update({ data, where: { id } })
   }
   delete = async (id: number) => {
-    try {
-      await db.client.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await db.client.delete({ where: { id } })
   }
   read = async () => {
-    try {
-      return await db.client.findMany()
-    } catch (error) {
-      throw error
-    }
+    return await db.client.findMany({
+      include: {
+        company: true,
+      },
+    })
   }
 }
