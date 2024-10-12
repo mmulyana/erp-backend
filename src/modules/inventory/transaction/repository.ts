@@ -122,6 +122,7 @@ export default class BrandRepository {
         date: true,
         qty: true,
         price: true,
+        type: true,
       },
     }
 
@@ -252,8 +253,6 @@ export default class BrandRepository {
         updateData.available = { increment: newQty }
         break
     }
-
-    console.log(updateData)
 
     await db.goods.update({
       where: { id: goodsId },
