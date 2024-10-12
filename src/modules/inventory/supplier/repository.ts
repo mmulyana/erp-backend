@@ -185,6 +185,21 @@ export default class SupplierRepository {
 
     return await db.supplier.findMany(baseQuery)
   }
+  readOne = async (id: number) => {
+    return await db.supplier.findUnique({
+      include: {
+        employees: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      where: {
+        id,
+      },
+    })
+  }
   isExist = async (id: number) => {
     const data = await db.supplier.findUnique({ where: { id } })
     if (!data) throw Error('Supplier tidak ditemukan')
