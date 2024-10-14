@@ -34,11 +34,13 @@ export default class EmployeeRepository {
         pay_type: payload.pay_type,
         employment_type: payload.employment_type,
         place_of_birth: payload.place_of_birth,
-        birthdate: payload.birthdate,
+        birth_date: payload.birth_date,
         gender: payload.gender,
         marital_status: payload.marital_status,
         religion: payload.religion,
-        positionId: payload.positionId,
+        positionId: Number(payload.positionId),
+        last_education: payload.last_education,
+        ...(payload.photo !== '' ? { photo: payload.photo } : undefined),
         addresses: {
           create: payload.addresses?.map((item) => ({
             value: item.value,
@@ -56,7 +58,6 @@ export default class EmployeeRepository {
             competencyId: item,
           })),
         },
-        ...(payload.photo !== '' ? { photo: payload.photo } : undefined),
       },
     })
     return data
@@ -81,11 +82,12 @@ export default class EmployeeRepository {
         pay_type: payload.pay_type,
         employment_type: payload.employment_type,
         place_of_birth: payload.place_of_birth,
-        birthdate: payload.birthdate,
+        birth_date: payload.birth_date,
         gender: payload.gender,
         marital_status: payload.marital_status,
         religion: payload.religion,
-        positionId: payload.positionId,
+        positionId: Number(payload.positionId),
+        last_education: payload.last_education,
         ...(payload.photo !== '' ? { photo: payload.photo } : undefined),
       },
       where: { id },
