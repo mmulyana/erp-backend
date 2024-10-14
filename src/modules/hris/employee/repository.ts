@@ -8,6 +8,7 @@ import {
 } from './schema'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import db from '../../../lib/db'
+import { removeImg } from '../../../utils/file'
 
 type Employee = z.infer<typeof employeeSchema>
 type Contact = z.infer<typeof contactSchema>
@@ -62,6 +63,14 @@ export default class EmployeeRepository {
   }
   update = async (id: number, payload: Partial<Employee>) => {
     await this.isExist(id)
+
+    if (payload.photo) {
+      const data = await db.employee.findUnique({ where: { id } })
+      if (data?.photo) {
+        removeImg(data?.photo)
+      }
+    }
+
     await db.employee.update({
       data: {
         fullname: payload.fullname,
@@ -128,6 +137,10 @@ export default class EmployeeRepository {
   }
   delete = async (id: number) => {
     await this.isExist(id)
+    const data = await db.employee.findUnique({ where: { id } })
+    if (data?.photo) {
+      removeImg(data?.photo)
+    }
     await db.employee.delete({ where: { id } })
   }
   read = async (id: number) => {
