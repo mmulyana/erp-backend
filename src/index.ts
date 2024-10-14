@@ -6,8 +6,7 @@ import cors from 'cors'
 import { Server } from 'socket.io'
 import http from 'http'
 import KanbanSocket from './modules/project/kanban/socket'
-import multer from 'multer'
-import path from 'path'
+import { createMulter, MulterConfig } from './utils/multer-config'
 
 class Application {
   private app: Express
@@ -16,7 +15,7 @@ class Application {
   private WS_PORT: number
   private HOST: string
   private authMiddleware: AuthMiddleware = new AuthMiddleware()
-  private uploadImg: multer.Multer
+  private multerConfig: MulterConfig
 
   constructor() {
     this.app = express()
@@ -25,17 +24,11 @@ class Application {
     this.WS_PORT = Number(process.env.WS_PORT) || 5001
     this.HOST = process.env.HOST || 'localhost'
 
-    this.uploadImg = this.setupMulter()
+    this.multerConfig = createMulter()
     this.plugin()
     this.setupRoutes()
     this.setupSocket()
     this.start()
-  }
-
-  private setupMulter(): multer.Multer {
-    const storage = multer.memoryStorage()
-
-    return multer({ storage: storage })
   }
 
   private plugin(): void {
@@ -51,7 +44,8 @@ class Application {
     })
 
     const v1Router = express.Router()
-    setupRoutes(v1Router, this.authMiddleware, true, this.uploadImg)
+
+    setupRoutes(v1Router, this.authMiddleware, true, this.multerConfig)
 
     this.app.use('/api/v1', v1Router)
 
