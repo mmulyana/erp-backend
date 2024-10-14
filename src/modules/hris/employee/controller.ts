@@ -8,7 +8,7 @@ import Message from '../../../utils/constant/message'
 export default class EmployeeController {
   private response: ApiResponse = new ApiResponse()
   private repository: EmployeeRepository = new EmployeeRepository()
-  private message: Message = new Message('pegawai')
+  private message: Message = new Message('Pegawai')
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -16,7 +16,7 @@ export default class EmployeeController {
         ...req.body,
         photo: req.file?.filename,
       })
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CREATE, data)
+      this.response.success(res, this.message.successCreate(), data)
     } catch (error) {
       next(error)
     }
