@@ -36,7 +36,7 @@ export default class AttendanceController {
   }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id, date, name } = req.query
+      const { date, name } = req.query
       const searchName = name ? String(name) : undefined
       let startDate = new Date().toISOString()
       if (date) {
@@ -45,7 +45,6 @@ export default class AttendanceController {
 
       const data = await this.repository.read(startDate, {
         search: searchName,
-        id: Number(id),
       })
       return this.response.success(res, MESSAGE_SUCCESS.ATTENDANCE.READ, data)
     } catch (error) {
