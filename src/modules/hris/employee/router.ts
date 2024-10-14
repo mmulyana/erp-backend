@@ -11,6 +11,7 @@ import Validation from '../../../helper/validation'
 import EmployeeController from './controller'
 import RouterWithFile from '../../../helper/router-with-file'
 import { Multer } from 'multer'
+import { MulterConfig } from '../../../utils/multer-config'
 
 export default class EmployeeRouter extends RouterWithFile {
   private controller: EmployeeController = new EmployeeController()
@@ -20,15 +21,18 @@ export default class EmployeeRouter extends RouterWithFile {
   private addressSchema: Validation = new Validation(addressSchema)
   private contactSchema: Validation = new Validation(contactSchema)
   private certifSchema: Validation = new Validation(certifchema)
+  private uploadDoc: Multer
 
-  constructor(upload: Multer) {
-    super(upload, 'employee')
+  constructor(multerConfig: MulterConfig) {
+    super(multerConfig.uploadImg, 'employee')
+    this.uploadDoc = multerConfig.uploadDoc
     this.register()
+    this.name = 'employee'
   }
 
   protected register() {
-    this.router.patch('/:id', this.employeeSchema.validate, this.controller.updateHandler)
-    this.router.post('/', this.employeeSchema.validate, this.controller.createHandler)
+    this.router.patch('/:id', this.employeeSchema.validate, this.upload.single('photo'), this.compressImage, this.controller.updateHandler)
+    this.router.post('/', this.employeeSchema.validate, this.upload.single('photo'), this.compressImage, this.controller.createHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readHandler)
