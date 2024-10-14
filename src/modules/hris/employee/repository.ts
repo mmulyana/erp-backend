@@ -23,144 +23,205 @@ export type FilterEmployee = {
 export default class EmployeeRepository {
   // EMPLOYEE
   create = async (payload: Employee) => {
-    try {
-      await db.employee.create({ data: payload })
-    } catch (error) {
-      throw error
-    }
+    const data = await db.employee.create({
+      data: {
+        fullname: payload.fullname,
+        joined_at: payload.joined_at,
+        joined_type: payload.joined_type,
+        basic_salary: payload.basic_salary,
+        overtime_salary: payload.overtime_salary,
+        pay_type: payload.pay_type,
+        employment_type: payload.employment_type,
+        place_of_birth: payload.place_of_birth,
+        birthdate: payload.birthdate,
+        gender: payload.gender,
+        marital_status: payload.marital_status,
+        religion: payload.religion,
+        positionId: payload.positionId,
+        addresses: {
+          create: payload.addresses?.map((item) => ({
+            value: item.value,
+            type: item.type,
+          })),
+        },
+        contacts: {
+          create: payload.contacts?.map((item) => ({
+            value: item.value,
+            type: item.type,
+          })),
+        },
+        competencies: {
+          create: payload.competencyIds?.map((item) => ({
+            competencyId: item,
+          })),
+        },
+        ...(payload.photo !== '' ? { photo: payload.photo } : undefined),
+      },
+    })
+    return data
   }
-  update = async (id: number, payload: Employee) => {
-    try {
-      await this.isExist(id)
-      await db.employee.update({ data: payload, where: { id } })
-    } catch (error) {
-      throw error
-    }
+  update = async (id: number, payload: Partial<Employee>) => {
+    await this.isExist(id)
+    await db.employee.update({
+      data: {
+        fullname: payload.fullname,
+        joined_at: payload.joined_at,
+        joined_type: payload.joined_type,
+        basic_salary: payload.basic_salary,
+        overtime_salary: payload.overtime_salary,
+        pay_type: payload.pay_type,
+        employment_type: payload.employment_type,
+        place_of_birth: payload.place_of_birth,
+        birthdate: payload.birthdate,
+        gender: payload.gender,
+        marital_status: payload.marital_status,
+        religion: payload.religion,
+        positionId: payload.positionId,
+        ...(payload.photo !== '' ? { photo: payload.photo } : undefined),
+      },
+      where: { id },
+    })
   }
-  delete = async (id: number) => {
-    try {
-      await this.isExist(id)
-      await db.employee.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
-  }
-  read = async (id: number) => {
-    try {
-      await this.isExist(id)
-      const data = await db.employee.findUnique({
-        select: {
-          id: true,
-          fullname: true,
-          address: true,
-          attendances: true,
-          cashAdvances: true,
-          contact: true,
-          position: {
-            select: {
-              name: true,
-              description: true,
-            },
+  updateCompentencies = async (
+    id: number,
+    { competencyIds }: { competencyIds: number[] }
+  ) => {
+    await this.isExist(id)
+    const employee = await db.employee.findUnique({
+      where: { id },
+      include: {
+        competencies: {
+          include: {
+            competency: true,
           },
         },
-        where: { id },
-      })
-      return data
-    } catch (error) {
-      throw error
-    }
+      },
+    })
+
+    const currentCompetencies = employee?.competencies.map(
+      (item) => item.competency.id
+    )
+
+    const competenciesToConnect = competencyIds.filter(
+      (item) => !currentCompetencies?.includes(item)
+    )
+
+    const competenciesToDisconnect = currentCompetencies?.filter(
+      (item) => !competencyIds.includes(item)
+    )
+
+    await db.employee.update({
+      where: { id },
+      data: {
+        competencies: {
+          deleteMany: {
+            competencyId: {
+              in: competenciesToDisconnect,
+            },
+          },
+          create: competenciesToConnect.map((competencyId) => ({
+            competencyId,
+          })),
+        },
+      },
+    })
+  }
+  delete = async (id: number) => {
+    await this.isExist(id)
+    await db.employee.delete({ where: { id } })
+  }
+  read = async (id: number) => {
+    await this.isExist(id)
+    const data = await db.employee.findUnique({
+      select: {
+        id: true,
+        fullname: true,
+        addresses: true,
+        attendances: true,
+        cashAdvances: true,
+        contacts: true,
+        position: {
+          select: {
+            name: true,
+            description: true,
+          },
+        },
+      },
+      where: { id },
+    })
+    return data
   }
   readAll = async (
     page: number = 1,
     limit: number = 10,
     filter?: FilterEmployee
   ) => {
-    try {
-      const skip = (page - 1) * limit
-      const where: any = {}
+    const skip = (page - 1) * limit
+    const where: any = {}
 
-      if (filter) {
-        if ('fullname' in filter) {
-          where.OR = [
-            { fullname: { contains: filter.fullname, mode: 'insensitive' } },
-            { nickname: { contains: filter.fullname, mode: 'insensitive' } },
-          ]
-        }
-
-        if ('positionId' in filter) {
-          where.positionId = filter.positionId
-        }
+    if (filter) {
+      if ('fullname' in filter) {
+        where.OR = [
+          { fullname: { contains: filter.fullname, mode: 'insensitive' } },
+          { nickname: { contains: filter.fullname, mode: 'insensitive' } },
+        ]
       }
 
-      const data = await db.employee.findMany({
-        skip,
-        take: limit,
-        where,
-        select: {
-          fullname: true,
-          id: true,
-          status: true,
-        },
-      })
-
-      const total = await db.employee.count({ where })
-      return { data, total, page, limit }
-    } catch (error) {
-      throw error
+      if ('positionId' in filter) {
+        where.positionId = filter.positionId
+      }
     }
+
+    const data = await db.employee.findMany({
+      skip,
+      take: limit,
+      where,
+      select: {
+        fullname: true,
+        id: true,
+        status: true,
+      },
+    })
+
+    const total = await db.employee.count({ where })
+    return { data, total, page, limit }
   }
 
   // ADDRESS
   createAddress = async (employeeId: number, payload: Address) => {
-    try {
-      await this.isExist(employeeId)
-      await db.address.create({
-        data: { ...payload, employeeId },
-      })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(employeeId)
+    await db.address.create({
+      data: { ...payload, employeeId },
+    })
   }
   updateAddress = async (id: number, payload: Address) => {
-    try {
-      await this.isAddressExist(id)
-      await db.address.update({
-        data: payload,
-        where: {
-          id: id,
-        },
-      })
-    } catch (error) {
-      throw error
-    }
+    await this.isAddressExist(id)
+    await db.address.update({
+      data: payload,
+      where: {
+        id: id,
+      },
+    })
   }
   deleteAddress = async (id: number) => {
-    try {
-      await this.isAddressExist(id)
-      await db.address.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isAddressExist(id)
+    await db.address.delete({ where: { id } })
   }
   readAddress = async (employeeId: number, addressId?: number) => {
-    try {
-      if (!!addressId) {
-        await this.isAddressExist(addressId)
-        const data = await db.address.findUnique({
-          where: { employeeId, id: addressId },
-        })
-        return data
-      }
-
-      const data = await db.address.findMany({
-        where: {
-          employeeId,
-        },
+    if (!!addressId) {
+      await this.isAddressExist(addressId)
+      const data = await db.address.findUnique({
+        where: { employeeId, id: addressId },
       })
       return data
-    } catch (error) {
-      throw error
     }
+
+    const data = await db.address.findMany({
+      where: {
+        employeeId,
+      },
+    })
+    return data
   }
 
   // CONTACT
@@ -214,7 +275,7 @@ export default class EmployeeRepository {
     }
   }
 
-  updateStatusEmployee = async (id: number, status: 'active' | 'nonactive') => {
+  updateStatusEmployee = async (id: number, status: 'active' | 'inactive') => {
     try {
       await this.isExist(id)
       const date = new Date().toISOString()
@@ -224,8 +285,8 @@ export default class EmployeeRepository {
         if (!!data?.status) {
           throw new Error(MESSAGE_ERROR.EMPLOYEE.STATUS.ACTIVE)
         }
-      } else if (status == 'nonactive' && !data?.status) {
-        throw new Error(MESSAGE_ERROR.EMPLOYEE.STATUS.UNACTIVE)
+      } else if (status == 'inactive' && !data?.status) {
+        throw new Error(MESSAGE_ERROR.EMPLOYEE.STATUS.INACTIVE)
       }
 
       await db.employee.update({ data: { status }, where: { id } })
@@ -380,16 +441,6 @@ export default class EmployeeRepository {
         return data
       }
       const data = await db.certification.findMany({ where: { competencyId } })
-      return data
-    } catch (error) {
-      throw error
-    }
-  }
-
-  readLeave = async (employeeId: number) => {
-    try {
-      await this.isExist(employeeId)
-      const data = await db.leave.findMany({ where: { employeeId } })
       return data
     } catch (error) {
       throw error
