@@ -1,108 +1,82 @@
-import { z } from 'zod'
+import { date, z } from 'zod'
 import db from '../../../lib/db'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import { createAttendanceSchema, updateAttendanceSchema } from './schema'
+import { parse } from 'date-fns'
 
 type CreateAttendance = z.infer<typeof createAttendanceSchema>
 type UpdateAttendance = z.infer<typeof updateAttendanceSchema>
 export default class AttendanceRepository {
   create = async (payload: CreateAttendance) => {
-    try {
-      await db.attendance.create({
-        data: { ...payload, date: new Date(payload.date).toISOString() },
-      })
-    } catch (error) {
-      throw error
-    }
+    await db.attendance.create({
+      data: { ...payload, date: parse(payload.date, 'dd-MM-yyyy', new Date()) },
+    })
   }
   update = async (id: number, payload: UpdateAttendance) => {
-    try {
-      await this.isExist(id)
-      await db.attendance.update({
-        data: {
-          ...payload,
-          date: new Date(payload.date).toISOString(),
-        },
-        where: { id },
-      })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.attendance.update({
+      data: {
+        ...payload,
+        ...(payload.date
+          ? { date: parse(payload.date, 'dd-MM-yyyy', new Date()) }
+          : undefined),
+      },
+      where: { id },
+    })
   }
   delete = async (id: number) => {
-    try {
-      await this.isExist(id)
-      await db.attendance.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.attendance.delete({ where: { id } })
   }
-  read = async (
-    startDate: string,
-    { search, id }: { search?: string; id?: number }
-  ) => {
-    try {
-      if (!!id) {
-        const data = await db.attendance.findUnique({ where: { id } })
-        return data
-      }
-      const parsedDate = new Date(startDate)
-      if (isNaN(parsedDate.getTime())) {
-        throw new Error(
-          `Invalid startDate: ${startDate}. Please provide a valid date string.`
-        )
-      }
+  read = async (startDate: string, { search }: { search?: string }) => {
+    const parsedDate = new Date(startDate)
+    const dayStart = new Date(parsedDate.setHours(0, 0, 0, 0))
+    const dayEnd = new Date(parsedDate.setHours(23, 59, 59, 999))
 
-      const dayStart = new Date(parsedDate.setHours(0, 0, 0, 0))
-      const dayEnd = new Date(parsedDate.setHours(23, 59, 59, 999))
-
-      const baseQuery = {
-        where: {},
-        include: {
-          attendances: {
-            where: {
-              date: {
-                gte: dayStart,
-                lt: dayEnd,
+    const baseQuery = {
+      include: {
+        employees: {
+          where: search
+            ? {
+                OR: [
+                  { fullname: { contains: search.toLowerCase() } },
+                  { fullname: { contains: search.toUpperCase() } },
+                  { fullname: { contains: search } },
+                ],
+              }
+            : undefined,
+          include: {
+            attendances: {
+              where: {
+                date: {
+                  gte: dayStart,
+                  lt: dayEnd,
+                },
               },
             },
           },
-          position: true,
         },
-      }
-
-      if (search) {
-        baseQuery.where = {
-          ...baseQuery.where,
-          OR: [
-            { fullname: { contains: search.toLowerCase() } },
-            { fullname: { contains: search.toUpperCase() } },
-            { fullname: { contains: search } },
-          ],
-        }
-      }
-
-      const employees = await db.employee.findMany(baseQuery)
-
-      const data = employees.map((employee) => {
-        return {
-          ...employee,
-          attendances: employee.attendances || [],
-        }
-      })
-
-      return data
-    } catch (error) {
-      throw error
+      },
     }
+
+    const positions = await db.position.findMany(baseQuery)
+
+    const data = positions
+      .filter((position) => position.employees.length > 0)
+      .map((position) => ({
+        ...position,
+        employees: position.employees.map((employee) => ({
+          ...employee,
+          attendances:
+            employee.attendances.length > 0 ? employee.attendances : null,
+        })),
+      }))
+
+    return data
   }
 
   private isExist = async (id: number) => {
     const data = await db.attendance.findUnique({ where: { id } })
     if (!data) throw Error(MESSAGE_ERROR.ATTENDANCE.NOT_FOUND)
-  }
-  private isEmployeeExist = async (id: number) => {
-    const data = await db.employee.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.NOT_FOUND)
   }
 }
