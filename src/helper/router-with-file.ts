@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response, Router } from 'express'
-import { removeImg } from '../utils/file'
 import multer from 'multer'
-import path from 'path'
 import sharp from 'sharp'
 
 export default class RouterWithFile {
