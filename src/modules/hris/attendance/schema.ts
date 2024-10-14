@@ -4,8 +4,7 @@ export const createAttendanceSchema = z.object({
   employeeId: z.number(),
   date: z.string(),
   total_hour: z.number(),
-  type: z.string(),
-  leaveId: z.number().optional(),
+  type: z.enum(['presence', 'absent']),
 })
 export const updateAttendanceSchema = createAttendanceSchema
   .omit({
