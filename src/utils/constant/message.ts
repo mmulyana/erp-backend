@@ -8,6 +8,8 @@ export default class Message {
   public successUpdate = () => `${this.name} berhasil diperbarui`
   public successDelete = () => `${this.name} berhasil dihapus`
   public successRead = () => `${this.name} berhasil didapatkan`
+  public successUpdateCustom = (field: string) =>
+    `data ${field} dari ${this.name} ini berhasil diperbarui`
 
   public fileRequired = (field?: string) => `${field ?? 'Photo'} wajib diisi`
 }
