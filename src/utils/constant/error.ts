@@ -17,7 +17,7 @@ export const MESSAGE_ERROR = {
     CERTIF_NOT_FOUND: 'Sertifikasi tidak ditemukan',
     STATUS: {
       ACTIVE: 'Pegawai masih aktif',
-      UNACTIVE: 'Pegawai masih nonaktif',
+      INACTIVE: 'Pegawai masih nonaktif',
     },
   },
   LEAVE: {
