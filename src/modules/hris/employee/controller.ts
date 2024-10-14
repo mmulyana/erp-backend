@@ -3,15 +3,20 @@ import EmployeeRepository, { FilterEmployee } from './repository'
 import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import ApiResponse from '../../../helper/api-response'
+import Message from '../../../utils/constant/message'
 
 export default class EmployeeController {
   private response: ApiResponse = new ApiResponse()
   private repository: EmployeeRepository = new EmployeeRepository()
+  private message: Message = new Message('pegawai')
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.repository.create(req.body)
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CREATE)
+      const data = await this.repository.create({
+        ...req.body,
+        photo: req.file?.filename,
+      })
+      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CREATE, data)
     } catch (error) {
       next(error)
     }
@@ -19,7 +24,10 @@ export default class EmployeeController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), req.body)
+      await this.repository.update(Number(id), {
+        ...req.body,
+        photo: req.file?.filename,
+      })
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.UPDATE)
     } catch (error) {
       next(error)
@@ -199,7 +207,7 @@ export default class EmployeeController {
       if (
         [
           MESSAGE_ERROR.EMPLOYEE.STATUS.ACTIVE,
-          MESSAGE_ERROR.EMPLOYEE.STATUS.UNACTIVE,
+          MESSAGE_ERROR.EMPLOYEE.STATUS.INACTIVE,
         ].includes(error?.message)
       ) {
         error.code = 400
@@ -207,13 +215,10 @@ export default class EmployeeController {
       next(error)
     }
   }
-  unactiveHandler = async (req: Request, res: Response, next: NextFunction) => {
+  inactiveHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { employeeId } = req.params
-      await this.repository.updateStatusEmployee(
-        Number(employeeId),
-        'nonactive'
-      )
+      await this.repository.updateStatusEmployee(Number(employeeId), 'inactive')
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.UNACTIVE)
     } catch (error) {
       next(error)
@@ -347,16 +352,18 @@ export default class EmployeeController {
       next(error)
     }
   }
-
-  readLeaveHandler = async (
+  updateCompetenciesHandler = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const { employeeId } = req.params
-      const data = await this.repository.readLeave(Number(employeeId))
-      return this.response.success(res, MESSAGE_SUCCESS.LEAVE.READ, data)
+      const { id } = req.params
+      await this.repository.updateCompentencies(Number(id), req.body)
+      return this.response.success(
+        res,
+        this.message.successUpdateCustom('kompetensi')
+      )
     } catch (error) {
       next(error)
     }
