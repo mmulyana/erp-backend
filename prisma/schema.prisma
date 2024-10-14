@@ -85,10 +85,11 @@ model Employee {
   pay_type         PayType?              @default(daily)
   employment_type  EmploymentType?       @default(permanent)
   place_of_birth   String?
-  birthdate        String?
+  birth_date        String?
   gender           Gender?
   marital_status   MaritalStatus?
   religion         String?
+  last_education   String?
   positionId       Int?
   position         Position?             @relation(fields: [positionId], references: [id])
   attendances      Attendance[]
