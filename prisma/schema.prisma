@@ -9,14 +9,15 @@ datasource db {
 
 // Authorization
 model User {
-  id         Int           @id @default(autoincrement())
-  name       String        @unique
-  email      String        @unique
+  id         Int              @id @default(autoincrement())
+  name       String           @unique
+  email      String           @unique
   password   String
-  created_at DateTime      @default(now()) @db.Date()
-  updated_at DateTime      @default(now()) @db.Date()
+  created_at DateTime         @default(now()) @db.Date()
+  updated_at DateTime         @default(now()) @db.Date()
   activities ActivityLog[]
   roles      UserRole[]
+  comments   ProjectComment[]
 
   @@map("users")
 }
@@ -99,7 +100,6 @@ model Employee {
   certifications   Certification[]
   overtime         Overtime[]
   EmployeeAssigned EmployeeAssigned[]
-  comments         ProjectComment[]
 }
 
 enum JoinedType {
@@ -257,11 +257,11 @@ model Project {
 
 model ProjectComment {
   id          Int                        @id @default(autoincrement())
-  employeeId  Int
+  userId      Int
+  user        User                       @relation(fields: [userId], references: [id])
   comment     String
   projectId   Int
   project     Project                    @relation(fields: [projectId], references: [id], onDelete: NoAction)
-  employee    Employee                   @relation(fields: [employeeId], references: [id])
   attachments ProjectCommentAttachment[]
 }
 
@@ -431,14 +431,6 @@ enum Status {
 enum StatusSupplier {
   active
   nonactive
-}
-
-enum LeaveType {
-  vacation
-  sick
-  personal
-  maternity
-  paternity
 }
 
 enum ContactType {
