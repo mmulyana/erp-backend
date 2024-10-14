@@ -23,7 +23,7 @@ export default class RouterWithFile {
       return next()
     }
 
-    req.file.filename = `${this.name}-${Date.now()}.jpeg`
+    req.file.filename = `${this.name}-${req.file.filename}-${Date.now()}.jpeg`
 
     sharp(req.file.buffer)
       .toFormat('jpeg')
