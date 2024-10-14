@@ -36,6 +36,7 @@ import MeasurementRoutes from './modules/inventory/measurement/router'
 import TagRoutes from './modules/inventory/tags/router'
 import GoodsRoutes from './modules/inventory/goods/router'
 import TransactionRoutes from './modules/inventory/transaction/router'
+import { MulterConfig } from './utils/multer-config'
 
 interface RouteConfig {
   path: string
@@ -47,7 +48,7 @@ export function setupRoutes(
   app: Router,
   authMiddleware: AuthMiddleware,
   withoutAuth: boolean = false,
-  uploadImg: multer.Multer
+  multerConfig: MulterConfig
 ): void {
 
   const routes: RouteConfig[] = [
@@ -62,7 +63,7 @@ export function setupRoutes(
     
     // HRIS
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },
-    { path: '/hris/employee', router: new EmployeeRoutes(uploadImg).router, auth: true },
+    { path: '/hris/employee', router: new EmployeeRoutes(multerConfig).router, auth: true },
     { path: '/hris/attendance', router: new AttendanceRoutes().router, auth: true },
     { path: '/hris/cash-advance', router: new CashAdvanceRoutes().router, auth: true },
     { path: '/hris/competency', router: new CompetencyRoutes().router, auth: true },
@@ -77,15 +78,15 @@ export function setupRoutes(
     { path: '/project/comment', router: new CommentRoutes().router, auth: true },
     
     // INVENTORY
-    { path: '/inventory/brand', router: new BrandRoutes(uploadImg).router, auth: true },
+    { path: '/inventory/brand', router: new BrandRoutes(multerConfig.uploadImg).router, auth: true },
     { path: '/inventory/category', router: new CategoryRoutes().router, auth: true },
-    { path: '/inventory/supplier', router: new SupplierRoutes(uploadImg).router, auth: true },
+    { path: '/inventory/supplier', router: new SupplierRoutes(multerConfig.uploadImg).router, auth: true },
     { path: '/inventory/supplier/employee', router: new EmployeeSupplierRoutes().router, auth: true },
     { path: '/inventory/location', router: new LocationRoutes().router, auth: true },
     { path: '/inventory/measurement', router: new MeasurementRoutes().router, auth: true },
     { path: '/inventory/tag', router: new TagRoutes().router, auth: true },
-    { path: '/inventory/goods', router: new GoodsRoutes(uploadImg).router, auth: true },
-    { path: '/inventory/transaction', router: new TransactionRoutes(uploadImg).router, auth: true },
+    { path: '/inventory/goods', router: new GoodsRoutes(multerConfig.uploadImg).router, auth: true },
+    { path: '/inventory/transaction', router: new TransactionRoutes(multerConfig.uploadImg).router, auth: true },
   ]
 
   routes.forEach(({ path, router, auth }) => {
