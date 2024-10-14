@@ -9,9 +9,10 @@ import {
 } from './schema'
 import Validation from '../../../helper/validation'
 import EmployeeController from './controller'
+import RouterWithFile from '../../../helper/router-with-file'
+import { Multer } from 'multer'
 
-export default class EmployeeRouter {
-  public router: Router
+export default class EmployeeRouter extends RouterWithFile {
   private controller: EmployeeController = new EmployeeController()
   private comptencySchema: Validation = new Validation(competencySchema)
   private employeeSchema: Validation = new Validation(employeeSchema)
@@ -20,8 +21,8 @@ export default class EmployeeRouter {
   private contactSchema: Validation = new Validation(contactSchema)
   private certifSchema: Validation = new Validation(certifchema)
 
-  constructor() {
-    this.router = Router()
+  constructor(upload: Multer) {
+    super(upload, 'employee')
     this.register()
   }
 
@@ -31,6 +32,8 @@ export default class EmployeeRouter {
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readHandler)
+
+    this.router.patch('/update-competencies', this.controller.updateCompetenciesHandler)
 
     this.router.post('/address/:employeeId', this.addressSchema.validate, this.controller.createAddressHandler)
     this.router.patch('/address/:addressId', this.addressSchema.validate, this.controller.updateAddressHandler)
@@ -45,7 +48,7 @@ export default class EmployeeRouter {
     this.router.patch('/position/:id', this.positionSchema.validate, this.controller.positionHandler)
 
     this.router.patch('/status/active/:employeeId', this.controller.activeHandler)
-    this.router.patch('/status/unactive/:employeeId', this.controller.unactiveHandler)
+    this.router.patch('/status/unactive/:employeeId', this.controller.inactiveHandler)
     this.router.get('/status/track/:employeeId', this.controller.employeeTrackHandler)
 
     this.router.post('/competency/:employeeId', this.comptencySchema.validate, this.controller.createCompetencyHandler)
@@ -56,7 +59,5 @@ export default class EmployeeRouter {
     this.router.patch('/certification/:certifId', this.certifSchema.validate, this.controller.updateCertifHandler)
     this.router.delete('/certification/:certifId', this.controller.deleteCertifHandler)
     this.router.get('/certification/:competencyId', this.controller.readCertifHandler)
-
-    this.router.get('/leave/:employeeId')
   }
 }
