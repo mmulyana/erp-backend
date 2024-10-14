@@ -13,7 +13,6 @@ import ActiviyLogRouter from './modules/log/router'
 // HRIS
 import PositionRoutes from './modules/hris/position/router'
 import EmployeeRoutes from './modules/hris/employee/router'
-import LeaveRoutes from './modules/hris/leave/router'
 import AttendanceRoutes from './modules/hris/attendance/router'
 import OvertimeRoutes from './modules/hris/overtime/router'
 import CashAdvanceRoutes from './modules/hris/cash-advance/router'
@@ -63,8 +62,7 @@ export function setupRoutes(
     
     // HRIS
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },
-    { path: '/hris/employee', router: new EmployeeRoutes().router, auth: true },
-    { path: '/hris/leave', router: new LeaveRoutes().router, auth: true },
+    { path: '/hris/employee', router: new EmployeeRoutes(uploadImg).router, auth: true },
     { path: '/hris/attendance', router: new AttendanceRoutes().router, auth: true },
     { path: '/hris/cash-advance', router: new CashAdvanceRoutes().router, auth: true },
     { path: '/hris/competency', router: new CompetencyRoutes().router, auth: true },

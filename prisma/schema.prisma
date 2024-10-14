@@ -73,34 +73,49 @@ model PermissionGroup {
 
 // HRIS Module
 model Employee {
-  id                 Int                   @id @default(autoincrement())
-  photo              String?
-  fullname           String                @db.VarChar(50)
-  hireDate           DateTime?             @db.Date
-  salary_per_month   Decimal?              @db.Decimal(10, 2)
-  salary_per_day     Decimal?              @db.Decimal(10, 2)
-  salary_per_hour    Decimal?              @db.Decimal(10, 2)
-  status             EmployeeStatus        @default(active)
-  place_of_birth     String?
-  birthdate          String?
-  gender             Gender?
-  marital_status     MaritalStatus?
-  nik                String?
-  kk                 String?
-  religion           String?
-  positionId         Int?
-  position           Position?             @relation(fields: [positionId], references: [id])
-  attendances        Attendance[]
-  cashAdvances       CashAdvance[]
-  leaves             Leave[]
-  contact            Contact[]
-  address            Address[]
-  statusTracks       EmployeeStatusTrack[]
-  employeeCompetency EmployeeCompetency[]
-  certifications     Certification[]
-  overtime           Overtime[]
-  EmployeeAssigned   EmployeeAssigned[]
-  comments           ProjectComment[]
+  id               Int                   @id @default(autoincrement())
+  fullname         String                @db.VarChar(50)
+  status           Status                @default(active)
+  photo            String?
+  joined_at        String?
+  joined_type      JoinedType?           @default(date)
+  basic_salary     Decimal?              @db.Decimal(10, 2)
+  overtime_salary  Decimal?              @db.Decimal(10, 2)
+  pay_type         PayType?              @default(daily)
+  employment_type  EmploymentType?       @default(permanent)
+  place_of_birth   String?
+  birthdate        String?
+  gender           Gender?
+  marital_status   MaritalStatus?
+  religion         String?
+  positionId       Int?
+  position         Position?             @relation(fields: [positionId], references: [id])
+  attendances      Attendance[]
+  cashAdvances     CashAdvance[]
+  contacts         Contact[]
+  addresses        Address[]
+  statusTracks     EmployeeStatusTrack[]
+  competencies     EmployeeCompetency[]
+  certifications   Certification[]
+  overtime         Overtime[]
+  EmployeeAssigned EmployeeAssigned[]
+  comments         ProjectComment[]
+}
+
+enum JoinedType {
+  date
+  year
+}
+
+enum PayType {
+  daily
+  monthly
+}
+
+enum EmploymentType {
+  permanent
+  contract
+  partime
 }
 
 model EmployeeCompetency {
@@ -114,6 +129,7 @@ model EmployeeCompetency {
 model Competency {
   id                 Int                  @id @default(autoincrement())
   name               String               @db.VarChar(100)
+  color              String?
   EmployeeCompetency EmployeeCompetency[]
   Certification      Certification[]
 }
@@ -142,14 +158,7 @@ model Contact {
 model Address {
   id         Int         @id @default(autoincrement())
   type       AddressType @default(domicile)
-  rt         String?
-  rw         String?
-  kampung    String?
-  desa       String?
-  kecamatan  String?
-  kebupaten  String?
-  provinsi   String?
-  kodePos    Int?
+  value      String
   employeeId Int
   employee   Employee    @relation(fields: [employeeId], references: [id])
 }
@@ -157,19 +166,23 @@ model Address {
 model Position {
   id          Int        @id @default(autoincrement())
   name        String     @db.VarChar(100)
+  color       String?
   description String?
   employees   Employee[]
 }
 
 model Attendance {
-  id         Int      @id @default(autoincrement())
-  employee   Employee @relation(fields: [employeeId], references: [id])
+  id         Int            @id @default(autoincrement())
+  employee   Employee       @relation(fields: [employeeId], references: [id])
   employeeId Int
-  date       DateTime @db.DateTime()
+  date       DateTime       @db.DateTime()
   total_hour Int
-  type       String
-  leaveId    Int?
-  leave      Leave?   @relation(fields: [leaveId], references: [id])
+  type       AttendanceType @default(presence)
+}
+
+enum AttendanceType {
+  presence
+  absent
 }
 
 model Overtime {
@@ -190,17 +203,6 @@ model CashAdvance {
   description String?
 }
 
-model Leave {
-  id          Int          @id @default(autoincrement())
-  employee    Employee     @relation(fields: [employeeId], references: [id])
-  employeeId  Int
-  startDate   DateTime     @db.Date
-  endDate     DateTime     @db.Date
-  leaveType   String
-  description String?
-  attendances Attendance[]
-}
-
 // Activity Features
 model ActivityLog {
   id          Int      @id @default(autoincrement())
@@ -213,11 +215,12 @@ model ActivityLog {
 }
 
 model EmployeeStatusTrack {
-  id         Int            @id @default(autoincrement())
-  date       DateTime
-  status     EmployeeStatus
-  employeeId Int
-  employee   Employee       @relation(fields: [employeeId], references: [id])
+  id          Int      @id @default(autoincrement())
+  date        DateTime
+  status      Status
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  description String?
 }
 
 model BoardContainer {
@@ -281,7 +284,6 @@ model EmployeeAssigned {
   id         Int      @id @default(autoincrement())
   projectId  Int
   employeeId Int
-  isPic      Boolean  @default(false)
   project    Project  @relation(fields: [projectId], references: [id])
   employee   Employee @relation(fields: [employeeId], references: [id])
 }
@@ -403,7 +405,7 @@ model TransactionGoods {
   isReturned  Boolean?
   project     Project?        @relation(fields: [projectId], references: [id])
   good        Goods           @relation(fields: [goodsId], references: [id])
-  supplier    Supplier?        @relation(fields: [supplierId], references: [id])
+  supplier    Supplier?       @relation(fields: [supplierId], references: [id])
 }
 
 enum TransactionType {
@@ -421,15 +423,9 @@ enum Priority {
   low
 }
 
-enum EmployeeStatus {
-  active
-  nonactive
-}
-
 enum Status {
-  pending
-  approved
-  rejected
+  active
+  inactive
 }
 
 enum StatusSupplier {
@@ -466,5 +462,4 @@ enum MaritalStatus {
   single
   married
   divorced
-  widowed
 }
