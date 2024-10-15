@@ -49,8 +49,6 @@ export default class KanbanRepository {
                   id: true,
                   name: true,
                   startDate: true,
-                  budget: true,
-                  priority: true,
                   boardItemsId: true,
                   clientId: true,
                   boardItems: true,
@@ -69,11 +67,7 @@ export default class KanbanRepository {
                       },
                     },
                   },
-                  comments: {
-                    select: {
-                      comment: true,
-                    },
-                  },
+
                   client: {
                     select: {
                       name: true,
@@ -87,7 +81,6 @@ export default class KanbanRepository {
                   _count: {
                     select: {
                       employees: true,
-                      comments: true,
                     },
                   },
                 },
@@ -123,9 +116,6 @@ export default class KanbanRepository {
       const newProject = await db.project.create({
         data: {
           name: payload.name,
-          budget: payload.budget,
-          startDate: payload.startDate,
-          priority: payload.priority,
           boardItemsId: id,
           clientId: payload.clientId,
         },
@@ -179,7 +169,6 @@ export default class KanbanRepository {
   updateOrderItems = async (payload: OrderItems) => {
     try {
       await db.$transaction(async (prismaClient) => {
-
         // Get all items in the source container
         const sourceItems = await prismaClient.boardItems.findMany({
           where: { containerId: payload.source.droppableId },
