@@ -10,6 +10,8 @@ export default class Message {
   public successRead = () => `${this.name} berhasil didapatkan`
   public successUpdateCustom = (field: string) =>
     `data ${field} dari ${this.name} ini berhasil diperbarui`
+  public successCreateCustom = (field: string) =>
+    `data ${field} untuk ${this.name} ini berhasil disimpan`
 
   public fileRequired = (field?: string) => `${field ?? 'Photo'} wajib diisi`
 }
