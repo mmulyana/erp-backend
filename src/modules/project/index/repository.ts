@@ -1,64 +1,62 @@
 import { generateUUID } from '../../../utils/generate-uuid'
 import { Project } from './schema'
 import db from '../../../lib/db'
+import { format, parse } from 'date-fns'
 
 export default class ProjectRepository {
   create = async (payload: Project) => {
-    try {
-      const lastItem = await db.boardItems.findFirst({
-        where: {
-          containerId: payload.containerId,
-        },
-        orderBy: {
-          position: 'desc',
-        },
-      })
-      const position = lastItem ? lastItem.position + 1 : 0
-      const id = `item-${generateUUID()}`
-      await db.boardItems.create({
-        data: { id, position, containerId: payload.containerId },
-      })
+    const lastItem = await db.boardItems.findFirst({
+      where: {
+        containerId: payload.containerId,
+      },
+      orderBy: {
+        position: 'desc',
+      },
+    })
+    const position = lastItem ? lastItem.position + 1 : 0
+    const id = `item-${generateUUID()}`
+    await db.boardItems.create({
+      data: { id, position, containerId: payload.containerId },
+    })
 
-      const newProject = await db.project.create({
-        data: {
-          name: payload.name,
-          budget: payload.budget,
-          startDate: payload.startDate,
-          priority: payload.priority,
-          boardItemsId: id,
-          clientId: payload.clientId,
+    const newProject = await db.project.create({
+      data: {
+        name: payload.name,
+        date_created: payload.date_created,
+        date_started: payload.date_started,
+        date_ended: payload.date_ended,
+        net_value: payload.net_value,
+        progress: payload.progress,
+        payment_status: payload.payment_status,
+        boardItemsId: id,
+        clientId: payload.clientId,
+
+        // handle label
+        labels: {
+          create:
+            payload.labels &&
+            payload.labels.map((id) => ({
+              labelId: id,
+            })),
         },
-      })
 
-      if (!!payload.labels?.length) {
-        await db.projectHasLabel.createMany({
-          data: payload.labels.map((labels) => ({
-            projectId: newProject.id,
-            labelId: labels,
-          })),
-        })
-      }
+        // handle employee
+        employees: {
+          create:
+            payload.employees &&
+            payload.employees.map((item) => ({
+              employeeId: item,
+            })),
+        },
+      },
+    })
 
-      if (!!payload.employees?.length) {
-        await db.employeeAssigned.createMany({
-          data: payload.employees.map((employee) => ({
-            employeeId: employee,
-            projectId: newProject.id,
-          })),
-        })
-      }
-    } catch (error) {
-      throw error
-    }
+    return newProject
   }
   delete = async (id: number) => {
-    try {
-      const project = await db.project.findUnique({ where: { id } })
-      await db.project.delete({ where: { id } })
-      await db.boardItems.delete({ where: { id: project?.boardItemsId } })
-    } catch (error) {
-      throw error
-    }
+    const project = await db.project.findUnique({ where: { id } })
+    await db.project.delete({ where: { id } })
+    await db.boardItems.delete({ where: { id: project?.boardItemsId } })
   }
   update = async (
     id: number,
@@ -67,78 +65,76 @@ export default class ProjectRepository {
       employees: number[]
     }
   ) => {
-    try {
-      const existingProject = await db.project.findUnique({
-        where: { id: id },
-        include: {
-          labels: {
-            select: { labelId: true },
-          },
-          employees: {
-            select: { employeeId: true },
-          },
+    const existingProject = await db.project.findUnique({
+      where: { id: id },
+      include: {
+        labels: {
+          select: { labelId: true },
         },
-      })
-      if (!existingProject) throw new Error('project not exists')
-
-      const existingLabelIds = existingProject.labels.map(
-        (label) => label.labelId
-      )
-
-      const labelsToAdd = payload?.labels.filter(
-        (id) => !existingLabelIds.includes(id)
-      )
-      const labelsToRemove = existingLabelIds.filter(
-        (id) => !payload.labels.includes(id)
-      )
-
-      const existingEmployeeIds = existingProject.employees.map(
-        (employee) => employee.employeeId
-      )
-      const employeesToAdd = payload.employees.filter(
-        (id) => !existingEmployeeIds.includes(id)
-      )
-      const employeesToRemove = existingEmployeeIds.filter(
-        (id) => !payload.employees.includes(id)
-      )
-
-      await db.project.update({
-        where: { id: id },
-        data: {
-          // handle label
-          labels: {
-            deleteMany: {
-              labelId: {
-                in: labelsToRemove,
-              },
-            },
-            create: labelsToAdd.map((labelId) => ({
-              labelId: labelId,
-            })),
-          },
-
-          // handle employee
-          employees: {
-            deleteMany: {
-              employeeId: {
-                in: employeesToRemove,
-              },
-            },
-            create: employeesToAdd.map((employeeId) => ({
-              employeeId: employeeId,
-            })),
-          },
-
-          name: payload.name,
-          budget: payload.budget,
-          startDate: payload.startDate,
-          priority: payload.priority,
-          clientId: payload.clientId,
+        employees: {
+          select: { employeeId: true },
         },
-      })
-    } catch (error) {
-      throw error
-    }
+      },
+    })
+    if (!existingProject) throw new Error('proyek tidak ditemukan')
+
+    const existingLabelIds = existingProject.labels.map(
+      (label) => label.labelId
+    )
+
+    const labelsToAdd = payload?.labels.filter(
+      (id) => !existingLabelIds.includes(id)
+    )
+    const labelsToRemove = existingLabelIds.filter(
+      (id) => !payload.labels.includes(id)
+    )
+
+    const existingEmployeeIds = existingProject.employees.map(
+      (employee) => employee.employeeId
+    )
+    const employeesToAdd = payload.employees.filter(
+      (id) => !existingEmployeeIds.includes(id)
+    )
+    const employeesToRemove = existingEmployeeIds.filter(
+      (id) => !payload.employees.includes(id)
+    )
+
+    await db.project.update({
+      where: { id: id },
+      data: {
+        name: payload.name,
+        date_started: payload.date_started,
+        date_ended: payload.date_ended,
+        net_value: payload.net_value,
+        progress: payload.progress,
+        payment_status: payload.payment_status,
+        clientId: payload.clientId,
+
+        // handle label
+        labels: {
+          deleteMany: {
+            labelId: {
+              in: labelsToRemove,
+            },
+          },
+          create: labelsToAdd.map((labelId) => ({
+            labelId: labelId,
+          })),
+        },
+
+        // handle employee
+        employees: {
+          deleteMany: {
+            employeeId: {
+              in: employeesToRemove,
+            },
+          },
+          create: employeesToAdd.map((employeeId) => ({
+            employeeId: employeeId,
+          })),
+        },
+      },
+    })
   }
   read = async (
     id?: number,
@@ -191,9 +187,6 @@ export default class ProjectRepository {
         select: {
           id: true,
           name: true,
-          startDate: true,
-          budget: true,
-          priority: true,
           boardItemsId: true,
           clientId: true,
           boardItems: true,
@@ -212,11 +205,6 @@ export default class ProjectRepository {
               },
             },
           },
-          comments: {
-            select: {
-              comment: true,
-            },
-          },
           client: {
             select: {
               name: true,
@@ -230,7 +218,6 @@ export default class ProjectRepository {
           _count: {
             select: {
               employees: true,
-              comments: true,
             },
           },
         },
