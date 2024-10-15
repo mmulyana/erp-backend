@@ -1,16 +1,17 @@
 import { NextFunction, Request, Response } from 'express'
 import ProjectRepository from './repository'
 import ApiResponse from '../../../helper/api-response'
-import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
+import Message from '../../../utils/constant/message'
 
 export default class ProjectController {
   private response: ApiResponse = new ApiResponse()
   private repository: ProjectRepository = new ProjectRepository()
+  private message: Message = new Message('Proyek')
 
   handleCreate = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.repository.create(req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.PROJECT.CREATE)
+      return this.response.success(res, this.message.successCreate())
     } catch (error) {
       next(error)
     }
@@ -19,7 +20,7 @@ export default class ProjectController {
     try {
       const { id } = req.params
       await this.repository.update(Number(id), req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.PROJECT.UPDATE)
+      return this.response.success(res, this.message.successUpdate())
     } catch (error) {
       next(error)
     }
@@ -28,7 +29,7 @@ export default class ProjectController {
     try {
       const { id } = req.params
       await this.repository.delete(Number(id))
-      return this.response.success(res, MESSAGE_SUCCESS.PROJECT.DELETE)
+      return this.response.success(res, this.message.successDelete())
     } catch (error) {
       next(error)
     }
@@ -42,7 +43,7 @@ export default class ProjectController {
         Number(labelId),
         Number(clientId)
       )
-      return this.response.success(res, MESSAGE_SUCCESS.PROJECT.READ, data)
+      return this.response.success(res, this.message.successDelete(), data)
     } catch (error) {
       next(error)
     }
