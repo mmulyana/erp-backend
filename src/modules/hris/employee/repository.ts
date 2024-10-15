@@ -162,17 +162,35 @@ export default class EmployeeRepository {
   read = async (id: number) => {
     await this.isExist(id)
     const data = await db.employee.findUnique({
-      select: {
-        id: true,
-        fullname: true,
-        addresses: true,
-        attendances: true,
-        cashAdvances: true,
-        contacts: true,
-        position: {
+      include: {
+        _count: {
           select: {
-            name: true,
-            description: true,
+            certifications: true,
+          },
+        },
+        addresses: true,
+        certifications: {
+          include: {
+            competency: {
+              select: {
+                name: true,
+                color: true,
+                id: true,
+              },
+            },
+          },
+        },
+        statusTracks: true,
+        contacts: true,
+        competencies: {
+          include: {
+            competency: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
           },
         },
       },
