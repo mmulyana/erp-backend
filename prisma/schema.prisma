@@ -85,7 +85,7 @@ model Employee {
   pay_type         PayType?              @default(daily)
   employment_type  EmploymentType?       @default(permanent)
   place_of_birth   String?
-  birth_date        String?
+  birth_date       String?
   gender           Gender?
   marital_status   MaritalStatus?
   religion         String?
@@ -136,15 +136,18 @@ model Competency {
 }
 
 model Certification {
-  id                  Int         @id @default(autoincrement())
-  name                String      @db.VarChar(100)
-  issuingOrganization String      @db.VarChar(100)
-  issueDate           DateTime    @db.Date
-  expiryDate          DateTime    @db.Date
-  employeeId          Int
-  competencyId        Int?
-  competency          Competency? @relation(fields: [competencyId], references: [id])
-  employee            Employee    @relation(fields: [employeeId], references: [id])
+  id                   Int         @id @default(autoincrement())
+  certif_name          String      @db.VarChar(100)
+  certif_file          String?     @db.VarChar(100)
+  issuing_organization String?     @db.VarChar(10)
+  issue_year           String?     @db.VarChar(10)
+  issue_month          String?     @db.VarChar(10)
+  expiry_year          String?     @db.VarChar(10)
+  expiry_month         String?     @db.VarChar(10)
+  employeeId           Int
+  competencyId         Int?
+  competency           Competency? @relation(fields: [competencyId], references: [id])
+  employee             Employee    @relation(fields: [employeeId], references: [id])
 }
 
 model Contact {
