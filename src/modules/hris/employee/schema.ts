@@ -13,16 +13,17 @@ export const employeeSchema = z.object({
   photo: z.string().optional().nullable(),
   joined_at: z.string().optional().nullable(),
   joined_type: JoinedType.default('date').optional().nullable(),
-  basic_salary: z.number().positive().optional().nullable(),
-  overtime_salary: z.number().positive().optional().nullable(),
+  basic_salary: z.string().optional().nullable(),
+  overtime_salary: z.string().optional().nullable(),
   pay_type: PayType.default('daily').optional().nullable(),
   employment_type: EmploymentType.default('permanent').optional().nullable(),
   place_of_birth: z.string().optional().nullable(),
-  birthdate: z.string().optional().nullable(),
+  birth_date: z.string().optional().nullable(),
+  last_education: z.string().optional().nullable(),
   gender: Gender.optional().nullable(),
   marital_status: MaritalStatus.optional().nullable(),
   religion: z.string().optional().nullable(),
-  positionId: z.number().int().positive().optional().nullable(),
+  positionId: z.string().optional().nullable(),
   addresses: z
     .object({
       type: z.enum(['domicile', 'origin', 'alternative']),
@@ -39,7 +40,7 @@ export const employeeSchema = z.object({
     .array()
     .optional()
     .nullable(),
-  competencyIds: z.number().array().optional().nullable(),
+  competencies: z.string().array().optional().nullable(),
 })
 
 export const contactSchema = z.object({
@@ -70,9 +71,10 @@ export const competencySchema = z.object({
 })
 
 export const certifchema = z.object({
-  competencyId: z.number(),
-  name: z.string(),
-  issuingOrganization: z.string(),
-  issueDate: z.string(),
-  expiryDate: z.string(),
+  certif_name: z.string(),
+  issuing_organization: z.string().optional(),
+  issue_year: z.string().optional(),
+  issue_month: z.string().optional(),
+  expiry_year: z.string().optional(),
+  competencyId: z.string().optional(),
 })
