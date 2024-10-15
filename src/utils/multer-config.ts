@@ -18,47 +18,35 @@ export function createMulter(): MulterConfig {
     },
   })
 
-  const uploadDoc = (
-    nameFunction?: (req: any, file: Express.Multer.File) => string
-  ) =>
-    multer({
-      storage: multer.diskStorage({
-        destination: './public/files/',
-        filename: (req, file, cb) => {
-          if (nameFunction) {
-            const fileName = nameFunction(req, file)
-            cb(null, fileName)
-          } else {
-            // Default naming function
-            cb(
-              null,
-              file.fieldname +
-                '-' +
-                Date.now() +
-                path.extname(file.originalname)
-            )
-          }
-        },
-      }),
-      fileFilter: (req, file, cb) => {
-        const allowedMimes = [
-          'application/pdf',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'application/vnd.ms-excel',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ]
-        if (allowedMimes.includes(file.mimetype)) {
-          cb(null, true)
-        } else {
-          cb(
-            new Error(
-              'Tipe file tidak valid. Hanya file PDF, Word, dan Excel yang diizinkan.'
-            )
-          )
-        }
+  const uploadDoc = multer({
+    storage: multer.diskStorage({
+      destination: 'public/files/',
+      filename: (req, file, cb) => {
+        cb(
+          null,
+          req.query.file_name + file.originalname + '-' + Date.now() + path.extname(file.originalname)
+        )
       },
-    })
+    }),
+    fileFilter: (req, file, cb) => {
+      const allowedMimes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ]
+      if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true)
+      } else {
+        cb(
+          new Error(
+            'Tipe file tidak valid. Hanya file PDF, Word, dan Excel yang diizinkan.'
+          )
+        )
+      }
+    },
+  })
 
-  return { uploadImg, uploadDoc: uploadDoc() }
+  return { uploadImg, uploadDoc }
 }
