@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response, Router } from 'express'
 import multer from 'multer'
+import path from 'path'
 import sharp from 'sharp'
 
 export default class RouterWithFile {
@@ -22,8 +23,12 @@ export default class RouterWithFile {
     if (!req.file) {
       return next()
     }
+    const originalName = req.file.originalname
+    const fileExtension = path.extname(originalName)
+    const baseFilename = path.basename(originalName, fileExtension)
 
-    req.file.filename = `${this.name}-${req.file.filename}-${Date.now()}.jpeg`
+    const newFilename = `${this.name}-${baseFilename}-${Date.now()}.jpeg`
+    req.file.filename = newFilename
 
     sharp(req.file.buffer)
       .toFormat('jpeg')
