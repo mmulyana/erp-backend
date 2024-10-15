@@ -298,9 +298,36 @@ export default class EmployeeController {
     next: NextFunction
   ) => {
     try {
-      const { competencyId } = req.params
-      await this.repository.createCertif(Number(competencyId), req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CERTIF.CREATE)
+      const { employeeId } = req.params
+      const formData = req.body
+
+      if (Array.isArray(req.files)) {
+        formData.certif_file = (req.files as Express.Multer.File[]).map(
+          (file) => file.filename
+        )
+      } else if (req.file) {
+        formData.certif_file = req.file.filename
+      }
+
+      const dataArray = Object.keys(formData).reduce((acc: any[], key) => {
+        const value = formData[key]
+        if (Array.isArray(value)) {
+          value.forEach((item, index) => {
+            if (!acc[index]) acc[index] = {}
+            acc[index][key] = item
+          })
+        } else {
+          if (!acc[0]) acc[0] = {}
+          acc[0][key] = value
+        }
+        return acc
+      }, [])
+
+      await this.repository.createCertif(Number(employeeId), dataArray)
+      return this.response.success(
+        res,
+        this.message.successCreateCustom('sertifikat')
+      )
     } catch (error) {
       next(error)
     }
