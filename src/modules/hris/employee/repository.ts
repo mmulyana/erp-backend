@@ -189,10 +189,11 @@ export default class EmployeeRepository {
     const where: any = {}
 
     if (filter) {
-      if ('fullname' in filter) {
+      if (filter.fullname) {
         where.OR = [
-          { fullname: { contains: filter.fullname, mode: 'insensitive' } },
-          { nickname: { contains: filter.fullname, mode: 'insensitive' } },
+          { fullname: { contains: filter.fullname.toLowerCase() } },
+          { fullname: { contains: filter.fullname.toUpperCase() } },
+          { fullname: { contains: filter.fullname } },
         ]
       }
 
@@ -215,7 +216,7 @@ export default class EmployeeRepository {
         certifications: {
           include: {
             competency: true,
-          }
+          },
         },
         competencies: {
           select: {
@@ -226,7 +227,8 @@ export default class EmployeeRepository {
     })
 
     const total = await db.employee.count({ where })
-    return { data, total, page, limit }
+    const total_pages = Math.ceil(total / limit)
+    return { data, total, page, limit, total_pages }
   }
 
   // ADDRESS
