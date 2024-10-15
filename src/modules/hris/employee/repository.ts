@@ -54,9 +54,23 @@ export default class EmployeeRepository {
           })),
         },
         competencies: {
-          create: payload.competencyIds?.map((item) => ({
-            competencyId: item,
+          create: payload.competencies?.map((competencyId) => ({
+            competency: {
+              connect: { id: Number(competencyId) },
+            },
           })),
+        },
+      },
+      include: {
+        competencies: {
+          select: {
+            competency: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
         },
       },
     })
@@ -195,6 +209,19 @@ export default class EmployeeRepository {
         fullname: true,
         id: true,
         status: true,
+        last_education: true,
+        birth_date: true,
+        photo: true,
+        certifications: {
+          include: {
+            competency: true,
+          }
+        },
+        competencies: {
+          select: {
+            competency: true,
+          },
+        },
       },
     })
 
@@ -407,59 +434,42 @@ export default class EmployeeRepository {
   }
 
   // Certif
-  createCertif = async (employeeId: number, payload: Certification) => {
-    try {
-      await db.certification.create({
-        data: {
-          ...payload,
-          expiryDate: new Date(payload.expiryDate).toISOString(),
-          issueDate: new Date(payload.issueDate).toISOString(),
-          employeeId,
-        },
-      })
-    } catch (error) {
-      throw error
-    }
+  createCertif = async (employeeId: number, payload: Certification[]) => {
+    console.log(payload)
+    await db.certification.createMany({
+      data: payload.map((item) => ({
+        ...item,
+        competencyId: Number(item.competencyId),
+        employeeId,
+      })),
+    })
   }
   updateCertif = async (certifId: number, payload: Certification) => {
-    try {
-      await db.certification.update({
-        data: {
-          ...payload,
-          expiryDate: new Date(payload.expiryDate).toISOString(),
-          issueDate: new Date(payload.issueDate).toISOString(),
-        },
-        where: { id: certifId },
-      })
-    } catch (error) {
-      throw error
-    }
+    await db.certification.update({
+      data: {
+        ...payload,
+        competencyId: Number(payload.competencyId),
+      },
+      where: { id: certifId },
+    })
   }
   deleteCertif = async (certifId: number) => {
-    try {
-      await this.isCertifExist(certifId)
-      await db.certification.delete({ where: { id: certifId } })
-    } catch (error) {
-      throw error
-    }
+    await this.isCertifExist(certifId)
+    await db.certification.delete({ where: { id: certifId } })
   }
   readCertif = async (competencyId: number, certifId?: number) => {
-    try {
-      if (!!certifId) {
-        await this.isCertifExist(certifId)
-        const data = await db.certification.findUnique({
-          where: {
-            competencyId,
-            id: certifId,
-          },
-        })
-        return data
-      }
-      const data = await db.certification.findMany({ where: { competencyId } })
+    if (!!certifId) {
+      await this.isCertifExist(certifId)
+      const data = await db.certification.findUnique({
+        where: {
+          competencyId,
+          id: certifId,
+        },
+      })
       return data
-    } catch (error) {
-      throw error
     }
+    const data = await db.certification.findMany({ where: { competencyId } })
+    return data
   }
 
   private isExist = async (id: number) => {
