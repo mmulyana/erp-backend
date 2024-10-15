@@ -9,15 +9,15 @@ datasource db {
 
 // Authorization
 model User {
-  id         Int              @id @default(autoincrement())
-  name       String           @unique
-  email      String           @unique
+  id         Int           @id @default(autoincrement())
+  name       String        @unique
+  email      String        @unique
   password   String
-  created_at DateTime         @default(now()) @db.Date()
-  updated_at DateTime         @default(now()) @db.Date()
-  activities ActivityLog[]
+  created_at DateTime      @default(now()) @db.Date()
+  updated_at DateTime      @default(now()) @db.Date()
+  log        ActivityLog[]
   roles      UserRole[]
-  comments   ProjectComment[]
+  activities Activity[]
 
   @@map("users")
 }
@@ -101,6 +101,7 @@ model Employee {
   certifications   Certification[]
   overtime         Overtime[]
   EmployeeAssigned EmployeeAssigned[]
+  Project          Project[]
 }
 
 enum JoinedType {
@@ -246,34 +247,41 @@ model BoardItems {
 model Project {
   id               Int                @id @default(autoincrement())
   name             String
+  progress         Int                @default(0)
+  payment_status   Int                @default(0)
+  date_created     DateTime           @default(now())
+  date_started     String?
+  date_ended       String?
   startDate        DateTime?
-  budget           Decimal?           @db.Decimal(10, 2)
-  priority         Priority           @default(low)
-  labels           ProjectHasLabel[]
-  employees        EmployeeAssigned[]
+  isArchive        Boolean?           @default(false)
+  net_value        Decimal?           @db.Decimal(10, 2)
   boardItemsId     String             @unique
+  leadId           Int?
+  employee         Employee?          @relation(fields: [leadId], references: [id])
   clientId         Int?
   client           Client?            @relation(fields: [clientId], references: [id])
   boardItems       BoardItems         @relation(fields: [boardItemsId], references: [id])
-  comments         ProjectComment[]
+  employees        EmployeeAssigned[]
+  labels           ProjectHasLabel[]
+  activities       Activity[]
   TransactionGoods TransactionGoods[]
 }
 
-model ProjectComment {
-  id          Int                        @id @default(autoincrement())
+model Activity {
+  id          Int                  @id @default(autoincrement())
   userId      Int
-  user        User                       @relation(fields: [userId], references: [id])
+  user        User                 @relation(fields: [userId], references: [id])
   comment     String
   projectId   Int
-  project     Project                    @relation(fields: [projectId], references: [id], onDelete: NoAction)
-  attachments ProjectCommentAttachment[]
+  project     Project              @relation(fields: [projectId], references: [id], onDelete: NoAction)
+  attachments ActivityAttachment[]
 }
 
-model ProjectCommentAttachment {
-  id         Int            @id @default(autoincrement())
+model ActivityAttachment {
+  id         Int      @id @default(autoincrement())
   attachment String
   commentId  Int
-  comment    ProjectComment @relation(fields: [commentId], references: [id])
+  comment    Activity @relation(fields: [commentId], references: [id])
 }
 
 model ProjectHasLabel {
