@@ -31,8 +31,16 @@ export default class EmployeeRouter extends RouterWithFile {
   }
 
   protected register() {
-    this.router.patch('/:id', this.employeeSchema.validate, this.upload.single('photo'), this.compressImage, this.controller.updateHandler)
-    this.router.post('/', this.employeeSchema.validate, this.upload.single('photo'), this.compressImage, this.controller.createHandler)
+    this.router.patch('/:id', 
+      this.upload.single('photo'),
+      this.compressImage,
+      this.employeeSchema.validate,
+      this.controller.updateHandler)
+    this.router.post('/',
+      this.upload.single('photo'),
+      this.compressImage, 
+      this.employeeSchema.validate,
+      this.controller.createHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readHandler)
@@ -59,9 +67,12 @@ export default class EmployeeRouter extends RouterWithFile {
     this.router.delete('/competency/:competencyId', this.controller.deleteCompetencyHandler)
     this.router.get('/competency/:employeeId', this.controller.readCompetencyHandler)
 
-    this.router.post('/certification/:competencyId', this.certifSchema.validate, this.controller.createCertifHandler)
+    this.router.post('/certification/:employeeId',
+      this.uploadDoc.any(), 
+      // this.certifSchema.validate, 
+      this.controller.createCertifHandler)
     this.router.patch('/certification/:certifId', this.certifSchema.validate, this.controller.updateCertifHandler)
     this.router.delete('/certification/:certifId', this.controller.deleteCertifHandler)
-    this.router.get('/certification/:competencyId', this.controller.readCertifHandler)
+    this.router.get('/certification/:employeeId', this.controller.readCertifHandler)
   }
 }
