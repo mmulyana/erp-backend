@@ -56,8 +56,8 @@ export default class EmployeeController {
       const page = Number(req.query.page) || 1
       const limit = Number(req.query.limit) || 10
       let where: FilterEmployee = {}
-      if (req.query.fullname) {
-        where.fullname = String(req.query.fullname)
+      if (req.query.name) {
+        where.fullname = String(req.query.name)
       }
       if (req.query.positionId) {
         where.positionId = Number(req.query.positionId)
