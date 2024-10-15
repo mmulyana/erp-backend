@@ -4,38 +4,26 @@ import { Board } from './schema'
 
 export default class BoardRepository {
   create = async (data: Board) => {
-    try {
-      const lastContainer = await db.boardContainer.findFirst({
-        orderBy: {
-          position: 'desc',
-        },
-      })
-      const position = lastContainer ? lastContainer.position + 1 : 0
-      const id = `container-${generateUUID()}`
-      await db.boardContainer.create({ data: { ...data, id, position } })
-    } catch (error) {
-      throw error
-    }
+    const lastContainer = await db.boardContainer.findFirst({
+      orderBy: {
+        position: 'desc',
+      },
+    })
+    const position = lastContainer ? lastContainer.position + 1 : 0
+    const id = `container-${generateUUID()}`
+    await db.boardContainer.create({ data: { ...data, id, position } })
   }
   update = async (id: string, data: Board) => {
-    try {
-      await db.boardContainer.update({ data, where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await db.boardContainer.update({ data, where: { id } })
   }
   delete = async (id: string) => {
-    try {
-      await db.boardContainer.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await db.boardContainer.delete({ where: { id } })
   }
   read = async () => {
-    try {
-      return await db.boardContainer.findMany()
-    } catch (error) {
-      throw error
-    }
+    return await db.boardContainer.findMany({
+      orderBy: {
+        position: 'asc',
+      },
+    })
   }
 }
