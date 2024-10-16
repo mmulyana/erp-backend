@@ -48,7 +48,6 @@ export default class KanbanRepository {
                 select: {
                   id: true,
                   name: true,
-                  startDate: true,
                   boardItemsId: true,
                   clientId: true,
                   boardItems: true,
