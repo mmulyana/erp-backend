@@ -32,21 +32,27 @@ export default class SupplierRepository {
       }
     }
 
-    await db.supplier.update({
+    const data = await db.supplier.update({
       data: {
         address: payload.address,
         name: payload.name,
         phone: payload.phone,
+        email: payload.email,
         ...(payload.photoUrl !== ''
           ? { photoUrl: payload.photoUrl }
           : undefined),
       },
       where: { id },
+      select: {
+        id: true,
+      },
     })
 
     if (!!payload.tags?.length) {
       this.updateTag(id, { tagIds: payload.tags.map((item) => Number(item)) })
     }
+
+    return data
   }
   updateTag = async (id: number, payload: { tagIds: number[] }) => {
     try {
