@@ -50,7 +50,6 @@ export function setupRoutes(
   withoutAuth: boolean = false,
   multerConfig: MulterConfig
 ): void {
-
   const routes: RouteConfig[] = [
     // COMMON
     { path: '/auth', router: new AuthRoutes().router },
@@ -58,35 +57,35 @@ export function setupRoutes(
     { path: '/user-role', router: new UserRoleRoutes().router, auth: true },
     { path: '/account', router: new AccountRouter().router, auth: true },
     { path: '/permission', router: new PermissionRoutes().router, auth: true },
-    { path: '/permission-group', router: new PermissionGroupRoutes().router, auth: true },
+    { path: '/permission-group', router: new PermissionGroupRoutes().router, auth: true, },
     { path: '/log', router: new ActiviyLogRouter().router },
-    
+
     // HRIS
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },
-    { path: '/hris/employee', router: new EmployeeRoutes(multerConfig).router, auth: true },
-    { path: '/hris/attendance', router: new AttendanceRoutes().router, auth: true },
-    { path: '/hris/cash-advance', router: new CashAdvanceRoutes().router, auth: true },
-    { path: '/hris/competency', router: new CompetencyRoutes().router, auth: true },
+    { path: '/hris/employee', router: new EmployeeRoutes(multerConfig).router, auth: true, },
+    { path: '/hris/attendance', router: new AttendanceRoutes().router, auth: true, },
+    { path: '/hris/cash-advance', router: new CashAdvanceRoutes().router, auth: true, },
+    { path: '/hris/competency', router: new CompetencyRoutes().router, auth: true, },
     { path: '/hris/overtime', router: new OvertimeRoutes().router, auth: true },
-    
+
     // PROJECT
     { path: '/project', router: new ProjectRoutes().router, auth: true },
     { path: '/project/client', router: new ClientRoutes().router, auth: true },
     { path: '/project/label', router: new LabelRoutes().router, auth: true },
-    { path: '/project/client/company', router: new CompanyRoutes().router, auth: true },
+    { path: '/project/client/company', router: new CompanyRoutes(multerConfig).router, auth: true, },
     { path: '/project/board', router: new BoardRoutes().router, auth: true },
-    { path: '/project/activity', router: new ActivityRoutes().router, auth: true },
-    
+    { path: '/project/activity', router: new ActivityRoutes(multerConfig).router, auth: true, },
+
     // INVENTORY
-    { path: '/inventory/brand', router: new BrandRoutes(multerConfig.uploadImg).router, auth: true },
-    { path: '/inventory/category', router: new CategoryRoutes().router, auth: true },
-    { path: '/inventory/supplier', router: new SupplierRoutes(multerConfig.uploadImg).router, auth: true },
-    { path: '/inventory/supplier/employee', router: new EmployeeSupplierRoutes().router, auth: true },
-    { path: '/inventory/location', router: new LocationRoutes().router, auth: true },
-    { path: '/inventory/measurement', router: new MeasurementRoutes().router, auth: true },
+    { path: '/inventory/brand', router: new BrandRoutes(multerConfig.uploadImg).router, auth: true, },
+    { path: '/inventory/category', router: new CategoryRoutes().router, auth: true, },
+    { path: '/inventory/supplier', router: new SupplierRoutes(multerConfig.uploadImg).router, auth: true, },
+    { path: '/inventory/supplier/employee', router: new EmployeeSupplierRoutes().router, auth: true, },
+    { path: '/inventory/location', router: new LocationRoutes().router, auth: true, },
+    { path: '/inventory/measurement', router: new MeasurementRoutes().router, auth: true, },
     { path: '/inventory/tag', router: new TagRoutes().router, auth: true },
-    { path: '/inventory/goods', router: new GoodsRoutes(multerConfig.uploadImg).router, auth: true },
-    { path: '/inventory/transaction', router: new TransactionRoutes(multerConfig.uploadImg).router, auth: true },
+    { path: '/inventory/goods', router: new GoodsRoutes(multerConfig.uploadImg).router, auth: true, },
+    { path: '/inventory/transaction', router: new TransactionRoutes(multerConfig.uploadImg).router, auth: true, },
   ]
 
   routes.forEach(({ path, router, auth }) => {
