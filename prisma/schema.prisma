@@ -401,6 +401,7 @@ model Supplier {
   id          Int                @id @default(autoincrement())
   name        String
   phone       String?
+  email       String?
   address     String?
   photoUrl    String?
   tags        SupplierToTag[]
