@@ -5,9 +5,12 @@ export const supplierSchema = z.object({
   phone: z.string().optional(),
   email: z.string().optional(),
   address: z.string().optional(),
-  status: z.enum(['active', 'nonactive']),
   tags: z.string().array().optional(),
 })
+export const updateSchema = supplierSchema.partial({
+  name: true,
+})
+
 export const updateTagSchema = z.object({
   tagIds: z.number().array().optional(),
 })
