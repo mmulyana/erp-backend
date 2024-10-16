@@ -1,8 +1,9 @@
 import { z } from 'zod'
 
-export const commentSchema = z.object({
+export const activitySchema = z.object({
   userId: z.number(),
   comment: z.string(),
   projectId: z.number(),
+  replyId: z.number().optional(),
 })
-export type Comment = z.infer<typeof commentSchema>
+export type Activity = z.infer<typeof activitySchema>
