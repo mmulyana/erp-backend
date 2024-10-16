@@ -9,17 +9,16 @@ datasource db {
 
 // Authorization
 model User {
-  id         Int           @id @default(autoincrement())
-  name       String        @unique
-  email      String        @unique
-  password   String
-  created_at DateTime      @default(now()) @db.Date()
-  updated_at DateTime      @default(now()) @db.Date()
-  log        ActivityLog[]
-  roles      UserRole[]
-  activities Activity[]
-
-  @@map("users")
+  id                Int                 @id @default(autoincrement())
+  name              String              @unique
+  email             String              @unique
+  password          String
+  created_at        DateTime            @default(now()) @db.Date()
+  updated_at        DateTime            @default(now()) @db.Date()
+  log               ActivityLog[]
+  roles             UserRole[]
+  activities        Activity[]
+  ProjectAttachment ProjectAttachment[]
 }
 
 model Role {
@@ -28,8 +27,6 @@ model Role {
   description String?
   users       UserRole[]
   permissions RolePermission[]
-
-  @@map("roles")
 }
 
 model UserRole {
@@ -38,8 +35,6 @@ model UserRole {
   userId Int
   role   Role @relation(fields: [roleId], references: [id])
   roleId Int
-
-  @@map("userRoles")
 }
 
 model RolePermission {
@@ -48,8 +43,6 @@ model RolePermission {
   roleId       Int
   permission   Permission @relation(fields: [permissionId], references: [id])
   permissionId Int
-
-  @@map("rolePermissions")
 }
 
 model Permission {
@@ -59,8 +52,6 @@ model Permission {
   groupId     Int
   group       PermissionGroup  @relation(fields: [groupId], references: [id])
   roles       RolePermission[]
-
-  @@map("permissions")
 }
 
 model PermissionGroup {
@@ -68,8 +59,6 @@ model PermissionGroup {
   name        String
   description String?
   permissions Permission[]
-
-  @@map("permissionGroups")
 }
 
 // HRIS Module
@@ -120,6 +109,17 @@ enum EmploymentType {
   partime
 }
 
+enum Gender {
+  male
+  female
+}
+
+enum MaritalStatus {
+  single
+  married
+  divorced
+}
+
 model EmployeeCompetency {
   id           Int        @id @default(autoincrement())
   employeeId   Int
@@ -160,12 +160,29 @@ model Contact {
   employee   Employee    @relation(fields: [employeeId], references: [id])
 }
 
+enum ContactType {
+  email
+  phoneNumber
+  socialMedia
+}
+
 model Address {
   id         Int         @id @default(autoincrement())
   type       AddressType @default(domicile)
   value      String
   employeeId Int
   employee   Employee    @relation(fields: [employeeId], references: [id])
+}
+
+enum AddressType {
+  domicile
+  origin
+  alternative
+}
+
+enum Status {
+  active
+  inactive
 }
 
 model Position {
@@ -245,26 +262,38 @@ model BoardItems {
 }
 
 model Project {
-  id               Int                @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   name             String
-  progress         Int                @default(0)
-  payment_status   Int                @default(0)
-  date_created     DateTime           @default(now())
+  progress         Int                 @default(0)
+  payment_status   Int                 @default(0)
+  date_created     DateTime            @default(now())
   date_started     String?
   date_ended       String?
   startDate        DateTime?
-  isArchive        Boolean?           @default(false)
-  net_value        Decimal?           @db.Decimal(10, 2)
-  boardItemsId     String             @unique
+  isArchive        Boolean?            @default(false)
+  net_value        Decimal?            @db.Decimal(10, 2)
+  boardItemsId     String              @unique
   leadId           Int?
-  employee         Employee?          @relation(fields: [leadId], references: [id])
+  lead         Employee?           @relation(fields: [leadId], references: [id])
   clientId         Int?
-  client           Client?            @relation(fields: [clientId], references: [id])
-  boardItems       BoardItems         @relation(fields: [boardItemsId], references: [id])
+  client           Client?             @relation(fields: [clientId], references: [id])
+  boardItems       BoardItems          @relation(fields: [boardItemsId], references: [id])
   employees        EmployeeAssigned[]
   labels           ProjectHasLabel[]
   activities       Activity[]
   TransactionGoods TransactionGoods[]
+  attachments      ProjectAttachment[]
+}
+
+model ProjectAttachment {
+  id          Int       @id @default(autoincrement())
+  file        String
+  uploaded_by Int
+  projectId   Int
+  isSecret    Boolean?  @default(false)
+  uploaded_at DateTime? @default(now())
+  user        User      @relation(fields: [uploaded_by], references: [id])
+  project     Project   @relation(fields: [projectId], references: [id])
 }
 
 model Activity {
@@ -273,6 +302,8 @@ model Activity {
   user        User                 @relation(fields: [userId], references: [id])
   comment     String
   projectId   Int
+  likes       Int?                 @default(0)
+  replyId     Int?
   project     Project              @relation(fields: [projectId], references: [id], onDelete: NoAction)
   attachments ActivityAttachment[]
 }
@@ -310,16 +341,22 @@ model ProjectLabel {
 model Client {
   id        Int            @id @default(autoincrement())
   name      String
+  phone     String?
+  email     String?
+  position  String?
   companyId Int?
   company   CompanyClient? @relation(fields: [companyId], references: [id])
   Project   Project[]
 }
 
 model CompanyClient {
-  id    Int      @id @default(autoincrement())
-  name  String
-  logo  String?
-  users Client[]
+  id      Int      @id @default(autoincrement())
+  name    String
+  address String?
+  phone   String?
+  email   String?
+  logo    String?
+  users   Client[]
 }
 
 // MODULE INVENTORY
@@ -365,7 +402,6 @@ model Supplier {
   name        String
   phone       String?
   address     String?
-  status      StatusSupplier     @default(active)
   photoUrl    String?
   tags        SupplierToTag[]
   transaction TransactionGoods[]
@@ -373,13 +409,12 @@ model Supplier {
 }
 
 model SupplierEmployee {
-  id         Int            @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   name       String
   position   String?
   phone      String?
-  status     StatusSupplier @default(active)
   supplierId Int
-  supplier   Supplier       @relation(fields: [supplierId], references: [id])
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
 }
 
 model SupplierTag {
@@ -426,44 +461,4 @@ enum TransactionType {
   opname
   borrowed
   returned
-}
-
-enum Priority {
-  urgent
-  high
-  medium
-  low
-}
-
-enum Status {
-  active
-  inactive
-}
-
-enum StatusSupplier {
-  active
-  nonactive
-}
-
-enum ContactType {
-  email
-  phoneNumber
-  socialMedia
-}
-
-enum AddressType {
-  domicile
-  origin
-  alternative
-}
-
-enum Gender {
-  male
-  female
-}
-
-enum MaritalStatus {
-  single
-  married
-  divorced
 }
