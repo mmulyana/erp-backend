@@ -1,11 +1,12 @@
 import Validation from '../../../helper/validation'
 import Controller from './controller'
-import { supplierSchema, updateTagSchema } from './schema'
+import { supplierSchema, updateTagSchema, updateSchema } from './schema'
 import RouterWithFile from '../../../helper/router-with-file'
 import { Multer } from 'multer'
 
 export default class SupplierRouter extends RouterWithFile {
-  private schema: Validation = new Validation(supplierSchema)
+  private createSchema: Validation = new Validation(supplierSchema)
+  private updateSchema: Validation = new Validation(updateSchema)
   private updateTagSchema: Validation = new Validation(updateTagSchema)
   private controller: Controller = new Controller()
 
@@ -19,14 +20,12 @@ export default class SupplierRouter extends RouterWithFile {
       '/',
       this.upload.single('photo'),
       this.compressImage,
-      this.schema.validate,
+      this.createSchema.validate,
       this.controller.createHandler
     )
     this.router.patch(
       '/:id',
-      this.upload.single('photo'),
-      this.compressImage,
-      this.schema.validate,
+      this.updateSchema.validate,
       this.controller.updateHandler
     )
     this.router.patch(
