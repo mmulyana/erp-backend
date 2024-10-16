@@ -1,17 +1,18 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import ClientRepository from './repository'
-import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
-import CommentRepository from './repository'
+import BaseController from '../../../helper/base-controller'
+import Repository from './repository'
 
-export default class ClientController {
-  private response: ApiResponse = new ApiResponse()
-  private repository: CommentRepository = new CommentRepository()
+export default class ActivityController extends BaseController {
+  private repository: Repository = new Repository()
+
+  constructor() {
+    super('Aktivitas')
+  }
 
   handleCreate = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.repository.create(req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.COMMENT.CREATE)
+      return this.response.success(res, this.message.successCreate())
     } catch (error) {
       next(error)
     }
@@ -20,7 +21,7 @@ export default class ClientController {
     try {
       const { id } = req.params
       await this.repository.update(Number(id), req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.COMMENT.UPDATE)
+      return this.response.success(res, this.message.successUpdate())
     } catch (error) {
       next(error)
     }
@@ -29,7 +30,7 @@ export default class ClientController {
     try {
       const { id } = req.params
       await this.repository.delete(Number(id))
-      return this.response.success(res, MESSAGE_SUCCESS.COMMENT.DELETE)
+      return this.response.success(res, this.message.successDelete())
     } catch (error) {
       next(error)
     }
@@ -37,7 +38,7 @@ export default class ClientController {
   handleRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await this.repository.read()
-      return this.response.success(res, MESSAGE_SUCCESS.COMMENT.READ, data)
+      return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
