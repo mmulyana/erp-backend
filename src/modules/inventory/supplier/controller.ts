@@ -2,11 +2,14 @@ import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../../helper/api-response'
 import Message from '../../../utils/constant/message'
 import SupplierRepository from './repository'
+import BaseController from '../../../helper/base-controller'
 
-export default class SupplierController {
-  private response: ApiResponse = new ApiResponse()
+export default class SupplierController extends BaseController {
   private repository: SupplierRepository = new SupplierRepository()
-  private message: Message = new Message('Supplier')
+
+  constructor() {
+    super('supplier')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -22,11 +25,11 @@ export default class SupplierController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), {
+      const data = await this.repository.update(Number(id), {
         ...req.body,
         photoUrl: req.file?.filename,
       })
-      return this.response.success(res, this.message.successUpdate())
+      return this.response.success(res, this.message.successUpdate(), data)
     } catch (error) {
       next(error)
     }
