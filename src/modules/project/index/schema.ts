@@ -13,13 +13,8 @@ export const createProjectSchema = z.object({
   employees: z.number().array().optional(),
   clientId: z.number().optional(),
   leadId: z.number().optional(),
+  description: z.string().optional(),
 })
-export const updateProjectSchema = createProjectSchema
-  .omit({
-    name: true,
-  })
-  .extend({
-    name: z.string().optional(),
-  })
+export const updateProjectSchema = createProjectSchema.partial()
 
 export type Project = z.infer<typeof createProjectSchema>
