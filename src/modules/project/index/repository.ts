@@ -21,6 +21,7 @@ export default class ProjectRepository {
 
     const newProject = await db.project.create({
       data: {
+        boardItemsId: id,
         name: payload.name,
         date_created: payload.date_created,
         date_started: payload.date_started,
@@ -28,7 +29,8 @@ export default class ProjectRepository {
         net_value: payload.net_value,
         progress: payload.progress,
         payment_status: payload.payment_status,
-        boardItemsId: id,
+        leadId: payload.leadId,
+        description: payload.description,
         clientId: payload.clientId,
 
         // handle label
@@ -142,65 +144,28 @@ export default class ProjectRepository {
     labelId?: number,
     clientId?: number
   ) => {
-    try {
-      if (!!id) {
-        return db.project.findUnique({ where: { id } })
-      }
-
-      const baseQuery = {
-        where: {},
-      }
-      if (search) {
-        baseQuery.where = {
-          ...baseQuery.where,
-          OR: [
-            { name: { contains: search.toLowerCase() } },
-            { name: { contains: search.toUpperCase() } },
-            { name: { contains: search } },
-          ],
-        }
-      }
-
-      if (labelId) {
-        baseQuery.where = {
-          ...baseQuery.where,
-          labels: {
-            some: {
-              labelId,
-            },
-          },
-        }
-      }
-      if (clientId) {
-        baseQuery.where = {
-          ...baseQuery.where,
-          clientId: {
-            some: {
-              clientId,
-            },
-          },
-        }
-      }
-
-      return db.project.findMany({
-        ...baseQuery,
-        select: {
-          id: true,
-          name: true,
-          boardItemsId: true,
-          clientId: true,
-          boardItems: true,
-          labels: {
+    if (!!id) {
+      return db.project.findUnique({
+        where: { id },
+        include: {
+          _count: {
             select: {
-              label: true,
+              attachments: true,
             },
           },
-          employees: {
+          activities: {
+            include: {
+              attachments: true,
+              user: true,
+            },
+          },
+          attachments: true,
+          boardItems: {
             select: {
-              employee: {
+              container: {
                 select: {
-                  fullname: true,
-                  photo: true,
+                  color: true,
+                  name: true,
                 },
               },
             },
@@ -208,22 +173,116 @@ export default class ProjectRepository {
           client: {
             select: {
               name: true,
-              company: {
+              id: true,
+            },
+          },
+          employees: {
+            select: {
+              employee: {
                 select: {
-                  logo: true,
+                  fullname: true,
+                  id: true,
+                  photo: true,
                 },
               },
             },
           },
-          _count: {
+          labels: {
             select: {
-              employees: true,
+              label: {
+                select: {
+                  color: true,
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          lead: {
+            select: {
+              id: true,
+              fullname: true,
+              photo: true,
             },
           },
         },
       })
-    } catch (error) {
-      throw error
     }
+
+    const baseQuery = {
+      where: {},
+    }
+    if (search) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        OR: [
+          { name: { contains: search.toLowerCase() } },
+          { name: { contains: search.toUpperCase() } },
+          { name: { contains: search } },
+        ],
+      }
+    }
+
+    if (labelId) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        labels: {
+          some: {
+            labelId,
+          },
+        },
+      }
+    }
+    if (clientId) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        clientId: {
+          some: {
+            clientId,
+          },
+        },
+      }
+    }
+
+    return db.project.findMany({
+      ...baseQuery,
+      select: {
+        id: true,
+        name: true,
+        boardItemsId: true,
+        clientId: true,
+        boardItems: true,
+        labels: {
+          select: {
+            label: true,
+          },
+        },
+        employees: {
+          select: {
+            employee: {
+              select: {
+                fullname: true,
+                photo: true,
+              },
+            },
+          },
+        },
+        client: {
+          select: {
+            name: true,
+            company: {
+              select: {
+                logo: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            employees: true,
+          },
+        },
+      },
+    })
   }
 }
