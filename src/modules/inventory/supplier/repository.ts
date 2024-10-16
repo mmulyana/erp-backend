@@ -9,7 +9,6 @@ export default class SupplierRepository {
         address: payload.address,
         name: payload.name,
         phone: payload.phone,
-        status: payload.status,
         ...(payload.photoUrl !== ''
           ? { photoUrl: payload.photoUrl }
           : undefined),
@@ -38,7 +37,6 @@ export default class SupplierRepository {
         address: payload.address,
         name: payload.name,
         phone: payload.phone,
-        status: payload.status,
         ...(payload.photoUrl !== ''
           ? { photoUrl: payload.photoUrl }
           : undefined),
