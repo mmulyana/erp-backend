@@ -1,11 +1,11 @@
 import db from '../../../lib/db'
-import { Comment } from './schema'
+import { Activity } from './schema'
 
-export default class CommentRepository {
-  create = async (data: Comment) => {
+export default class ActivityRepository {
+  create = async (data: Activity) => {
     await db.activity.create({ data })
   }
-  update = async (id: number, data: Comment) => {
+  update = async (id: number, data: Partial<Activity>) => {
     await db.activity.update({ data, where: { id } })
   }
   delete = async (id: number) => {
