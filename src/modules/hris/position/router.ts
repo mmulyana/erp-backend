@@ -20,5 +20,7 @@ export default class PositionRoutes {
         this.router.delete('/:id', this.controller.deleteHandler)
         this.router.get('/', this.controller.readAllHandler)
         this.router.get('/:id', this.controller.readHandler)
+        this.router.get('/data/employee-by-position', this.controller.readTotalByPositionHandler)
+        this.router.get('/data/employee-by-status', this.controller.readTotalByStatusnHandler)
     }
 }
