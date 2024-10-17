@@ -4,74 +4,124 @@ import db from '../../../lib/db'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
 
 type Payload = z.infer<typeof positionSchema.create>
+type ChartDataItem = {
+  position: string
+  count: number
+  fill: string | null
+}
+
+type ChartConfig = {
+  [key: string]: {
+    label: string
+  }
+}
 
 export default class PositionRepository {
   create = async (payload: Payload) => {
-    try {
-      await db.position.create({ data: payload })
-    } catch (error) {
-      throw error
-    }
+    await db.position.create({ data: payload })
   }
   update = async (id: number, payload: Payload) => {
-    try {
-      await this.isExist(id)
-
-      await db.position.update({ data: payload, where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.position.update({ data: payload, where: { id } })
   }
   delete = async (id: number) => {
-    try {
-      await this.isExist(id)
-
-      await db.position.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.position.delete({ where: { id } })
   }
   read = async (id: number) => {
-    try {
-      await this.isExist(id)
+    await this.isExist(id)
 
-      const data = await db.position.findUnique({
-        where: { id },
-        select: {
-          description: true,
-          name: true,
-        },
-      })
+    const data = await db.position.findUnique({
+      where: { id },
+      select: {
+        description: true,
+        name: true,
+        color: true,
+      },
+    })
 
-      return data
-    } catch (error) {
-      throw error
-    }
+    return data
   }
   readAll = async () => {
-    try {
-      const data = await db.position.findMany({
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          _count: {
-            select: {
-              employees: true
-            }
-          },
-          employees: {
-            take: 3,
-            select: {
-              fullname: true
-            }
+    const data = await db.position.findMany({
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        _count: {
+          select: {
+            employees: true,
           },
         },
-      })
-      return data
-    } catch (error) {
-      throw error
-    }
+        employees: {
+          take: 3,
+          select: {
+            fullname: true,
+          },
+        },
+      },
+    })
+    return data
+  }
+  totalEmployeePerPosition = async () => {
+    const data = await db.position.findMany({
+      select: {
+        id: true,
+        name: true,
+        color: true,
+        _count: {
+          select: {
+            employees: true,
+          },
+        },
+      },
+    })
+
+    const chartData: ChartDataItem[] = data.map((item) => ({
+      position: item.name.toLowerCase(),
+      count: item._count.employees,
+      fill: item.color,
+    }))
+
+    const chartConfig: ChartConfig = data.reduce<ChartConfig>(
+      (config, item) => {
+        const positionKey = item.name.toLowerCase()
+        config[positionKey] = {
+          label: item.name,
+        }
+        return config
+      },
+      {}
+    )
+
+    return { chartData, chartConfig }
+  }
+  totalEmployeePerStatus = async () => {
+    const employees = await db.employee.groupBy({
+      by: 'status',
+      _count: {
+        status: true,
+      },
+    })
+
+    const data = employees.map((item) => ({
+      status: item.status,
+      count: item._count.status,
+    }))
+    const chartData: ChartDataItem[] = data.map((item) => ({
+      position: item.status,
+      count: item.count,
+      fill: item.status === 'active' ? '#2A9D90' : '#F4A462',
+    }))
+
+    const chartConfig: ChartConfig = data.reduce((config, item) => {
+      config[item.status] = {
+        label: item.status.charAt(0).toUpperCase() + item.status.slice(1),
+      }
+      return config
+    }, {} as ChartConfig)
+
+    return { chartData, chartConfig }
   }
 
   protected isExist = async (id: number) => {
