@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -197,7 +197,7 @@ model Attendance {
   id         Int            @id @default(autoincrement())
   employee   Employee       @relation(fields: [employeeId], references: [id])
   employeeId Int
-  date       DateTime       @db.DateTime()
+  date       DateTime
   total_hour Int
   type       AttendanceType @default(presence)
 }
@@ -211,7 +211,7 @@ model Overtime {
   id          Int      @id @default(autoincrement())
   employeeId  Int
   employee    Employee @relation(fields: [employeeId], references: [id])
-  date        DateTime @db.DateTime()
+  date        DateTime
   total_hour  Int
   description String?
 }
