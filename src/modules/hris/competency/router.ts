@@ -18,5 +18,6 @@ export default class CompetencyRouter {
     this.router.patch('/:id', this.competencySchema.validate, this.controller.updateHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readHandler)
+    this.router.get('/:id', this.controller.readOneHandler)
   }
 }
