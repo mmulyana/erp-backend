@@ -3,49 +3,52 @@ import { Tag } from './schema'
 
 export default class TagRepository {
   create = async (payload: Tag) => {
-    try {
-      await db.supplierTag.create({ data: payload })
-    } catch (error) {
-      throw error
-    }
+    await db.supplierTag.create({ data: payload })
   }
   update = async (id: number, payload: Tag) => {
-    try {
-      await this.isExist(id)
-      await db.supplierTag.update({ data: payload, where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.supplierTag.update({ data: payload, where: { id } })
   }
   delete = async (id: number) => {
-    try {
-      await this.isExist(id)
-      await db.supplierTag.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.supplierTag.delete({ where: { id } })
   }
   read = async (name?: string) => {
-    try {
-      const baseQuery = {
-        where: {},
-      }
-
-      if (name) {
-        baseQuery.where = {
-          ...baseQuery.where,
-          OR: [
-            { name: { contains: name.toLowerCase() } },
-            { name: { contains: name.toUpperCase() } },
-            { name: { contains: name } },
-          ],
-        }
-      }
-
-      return await db.supplierTag.findMany(baseQuery)
-    } catch (error) {
-      throw error
+    const baseQuery = {
+      where: {},
+      include: {
+        _count: {
+          select: {
+            supplier: true,
+          },
+        },
+      },
     }
+
+    if (name) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        OR: [
+          { name: { contains: name.toLowerCase() } },
+          { name: { contains: name.toUpperCase() } },
+          { name: { contains: name } },
+        ],
+      }
+    }
+
+    return await db.supplierTag.findMany(baseQuery)
+  }
+  readOne = async (id: number) => {
+    return await db.supplierTag.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            supplier: true,
+          },
+        },
+      },
+    })
   }
   isExist = async (id: number) => {
     const data = await db.supplierTag.findUnique({ where: { id } })
