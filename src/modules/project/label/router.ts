@@ -18,5 +18,6 @@ export default class ClientRouter {
     this.router.patch('/:id', this.labelSchema.validate, this.controller.handleUpdate)
     this.router.delete('/:id', this.controller.handleDelete)
     this.router.get('/', this.controller.handleRead)
+    this.router.get('/:id', this.controller.handleReadOne)
   }
 }
