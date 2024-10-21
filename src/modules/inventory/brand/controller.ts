@@ -2,11 +2,14 @@ import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../../helper/api-response'
 import BrandRepository from './repository'
 import Message from '../../../utils/constant/message'
+import BaseController from '../../../helper/base-controller'
 
-export default class BrandController {
-  private response: ApiResponse = new ApiResponse()
+export default class BrandController extends BaseController {
   private repository: BrandRepository = new BrandRepository()
-  private message: Message = new Message('Merek')
+
+  constructor() {
+    super('Merek')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -44,6 +47,15 @@ export default class BrandController {
     try {
       const { name } = req.query
       const data = await this.repository.read(name?.toString() || undefined)
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readOne(Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
