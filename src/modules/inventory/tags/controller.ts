@@ -2,11 +2,14 @@ import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../../helper/api-response'
 import Message from '../../../utils/constant/message'
 import MeasurementsRepository from './repository'
+import BaseController from '../../../helper/base-controller'
 
-export default class TagController {
-  private response: ApiResponse = new ApiResponse()
+export default class TagController extends BaseController {
   private repository: MeasurementsRepository = new MeasurementsRepository()
-  private message: Message = new Message('Tag')
+
+  constructor() {
+    super('label supplier')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -38,6 +41,15 @@ export default class TagController {
     try {
       const { name } = req.query
       const data = await this.repository.read(name?.toString())
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readOne(Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
