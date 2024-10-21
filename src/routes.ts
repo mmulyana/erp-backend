@@ -86,6 +86,7 @@ export function setupRoutes(
     { path: '/inventory/tag', router: new TagRoutes().router, auth: true },
     { path: '/inventory/goods', router: new GoodsRoutes(multerConfig.uploadImg).router, auth: true, },
     { path: '/inventory/transaction', router: new TransactionRoutes(multerConfig.uploadImg).router, auth: true, },
+    { path: '/inventory/supplier-label', router: new TagRoutes().router, auth: true },
   ]
 
   routes.forEach(({ path, router, auth }) => {
