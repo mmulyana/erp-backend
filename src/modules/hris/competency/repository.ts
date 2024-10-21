@@ -8,9 +8,17 @@ export default class CompetencyRepository {
     await db.competency.create({ data })
   }
   update = async (id: number, data: competency) => {
-    await db.competency.update({
+    return await db.competency.update({
       data,
       where: { id },
+      include: {
+        _count: {
+          select: {
+            EmployeeCompetency: true,
+            Certification: true,
+          },
+        },
+      },
     })
   }
   delete = async (id: number) => {
@@ -24,9 +32,39 @@ export default class CompetencyRepository {
             contains: name,
           },
         },
+        include: {
+          _count: {
+            select: {
+              EmployeeCompetency: true,
+              Certification: true,
+            },
+          },
+        },
       })
       return data
     }
-    return await db.competency.findMany()
+    return await db.competency.findMany({
+      include: {
+        _count: {
+          select: {
+            EmployeeCompetency: true,
+            Certification: true,
+          },
+        },
+      },
+    })
+  }
+  readOne = async (id: number) => {
+    return await db.competency.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            EmployeeCompetency: true,
+            Certification: true,
+          },
+        },
+      },
+    })
   }
 }
