@@ -2,11 +2,14 @@ import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../../helper/api-response'
 import Message from '../../../utils/constant/message'
 import LocationRepository from './repository'
+import BaseController from '../../../helper/base-controller'
 
-export default class LocationController {
-  private response: ApiResponse = new ApiResponse()
+export default class LocationController extends BaseController {
   private repository: LocationRepository = new LocationRepository()
-  private message: Message = new Message('Lokasi')
+
+  constructor() {
+    super('Lokasi')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -19,8 +22,8 @@ export default class LocationController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), req.body)
-      return this.response.success(res, this.message.successUpdate())
+      const data = await this.repository.update(Number(id), req.body)
+      return this.response.success(res, this.message.successUpdate(), data)
     } catch (error) {
       next(error)
     }
@@ -38,6 +41,15 @@ export default class LocationController {
     try {
       const { name } = req.query
       const data = await this.repository.read(name?.toString())
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readOne(Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
