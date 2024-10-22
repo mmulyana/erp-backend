@@ -81,12 +81,13 @@ model Employee {
   marital_status        MaritalStatus?
   religion              String?
   last_education        String?
+  email                 String?
   positionId            Int?
   safety_induction_date DateTime?             @db.Date
   position              Position?             @relation(fields: [positionId], references: [id])
   attendances           Attendance[]
   cashAdvances          CashAdvance[]
-  contacts              Contact[]
+  phoneNumbers          PhoneNumbers[]
   addresses             Address[]
   statusTracks          EmployeeStatusTrack[]
   competencies          EmployeeCompetency[]
@@ -156,19 +157,11 @@ model Certification {
   employee             Employee    @relation(fields: [employeeId], references: [id])
 }
 
-model Contact {
-  id         Int         @id @default(autoincrement())
-  type       ContactType @default(phone)
+model PhoneNumbers {
+  id         Int      @id @default(autoincrement())
   value      String
   employeeId Int
-  isPrimary  Boolean     @default(false)
-  employee   Employee    @relation(fields: [employeeId], references: [id])
-}
-
-enum ContactType {
-  email
-  phone
-  etc
+  employee   Employee @relation(fields: [employeeId], references: [id])
 }
 
 model Address {
