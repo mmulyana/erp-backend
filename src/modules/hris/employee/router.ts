@@ -31,19 +31,15 @@ export default class EmployeeRouter extends RouterWithFile {
   }
 
   protected register() {
-    this.router.patch('/:id', 
-      this.upload.single('photo'),
-      this.compressImage,
-      this.employeeSchema.validate,
-      this.controller.updateHandler)
-    this.router.post('/',
-      this.upload.single('photo'),
-      this.compressImage, 
-      this.employeeSchema.validate,
-      this.controller.createHandler)
+    this.router.patch('/:id', this.employeeSchema.validate, this.controller.updateHandler)
+    this.router.post('/', this.employeeSchema.validate, this.controller.createHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readHandler)
+    this.router.patch('/update-photo/:id', 
+      this.upload.single('photo'),
+      this.compressImage,
+      this.controller.uploadPhotoHandler)
 
     this.router.patch('/update-competencies', this.controller.updateCompetenciesHandler)
 
