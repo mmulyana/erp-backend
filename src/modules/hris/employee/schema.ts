@@ -24,6 +24,7 @@ export const employeeSchema = z.object({
   marital_status: MaritalStatus.optional().nullable(),
   religion: z.string().optional().nullable(),
   positionId: z.string().optional().nullable(),
+  email: z.string().optional().nullable(),
   addresses: z
     .object({
       type: z.enum(['domicile', 'origin', 'alternative']),
@@ -32,9 +33,8 @@ export const employeeSchema = z.object({
     .array()
     .optional()
     .nullable(),
-  contacts: z
+  phoneNumbers: z
     .object({
-      type: z.enum(['email', 'phone', 'etc']),
       value: z.string(),
     })
     .array()
@@ -45,7 +45,6 @@ export const employeeSchema = z.object({
 
 export const contactSchema = z.object({
   id: z.number().optional(),
-  type: z.enum(['email', 'phone', 'etc']).optional(),
   value: z.string(),
 })
 
