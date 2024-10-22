@@ -12,10 +12,7 @@ export default class EmployeeController {
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await this.repository.create({
-        ...req.body,
-        photo: req.file?.filename,
-      })
+      const data = await this.repository.create(req.body)
       this.response.success(res, this.message.successCreate(), data)
     } catch (error) {
       next(error)
@@ -299,6 +296,8 @@ export default class EmployeeController {
   ) => {
     try {
       const { employeeId } = req.params
+      console.log('employeeId', employeeId)
+
       const formData = req.body
 
       if (Array.isArray(req.files)) {
@@ -391,6 +390,25 @@ export default class EmployeeController {
         res,
         this.message.successUpdateCustom('kompetensi')
       )
+    } catch (error) {
+      next(error)
+    }
+  }
+  uploadPhotoHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+
+      if (req.file?.fieldname) {
+        const data = await this.repository.updatePhoto(
+          Number(id),
+          req.file.filename
+        )
+        this.response.success(res, this.message.successCreate(), data)
+      }
     } catch (error) {
       next(error)
     }
