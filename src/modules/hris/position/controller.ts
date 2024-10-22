@@ -1,9 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import PositionRepository from './repository'
-import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import BaseController from '../../../helper/base-controller'
+import PositionRepository from './repository'
 
 export default class PositionController extends BaseController {
   private repository: PositionRepository = new PositionRepository()
@@ -14,8 +11,7 @@ export default class PositionController extends BaseController {
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, description } = req.body
-      await this.repository.create({ name, description })
+      await this.repository.create(req.body)
       return this.response.success(res, this.message.successCreate())
     } catch (error) {
       next(error)
@@ -23,9 +19,8 @@ export default class PositionController extends BaseController {
   }
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, description } = req.body
       const { id } = req.params
-      await this.repository.update(Number(id), { name, description })
+      await this.repository.update(Number(id), req.body)
       return this.response.success(res, this.message.successUpdate())
     } catch (error: any) {
       next(error)
