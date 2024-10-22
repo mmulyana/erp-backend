@@ -47,7 +47,7 @@ export default class PositionRepository {
 
     return data
   }
-  readAll = async () => {
+  readAll = async (name?: string) => {
     const data = await db.position.findMany({
       select: {
         id: true,
@@ -59,6 +59,15 @@ export default class PositionRepository {
           },
         },
       },
+      where: name
+        ? {
+            OR: [
+              { name: { contains: name.toLowerCase() } },
+              { name: { contains: name.toUpperCase() } },
+              { name: { contains: name } },
+            ],
+          }
+        : {},
     })
     return data
   }
