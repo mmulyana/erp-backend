@@ -47,10 +47,9 @@ export default class EmployeeRepository {
             type: item.type,
           })),
         },
-        contacts: {
-          create: payload.contacts?.map((item) => ({
+        phoneNumbers: {
+          create: payload.phoneNumbers?.map((item) => ({
             value: item.value,
-            type: item.type,
           })),
         },
         competencies: {
@@ -181,7 +180,7 @@ export default class EmployeeRepository {
           },
         },
         statusTracks: true,
-        contacts: true,
+        phoneNumbers: true,
         competencies: {
           include: {
             competency: {
@@ -290,7 +289,7 @@ export default class EmployeeRepository {
   createContact = async (employeeId: number, payload: Contact) => {
     try {
       await this.isExist(employeeId)
-      await db.contact.create({ data: { ...payload, employeeId } })
+      await db.phoneNumbers.create({ data: { ...payload, employeeId } })
     } catch (error) {
       throw error
     }
@@ -298,7 +297,7 @@ export default class EmployeeRepository {
   updateContact = async (id: number, payload: Contact) => {
     try {
       await this.isContactExist(id)
-      await db.contact.update({ data: payload, where: { id } })
+      await db.phoneNumbers.update({ data: payload, where: { id } })
     } catch (error) {
       throw error
     }
@@ -306,7 +305,7 @@ export default class EmployeeRepository {
   deleteContact = async (id: number) => {
     try {
       await this.isContactExist(id)
-      await db.contact.delete({ where: { id } })
+      await db.phoneNumbers.delete({ where: { id } })
     } catch (error) {
       throw error
     }
@@ -315,12 +314,12 @@ export default class EmployeeRepository {
     try {
       if (!!contactId) {
         await this.isContactExist(contactId)
-        const data = await db.contact.findUnique({
+        const data = await db.phoneNumbers.findUnique({
           where: { employeeId, id: contactId },
         })
         return data
       }
-      const data = await db.contact.findMany({ where: { employeeId } })
+      const data = await db.phoneNumbers.findMany({ where: { employeeId } })
       return data
     } catch (error) {
       throw error
@@ -501,7 +500,7 @@ export default class EmployeeRepository {
     if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.ADDRESS_NOT_FOUND)
   }
   private isContactExist = async (id: number) => {
-    const data = await db.contact.findUnique({ where: { id } })
+    const data = await db.phoneNumbers.findUnique({ where: { id } })
     if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.CONTACT_NOT_FOUND)
   }
   private isPositionExist = async (id: number) => {
