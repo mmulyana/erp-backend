@@ -4,12 +4,12 @@ const positionSchema = {
   create: z.object({
     name: z.string(),
     description: z.string().optional(),
-    employeeIds: z.number().array().optional()
+    color: z.string().optional()
   }),
   update: z.object({
     name: z.string(),
     description: z.string().optional(),
-    employeeIds: z.number().array().optional()
+    color: z.string().optional()
   }),
 }
 
