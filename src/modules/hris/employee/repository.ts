@@ -40,7 +40,8 @@ export default class EmployeeRepository {
         religion: payload.religion,
         positionId: Number(payload.positionId),
         last_education: payload.last_education,
-        ...(payload.photo !== '' ? { photo: payload.photo } : undefined),
+        safety_induction_date: payload.safety_induction_date,
+        email: payload.email,
         addresses: {
           create: payload.addresses?.map((item) => ({
             value: item.value,
@@ -76,15 +77,6 @@ export default class EmployeeRepository {
     return data
   }
   update = async (id: number, payload: Partial<Employee>) => {
-    await this.isExist(id)
-
-    if (payload.photo) {
-      const data = await db.employee.findUnique({ where: { id } })
-      if (data?.photo) {
-        removeImg(data?.photo)
-      }
-    }
-
     await db.employee.update({
       data: {
         fullname: payload.fullname,
@@ -101,9 +93,25 @@ export default class EmployeeRepository {
         religion: payload.religion,
         positionId: Number(payload.positionId),
         last_education: payload.last_education,
-        ...(payload.photo !== '' ? { photo: payload.photo } : undefined),
       },
       where: { id },
+    })
+  }
+  updatePhoto = async (id: number, photo: string) => {
+    await this.isExist(id)
+
+    if (photo) {
+      const data = await db.employee.findUnique({ where: { id } })
+      if (data?.photo) {
+        removeImg(data?.photo)
+      }
+    }
+
+    await db.employee.update({
+      where: { id },
+      data: {
+        photo,
+      },
     })
   }
   updateCompentencies = async (
@@ -454,11 +462,10 @@ export default class EmployeeRepository {
 
   // Certif
   createCertif = async (employeeId: number, payload: Certification[]) => {
-    console.log(payload)
     await db.certification.createMany({
       data: payload.map((item) => ({
         ...item,
-        competencyId: Number(item.competencyId),
+        competencyId: item.competencyId ? Number(item.competencyId) : null,
         employeeId,
       })),
     })
@@ -467,7 +474,9 @@ export default class EmployeeRepository {
     await db.certification.update({
       data: {
         ...payload,
-        competencyId: Number(payload.competencyId),
+        competencyId: payload.competencyId
+          ? Number(payload.competencyId)
+          : null,
       },
       where: { id: certifId },
     })
