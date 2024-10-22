@@ -10,7 +10,6 @@ const MaritalStatus = z.enum(['single', 'married', 'divorced'])
 export const employeeSchema = z.object({
   fullname: z.string(),
   status: EmployeeStatus.default('active'),
-  photo: z.string().optional().nullable(),
   joined_at: z.string().optional().nullable(),
   joined_type: JoinedType.default('date').optional().nullable(),
   basic_salary: z.string().optional().nullable(),
@@ -25,6 +24,7 @@ export const employeeSchema = z.object({
   religion: z.string().optional().nullable(),
   positionId: z.string().optional().nullable(),
   email: z.string().optional().nullable(),
+  safety_induction_date: z.string().date().optional().nullable(),
   addresses: z
     .object({
       type: z.enum(['domicile', 'origin', 'alternative']),
