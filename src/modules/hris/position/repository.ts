@@ -9,6 +9,11 @@ type ChartDataItem = {
   count: number
   fill: string | null
 }
+type ChartDataItem2 = {
+  status: string
+  count: number
+  fill: string | null
+}
 
 type ChartConfig = {
   [key: string]: {
@@ -51,12 +56,6 @@ export default class PositionRepository {
         _count: {
           select: {
             employees: true,
-          },
-        },
-        employees: {
-          take: 3,
-          select: {
-            fullname: true,
           },
         },
       },
@@ -108,8 +107,8 @@ export default class PositionRepository {
       status: item.status,
       count: item._count.status,
     }))
-    const chartData: ChartDataItem[] = data.map((item) => ({
-      position: item.status,
+    const chartData: ChartDataItem2[] = data.map((item) => ({
+      status: item.status,
       count: item.count,
       fill: item.status === 'active' ? '#2A9D90' : '#F4A462',
     }))
