@@ -79,9 +79,12 @@ export default class EmployeeRepository {
     return data
   }
   update = async (id: number, payload: UpdateEmployee) => {
-    await db.employee.update({
+    return await db.employee.update({
       data: payload,
       where: { id },
+      select: {
+        id: true,
+      },
     })
   }
   updatePhoto = async (id: number, photo: string) => {
