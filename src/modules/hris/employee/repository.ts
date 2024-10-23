@@ -269,19 +269,26 @@ export default class EmployeeRepository {
     await db.address.create({
       data: { ...payload, employeeId },
     })
+    return { employeeId }
   }
   updateAddress = async (id: number, payload: Address) => {
     await this.isAddressExist(id)
-    await db.address.update({
+    return await db.address.update({
       data: payload,
       where: {
         id: id,
+      },
+      select: {
+        employeeId: true,
       },
     })
   }
   deleteAddress = async (id: number) => {
     await this.isAddressExist(id)
-    await db.address.delete({ where: { id } })
+    return await db.address.delete({
+      where: { id },
+      select: { employeeId: true },
+    })
   }
   readAddress = async (employeeId: number, addressId?: number) => {
     if (!!addressId) {
