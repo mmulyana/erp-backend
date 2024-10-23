@@ -369,7 +369,6 @@ export default class EmployeeController extends BaseController {
   ) => {
     try {
       const { employeeId } = req.params
-      console.log('employeeId', employeeId)
 
       const formData = req.body
 
@@ -404,6 +403,26 @@ export default class EmployeeController extends BaseController {
       next(error)
     }
   }
+  createSingleHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { employeeId } = req.params
+      const data = await this.repository.createSingleCertif(
+        Number(employeeId),
+        { ...req.body, certif_file: req?.file?.filename }
+      )
+      return this.response.success(
+        res,
+        this.message.successCreateCustom('sertifikat'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
   updateCertifHandler = async (
     req: Request,
     res: Response,
@@ -411,8 +430,15 @@ export default class EmployeeController extends BaseController {
   ) => {
     try {
       const { certifId } = req.params
-      await this.repository.updateCertif(Number(certifId), req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CERTIF.UPDATE)
+      const data = await this.repository.updateCertif(Number(certifId), {
+        ...req.body,
+        certif_file: req?.file?.filename,
+      })
+      return this.response.success(
+        res,
+        this.message.successUpdateCustom('sertifikat'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -424,8 +450,12 @@ export default class EmployeeController extends BaseController {
   ) => {
     try {
       const { certifId } = req.params
-      await this.repository.deleteCertif(Number(certifId))
-      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CERTIF.DELETE)
+      const data = await this.repository.deleteCertif(Number(certifId))
+      return this.response.success(
+        res,
+        this.message.successDeleteCustom('sertifikat'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -444,7 +474,7 @@ export default class EmployeeController extends BaseController {
       )
       return this.response.success(
         res,
-        MESSAGE_SUCCESS.EMPLOYEE.CERTIF.READ,
+        this.message.successReadCustom('sertifikat'),
         data
       )
     } catch (error) {
