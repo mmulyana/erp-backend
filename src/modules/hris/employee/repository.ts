@@ -5,12 +5,14 @@ import {
   employeeSchema,
   competencySchema,
   certifchema,
+  updateEmployeeSchema,
 } from './schema'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
-import db from '../../../lib/db'
 import { removeImg } from '../../../utils/file'
+import db from '../../../lib/db'
 
 type Employee = z.infer<typeof employeeSchema>
+type UpdateEmployee = z.infer<typeof updateEmployeeSchema>
 type Contact = z.infer<typeof contactSchema>
 type Address = z.infer<typeof addressSchema>
 type Competency = z.infer<typeof competencySchema>
@@ -76,24 +78,9 @@ export default class EmployeeRepository {
     })
     return data
   }
-  update = async (id: number, payload: Partial<Employee>) => {
+  update = async (id: number, payload: UpdateEmployee) => {
     await db.employee.update({
-      data: {
-        fullname: payload.fullname,
-        joined_at: payload.joined_at,
-        joined_type: payload.joined_type,
-        basic_salary: payload.basic_salary,
-        overtime_salary: payload.overtime_salary,
-        pay_type: payload.pay_type,
-        employment_type: payload.employment_type,
-        place_of_birth: payload.place_of_birth,
-        birth_date: payload.birth_date,
-        gender: payload.gender,
-        marital_status: payload.marital_status,
-        religion: payload.religion,
-        positionId: Number(payload.positionId),
-        last_education: payload.last_education,
-      },
+      data: payload,
       where: { id },
     })
   }
@@ -467,6 +454,10 @@ export default class EmployeeRepository {
         ...item,
         competencyId: item.competencyId ? Number(item.competencyId) : null,
         employeeId,
+        expire_at:
+          item.expiry_year && item.expiry_month
+            ? new Date(`${item.expiry_year}-${item.expiry_month}-01`)
+            : null,
       })),
     })
   }
@@ -477,6 +468,10 @@ export default class EmployeeRepository {
         competencyId: payload.competencyId
           ? Number(payload.competencyId)
           : null,
+        expire_at:
+          payload.expiry_year && payload.expiry_month
+            ? new Date(`${payload.expiry_year}-${payload.expiry_month}-01`)
+            : null,
       },
       where: { id: certifId },
     })
