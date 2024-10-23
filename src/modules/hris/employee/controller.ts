@@ -11,6 +11,7 @@ export default class EmployeeController extends BaseController {
     super('Pegawai')
   }
 
+  // EMPLOYEE
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await this.repository.create(req.body)
@@ -59,6 +60,40 @@ export default class EmployeeController extends BaseController {
       }
       const data = await this.repository.readAll(page, limit, where)
       this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  // PHOTO
+  uploadPhotoHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+
+      if (req.file?.fieldname) {
+        const data = await this.repository.updatePhoto(
+          Number(id),
+          req.file.filename
+        )
+        this.response.success(res, this.message.successCreate(), data)
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
+  deletePhotoHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.deletePhoto(Number(id))
+      this.response.success(res, this.message.successUpdateCustom('photo'), data)
     } catch (error) {
       next(error)
     }
@@ -388,25 +423,6 @@ export default class EmployeeController extends BaseController {
         res,
         this.message.successUpdateCustom('kompetensi')
       )
-    } catch (error) {
-      next(error)
-    }
-  }
-  uploadPhotoHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-
-      if (req.file?.fieldname) {
-        const data = await this.repository.updatePhoto(
-          Number(id),
-          req.file.filename
-        )
-        this.response.success(res, this.message.successCreate(), data)
-      }
     } catch (error) {
       next(error)
     }
