@@ -302,43 +302,38 @@ export default class EmployeeRepository {
 
   // CONTACT
   createContact = async (employeeId: number, payload: Contact) => {
-    try {
-      await this.isExist(employeeId)
-      await db.phoneNumbers.create({ data: { ...payload, employeeId } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(employeeId)
+    await db.phoneNumbers.create({ data: { ...payload, employeeId } })
+    return { employeeId }
   }
   updateContact = async (id: number, payload: Contact) => {
-    try {
-      await this.isContactExist(id)
-      await db.phoneNumbers.update({ data: payload, where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isContactExist(id)
+    return await db.phoneNumbers.update({
+      data: payload,
+      where: { id },
+      select: { employeeId: true },
+    })
   }
   deleteContact = async (id: number) => {
-    try {
-      await this.isContactExist(id)
-      await db.phoneNumbers.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isContactExist(id)
+    const data = await db.phoneNumbers.delete({
+      where: { id },
+      select: {
+        employeeId: true,
+      },
+    })
+    return data
   }
   readContact = async (employeeId: number, contactId?: number) => {
-    try {
-      if (!!contactId) {
-        await this.isContactExist(contactId)
-        const data = await db.phoneNumbers.findUnique({
-          where: { employeeId, id: contactId },
-        })
-        return data
-      }
-      const data = await db.phoneNumbers.findMany({ where: { employeeId } })
+    if (!!contactId) {
+      await this.isContactExist(contactId)
+      const data = await db.phoneNumbers.findUnique({
+        where: { employeeId, id: contactId },
+      })
       return data
-    } catch (error) {
-      throw error
     }
+    const data = await db.phoneNumbers.findMany({ where: { employeeId } })
+    return data
   }
 
   updatePositionEmployee = async (id: number, positionId: number) => {
