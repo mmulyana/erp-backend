@@ -8,8 +8,9 @@ import {
   updateEmployeeSchema,
 } from './schema'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
-import { removeImg } from '../../../utils/file'
 import db from '../../../lib/db'
+import { deleteFile, PATHS } from '../../../utils/file'
+import { parse } from 'date-fns'
 
 type Employee = z.infer<typeof employeeSchema>
 type UpdateEmployee = z.infer<typeof updateEmployeeSchema>
@@ -135,7 +136,7 @@ export default class EmployeeRepository {
     await this.isExist(id)
     const data = await db.employee.findUnique({ where: { id } })
     if (data?.photo) {
-      removeImg(data?.photo)
+      deleteFile(data?.photo)
     }
     await db.employee.delete({ where: { id } })
   }
@@ -236,7 +237,7 @@ export default class EmployeeRepository {
     if (photo) {
       const data = await db.employee.findUnique({ where: { id } })
       if (data?.photo) {
-        removeImg(data?.photo)
+        deleteFile(data?.photo)
       }
     }
 
@@ -258,7 +259,7 @@ export default class EmployeeRepository {
       },
     })
     if (data?.photo) {
-      removeImg(data?.photo)
+      deleteFile(data?.photo)
     }
     return data
   }
@@ -472,19 +473,68 @@ export default class EmployeeRepository {
   // Certif
   createCertif = async (employeeId: number, payload: Certification[]) => {
     await db.certification.createMany({
-      data: payload.map((item) => ({
-        ...item,
-        competencyId: item.competencyId ? Number(item.competencyId) : null,
+      data: payload.map((item) => {
+        const certifData = {
+          ...item,
+          competencyId:
+            item.competencyId && item.competencyId !== ''
+              ? Number(item.competencyId)
+              : null,
+          employeeId,
+          expire_at: null as Date | null,
+        }
+
+        if (item.expiry_year && item.expiry_month) {
+          try {
+            const month = this.getMonthNumber(item.expiry_month)
+            const tmpDate = `01-${month}-${item.expiry_year}`
+
+            const date = parse(tmpDate, 'dd-MM-yyyy', new Date())
+
+            if (isNaN(date.getTime())) {
+              throw new Error('Invalid date')
+            }
+
+            certifData.expire_at = date
+          } catch (error) {
+            certifData.expire_at = null
+          }
+        }
+
+        return certifData
+      }),
+    })
+  }
+  createSingleCertif = async (employeeId: number, payload: Certification) => {
+    let expire_at: null | Date = null
+    if (payload.expiry_year && payload.expiry_month) {
+      const month = payload.expiry_month.toString().padStart(2, '0')
+      const tmpDate = `01-${month}-${payload.expiry_year}`
+
+      const date = parse(tmpDate, 'dd-MM-yyyy', new Date())
+
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid date')
+      }
+
+      expire_at = date
+    }
+    return await db.certification.create({
+      data: {
+        ...payload,
+        competencyId: payload.competencyId
+          ? Number(payload.competencyId)
+          : null,
         employeeId,
-        expire_at:
-          item.expiry_year && item.expiry_month
-            ? new Date(`${item.expiry_year}-${item.expiry_month}-01`)
-            : null,
-      })),
+        expire_at,
+      },
+      select: {
+        employeeId: true,
+      },
     })
   }
   updateCertif = async (certifId: number, payload: Certification) => {
-    await db.certification.update({
+    return await db.certification.update({
       data: {
         ...payload,
         competencyId: payload.competencyId
@@ -496,11 +546,26 @@ export default class EmployeeRepository {
             : null,
       },
       where: { id: certifId },
+      select: {
+        employeeId: true,
+      },
     })
   }
   deleteCertif = async (certifId: number) => {
     await this.isCertifExist(certifId)
+    const data = await db.certification.findUnique({
+      where: { id: certifId },
+      select: {
+        certif_file: true,
+        employeeId: true,
+      },
+    })
+    if (data?.certif_file) {
+      deleteFile(data.certif_file, PATHS.FILES)
+    }
+
     await db.certification.delete({ where: { id: certifId } })
+    return { employeeId: data?.employeeId }
   }
   readCertif = async (competencyId: number, certifId?: number) => {
     if (!!certifId) {
@@ -515,6 +580,25 @@ export default class EmployeeRepository {
     }
     const data = await db.certification.findMany({ where: { competencyId } })
     return data
+  }
+
+  getMonthNumber = (monthName: string): string => {
+    const months: { [key: string]: string } = {
+      januari: '01',
+      februari: '02',
+      maret: '03',
+      april: '04',
+      mei: '05',
+      juni: '06',
+      juli: '07',
+      agustus: '08',
+      september: '09',
+      oktober: '10',
+      november: '11',
+      desember: '12',
+    }
+
+    return months[monthName.toLowerCase()] || '01'
   }
 
   private isExist = async (id: number) => {
