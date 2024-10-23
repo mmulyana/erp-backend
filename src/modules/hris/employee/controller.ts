@@ -93,7 +93,11 @@ export default class EmployeeController extends BaseController {
     try {
       const { id } = req.params
       const data = await this.repository.deletePhoto(Number(id))
-      this.response.success(res, this.message.successUpdateCustom('photo'), data)
+      this.response.success(
+        res,
+        this.message.successUpdateCustom('photo'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -106,8 +110,15 @@ export default class EmployeeController extends BaseController {
   ) => {
     try {
       const { employeeId } = req.params
-      await this.repository.createAddress(Number(employeeId), req.body)
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.CREATE)
+      const data = await this.repository.createAddress(
+        Number(employeeId),
+        req.body
+      )
+      this.response.success(
+        res,
+        this.message.successCreateCustom('alamat'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -119,8 +130,15 @@ export default class EmployeeController extends BaseController {
   ) => {
     try {
       const { addressId } = req.params
-      await this.repository.updateAddress(Number(addressId), req.body)
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.UPDATE)
+      const data = await this.repository.updateAddress(
+        Number(addressId),
+        req.body
+      )
+      this.response.success(
+        res,
+        this.message.successUpdateCustom('alamat'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -132,8 +150,12 @@ export default class EmployeeController extends BaseController {
   ) => {
     try {
       const { addressId } = req.params
-      await this.repository.deleteAddress(Number(addressId))
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.REMOVE)
+      const data = await this.repository.deleteAddress(Number(addressId))
+      this.response.success(
+        res,
+        this.message.successDeleteCustom('alamat'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -163,8 +185,15 @@ export default class EmployeeController extends BaseController {
   ) => {
     try {
       const { employeeId } = req.params
-      const data = await this.repository.createContact(Number(employeeId), req.body)
-      this.response.success(res, this.message.successCreateCustom('nomor telp'), data)
+      const data = await this.repository.createContact(
+        Number(employeeId),
+        req.body
+      )
+      this.response.success(
+        res,
+        this.message.successCreateCustom('nomor telp'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -176,8 +205,15 @@ export default class EmployeeController extends BaseController {
   ) => {
     try {
       const { contactId } = req.params
-      const data = await this.repository.updateContact(Number(contactId), req.body)
-      this.response.success(res, this.message.successUpdateCustom('nomor telp'), data)
+      const data = await this.repository.updateContact(
+        Number(contactId),
+        req.body
+      )
+      this.response.success(
+        res,
+        this.message.successUpdateCustom('nomor telp'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -190,7 +226,11 @@ export default class EmployeeController extends BaseController {
     try {
       const { contactId } = req.params
       const data = await this.repository.deleteContact(Number(contactId))
-      this.response.success(res, this.message.successDeleteCustom('nomor telp'), data)
+      this.response.success(
+        res,
+        this.message.successDeleteCustom('nomor telp'),
+        data
+      )
     } catch (error) {
       next(error)
     }
