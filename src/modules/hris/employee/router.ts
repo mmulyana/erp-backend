@@ -65,8 +65,9 @@ export default class EmployeeRouter extends RouterWithFile {
     this.router.delete('/competency/:competencyId', this.controller.deleteCompetencyHandler)
     this.router.get('/competency/:employeeId', this.controller.readCompetencyHandler)
 
+    this.router.post('/certification/single/:employeeId', this.uploadDoc.single('certif_file'), this.controller.createSingleHandler)
     this.router.post('/certification/:employeeId', this.uploadDoc.array('certif_file', 5), this.controller.createCertifHandler)
-    this.router.patch('/certification/:certifId', this.certifSchema.validate, this.controller.updateCertifHandler)
+    this.router.patch('/certification/:certifId', this.uploadDoc.single('certif_file'), this.controller.updateCertifHandler)
     this.router.delete('/certification/:certifId', this.controller.deleteCertifHandler)
     this.router.get('/certification/:employeeId', this.controller.readCertifHandler)
   }
