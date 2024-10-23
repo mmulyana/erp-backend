@@ -87,23 +87,6 @@ export default class EmployeeRepository {
       },
     })
   }
-  updatePhoto = async (id: number, photo: string) => {
-    await this.isExist(id)
-
-    if (photo) {
-      const data = await db.employee.findUnique({ where: { id } })
-      if (data?.photo) {
-        removeImg(data?.photo)
-      }
-    }
-
-    await db.employee.update({
-      where: { id },
-      data: {
-        photo,
-      },
-    })
-  }
   updateCompentencies = async (
     id: number,
     { competencyIds }: { competencyIds: number[] }
@@ -244,6 +227,40 @@ export default class EmployeeRepository {
     const total = await db.employee.count({ where })
     const total_pages = Math.ceil(total / limit)
     return { data, total, page, limit, total_pages }
+  }
+
+  // PHOTO
+  updatePhoto = async (id: number, photo: string) => {
+    await this.isExist(id)
+
+    if (photo) {
+      const data = await db.employee.findUnique({ where: { id } })
+      if (data?.photo) {
+        removeImg(data?.photo)
+      }
+    }
+
+    await db.employee.update({
+      where: { id },
+      data: {
+        photo,
+      },
+    })
+  }
+  deletePhoto = async (id: number) => {
+    await this.isExist(id)
+
+    const data = await db.employee.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        photo: true,
+      },
+    })
+    if (data?.photo) {
+      removeImg(data?.photo)
+    }
+    return data
   }
 
   // ADDRESS
