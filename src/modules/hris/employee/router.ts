@@ -41,6 +41,7 @@ export default class EmployeeRouter extends RouterWithFile {
       this.upload.single('photo'),
       this.compressImage,
       this.controller.uploadPhotoHandler)
+    this.router.patch('/delete-photo/:id', this.controller.deletePhotoHandler)
 
     this.router.patch('/update-competencies', this.controller.updateCompetenciesHandler)
 
