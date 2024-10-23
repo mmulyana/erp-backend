@@ -1,6 +1,6 @@
 import db from '../../../lib/db'
+import { deleteFile } from '../../../utils/file'
 import { Transaction } from './schema'
-import { removeImg } from '../../../utils/file'
 import { TransactionType } from '@prisma/client'
 
 export default class BrandRepository {
@@ -59,7 +59,7 @@ export default class BrandRepository {
       // handle when theres new photo
       if (payload.photoUrl) {
         if (transaction?.photoUrl) {
-          removeImg(transaction.photoUrl)
+          deleteFile(transaction.photoUrl)
         }
       }
 
@@ -86,7 +86,7 @@ export default class BrandRepository {
       const data = await db.transactionGoods.findUnique({ where: { id } })
 
       if (data?.photoUrl) {
-        removeImg(data.photoUrl)
+        deleteFile(data.photoUrl)
       }
 
       await db.transactionGoods.delete({ where: { id } })

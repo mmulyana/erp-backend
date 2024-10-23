@@ -1,5 +1,5 @@
 import db from '../../../lib/db'
-import { removeImg } from '../../../utils/file'
+import { deleteFile } from '../../../utils/file'
 import { Supplier } from './schema'
 
 export default class SupplierRepository {
@@ -28,7 +28,7 @@ export default class SupplierRepository {
     if (payload.photoUrl) {
       const data = await db.supplier.findUnique({ where: { id } })
       if (data?.photoUrl) {
-        removeImg(data?.photoUrl)
+        deleteFile(data?.photoUrl)
       }
     }
 
@@ -113,7 +113,7 @@ export default class SupplierRepository {
       },
     })
     if (data?.photoUrl) {
-      removeImg(data?.photoUrl)
+      deleteFile(data?.photoUrl)
     }
 
     const transactionsIds = data?.transaction.map((item) => item.id)

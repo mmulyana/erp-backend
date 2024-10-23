@@ -1,9 +1,6 @@
-import path from 'path'
 import db from '../../../lib/db'
 import { Brand } from './schema'
-import fs from 'fs'
-import { removeImg } from '../../../utils/file'
-
+import { deleteFile } from '../../../utils/file'
 export default class BrandRepository {
   create = async (payload: Brand & { photoUrl?: string }) => {
     await db.brand.create({ data: payload })
@@ -16,7 +13,7 @@ export default class BrandRepository {
     if (payload.photoUrl) {
       const data = await db.brand.findUnique({ where: { id } })
       if (data?.photoUrl) {
-        await removeImg(data.photoUrl)
+        await deleteFile(data.photoUrl)
       }
     }
     return await db.brand.update({
@@ -36,11 +33,7 @@ export default class BrandRepository {
     const data = await db.brand.findUnique({ where: { id } })
 
     if (data?.photoUrl) {
-      fs.unlink(path.join('public/img', data.photoUrl), (err) => {
-        if (err) {
-          console.error(`Error deleting original file: ${err}`)
-        }
-      })
+      deleteFile(data.photoUrl)
     }
 
     await db.brand.delete({ where: { id } })

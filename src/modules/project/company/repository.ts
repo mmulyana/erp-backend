@@ -1,5 +1,5 @@
 import db from '../../../lib/db'
-import { removeImg } from '../../../utils/file'
+import { deleteFile } from '../../../utils/file'
 import { Company } from './schema'
 
 export default class CompanyRepository {
@@ -10,7 +10,7 @@ export default class CompanyRepository {
     if (data.logo) {
       const data = await db.companyClient.findUnique({ where: { id } })
       if (data?.logo) {
-        removeImg(data.logo)
+        deleteFile(data.logo)
       }
     }
     await db.companyClient.update({ data, where: { id } })
@@ -18,7 +18,7 @@ export default class CompanyRepository {
   delete = async (id: number) => {
     const data = await db.companyClient.findUnique({ where: { id } })
     if (data?.logo) {
-      removeImg(data.logo)
+      deleteFile(data.logo)
     }
     await db.companyClient.delete({ where: { id } })
   }

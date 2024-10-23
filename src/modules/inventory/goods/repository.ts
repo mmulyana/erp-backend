@@ -1,5 +1,5 @@
 import db from '../../../lib/db'
-import { removeImg } from '../../../utils/file'
+import { deleteFile } from '../../../utils/file'
 import { Goods } from './schema'
 
 export default class GoodsRepository {
@@ -33,8 +33,8 @@ export default class GoodsRepository {
     try {
       if (payload.newPhotoUrl !== '') {
         const data = await db.brand.findUnique({ where: { id } })
-        if (!!data?.photoUrl) {
-          await removeImg(data.photoUrl)
+        if (data?.photoUrl) {
+          deleteFile(data.photoUrl)
         }
       }
       await db.goods.update({
@@ -78,7 +78,7 @@ export default class GoodsRepository {
       const data = await db.goods.findUnique({ where: { id } })
 
       if (data?.photoUrl) {
-        removeImg(data.photoUrl)
+        deleteFile(data.photoUrl)
       }
 
       await db.goods.delete({ where: { id } })
