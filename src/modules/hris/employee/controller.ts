@@ -2,13 +2,14 @@ import { NextFunction, Request, Response } from 'express'
 import EmployeeRepository, { FilterEmployee } from './repository'
 import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
 import { MESSAGE_ERROR } from '../../../utils/constant/error'
-import ApiResponse from '../../../helper/api-response'
-import Message from '../../../utils/constant/message'
+import BaseController from '../../../helper/base-controller'
 
-export default class EmployeeController {
-  private response: ApiResponse = new ApiResponse()
+export default class EmployeeController extends BaseController {
   private repository: EmployeeRepository = new EmployeeRepository()
-  private message: Message = new Message('Pegawai')
+
+  constructor() {
+    super('Pegawai')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -21,11 +22,8 @@ export default class EmployeeController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), {
-        ...req.body,
-        photo: req.file?.filename,
-      })
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.UPDATE)
+      const data = await this.repository.update(Number(id), req.body)
+      this.response.success(res, this.message.successUpdate(), data)
     } catch (error) {
       next(error)
     }
@@ -34,7 +32,7 @@ export default class EmployeeController {
     try {
       const { id } = req.params
       await this.repository.delete(Number(id))
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.DELETE)
+      this.response.success(res, this.message.successDelete())
     } catch (error) {
       next(error)
     }
@@ -43,7 +41,7 @@ export default class EmployeeController {
     try {
       const { id } = req.params
       const data = await this.repository.read(Number(id))
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.READ, data)
+      this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
@@ -60,7 +58,7 @@ export default class EmployeeController {
         where.positionId = Number(req.query.positionId)
       }
       const data = await this.repository.readAll(page, limit, where)
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.READ, data)
+      this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
