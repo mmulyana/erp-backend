@@ -1,4 +1,3 @@
-import { Router } from 'express'
 import {
   addressSchema,
   competencySchema,
@@ -6,17 +5,19 @@ import {
   employeeSchema,
   positionSchema,
   certifchema,
+  updateEmployeeSchema,
 } from './schema'
+import RouterWithFile from '../../../helper/router-with-file'
+import { MulterConfig } from '../../../utils/multer-config'
 import Validation from '../../../helper/validation'
 import EmployeeController from './controller'
-import RouterWithFile from '../../../helper/router-with-file'
 import { Multer } from 'multer'
-import { MulterConfig } from '../../../utils/multer-config'
 
 export default class EmployeeRouter extends RouterWithFile {
   private controller: EmployeeController = new EmployeeController()
   private comptencySchema: Validation = new Validation(competencySchema)
   private employeeSchema: Validation = new Validation(employeeSchema)
+  private updateEmployeeSchema: Validation = new Validation(updateEmployeeSchema)
   private positionSchema: Validation = new Validation(positionSchema)
   private addressSchema: Validation = new Validation(addressSchema)
   private contactSchema: Validation = new Validation(contactSchema)
@@ -31,7 +32,7 @@ export default class EmployeeRouter extends RouterWithFile {
   }
 
   protected register() {
-    this.router.patch('/:id', this.employeeSchema.validate, this.controller.updateHandler)
+    this.router.patch('/:id', this.updateEmployeeSchema.validate, this.controller.updateHandler)
     this.router.post('/', this.employeeSchema.validate, this.controller.createHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readAllHandler)
@@ -63,10 +64,7 @@ export default class EmployeeRouter extends RouterWithFile {
     this.router.delete('/competency/:competencyId', this.controller.deleteCompetencyHandler)
     this.router.get('/competency/:employeeId', this.controller.readCompetencyHandler)
 
-    this.router.post('/certification/:employeeId',
-      this.uploadDoc.any(), 
-      // this.certifSchema.validate, 
-      this.controller.createCertifHandler)
+    this.router.post('/certification/:employeeId', this.uploadDoc.array('certif_file', 5), this.controller.createCertifHandler)
     this.router.patch('/certification/:certifId', this.certifSchema.validate, this.controller.updateCertifHandler)
     this.router.delete('/certification/:certifId', this.controller.deleteCertifHandler)
     this.router.get('/certification/:employeeId', this.controller.readCertifHandler)
