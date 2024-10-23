@@ -43,6 +43,17 @@ export const employeeSchema = z.object({
   competencies: z.string().array().optional().nullable(),
 })
 
+export const updateEmployeeSchema = employeeSchema
+  .omit({
+    fullname: true,
+    addresses: true,
+    competencies: true,
+    phoneNumbers: true,
+    positionId: true
+  })
+  .partial()
+
+
 export const contactSchema = z.object({
   id: z.number().optional(),
   value: z.string(),
@@ -75,5 +86,6 @@ export const certifchema = z.object({
   issue_year: z.string().optional(),
   issue_month: z.string().optional(),
   expiry_year: z.string().optional(),
+  expiry_month: z.string().optional(),
   competencyId: z.string().optional(),
 })
