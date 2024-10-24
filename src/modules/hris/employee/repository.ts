@@ -623,7 +623,7 @@ export default class EmployeeRepository {
       },
     })
 
-    const formattedResults = expiringCertificates.map((cert) => {
+    return expiringCertificates.map((cert) => {
       if (!cert.expire_at) return
       const expireDate = new Date(cert.expire_at)
 
@@ -643,8 +643,41 @@ export default class EmployeeRepository {
         daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
       }
     })
+  }
+  getExpiringSafety = async () => {
+    const today = new Date()
+    const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
+    const oneMonthFromNow = new Date(jakartaTime)
+    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
 
-    return formattedResults
+    const expiringSafety = await db.employee.findMany({
+      where: {
+        safety_induction_date: {
+          gte: jakartaTime,
+          lte: oneMonthFromNow,
+        },
+        isHidden: false,
+      },
+    })
+
+    return expiringSafety.map((item) => {
+      if (!item.safety_induction_date) return
+      const expireDate = new Date(item.safety_induction_date)
+
+      return {
+        ...item,
+        expire_at: expireDate.toLocaleString('id-ID', {
+          timeZone: 'Asia/Jakarta',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }),
+        daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
+      }
+    })
   }
 
   private isExist = async (id: number) => {
