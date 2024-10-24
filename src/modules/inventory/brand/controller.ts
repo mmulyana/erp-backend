@@ -1,8 +1,6 @@
-import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import BrandRepository from './repository'
-import Message from '../../../utils/constant/message'
 import BaseController from '../../../helper/base-controller'
+import { NextFunction, Request, Response } from 'express'
+import BrandRepository from './repository'
 
 export default class BrandController extends BaseController {
   private repository: BrandRepository = new BrandRepository()
