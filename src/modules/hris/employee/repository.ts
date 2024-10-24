@@ -372,11 +372,14 @@ export default class EmployeeRepository {
 
       await db.employee.update({ data: { status }, where: { id } })
 
-      await db.employeeStatusTrack.create({
+      return await db.employeeStatusTrack.create({
         data: {
           status,
           date,
           employeeId: id,
+        },
+        select: {
+          employeeId: true,
         },
       })
     } catch (error) {
