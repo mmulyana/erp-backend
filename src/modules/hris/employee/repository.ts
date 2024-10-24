@@ -356,7 +356,11 @@ export default class EmployeeRepository {
     }
   }
 
-  updateStatusEmployee = async (id: number, status: boolean) => {
+  updateStatusEmployee = async (
+    id: number,
+    status: boolean,
+    { description }: { description?: string }
+  ) => {
     try {
       await this.isExist(id)
       const date = new Date().toISOString()
@@ -376,6 +380,7 @@ export default class EmployeeRepository {
         data: {
           status,
           date,
+          description: description ?? null,
           employeeId: id,
         },
         select: {
