@@ -1,6 +1,4 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
 import CompanyRepository from './repository'
 import BaseController from '../../../helper/base-controller'
 
@@ -22,7 +20,10 @@ export default class CompanyController extends BaseController {
   handleUpdate = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), {...req.body, logo: req.file?.filename })
+      await this.repository.update(Number(id), {
+        ...req.body,
+        logo: req.file?.filename,
+      })
       return this.response.success(res, this.message.successUpdate())
     } catch (error) {
       next(error)
