@@ -23,7 +23,7 @@ export const employeeSchema = z.object({
   religion: z.string().optional().nullable(),
   positionId: z.string().optional().nullable(),
   email: z.string().optional().nullable(),
-  safety_induction_date: z.string().date().optional().nullable(),
+  safety_induction_date: z.string().datetime().optional().nullable(),
   addresses: z
     .object({
       type: z.enum(['domicile', 'origin', 'alternative']),
@@ -76,6 +76,10 @@ export const positionSchema = z.object({
 
 export const competencySchema = z.object({
   competencyId: z.number().array(),
+})
+
+export const competencySingleSchema = z.object({
+  competencyId: z.number(),
 })
 
 export const certifchema = z.object({
