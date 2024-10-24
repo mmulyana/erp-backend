@@ -141,6 +141,15 @@ export default class EmployeeRepository {
     }
     await db.employee.delete({ where: { id } })
   }
+  softDelete = async (id: number) => {
+    await this.isExist(id)
+    await db.employee.update({
+      data: {
+        isHidden: true,
+      },
+      where: { id },
+    })
+  }
   read = async (id: number) => {
     await this.isExist(id)
     const data = await db.employee.findUnique({
@@ -186,7 +195,9 @@ export default class EmployeeRepository {
     filter?: FilterEmployee
   ) => {
     const skip = (page - 1) * limit
-    const where: any = {}
+    const where: any = {
+      isHidden: false,
+    }
 
     if (filter) {
       if (filter.fullname) {
@@ -361,35 +372,31 @@ export default class EmployeeRepository {
     status: boolean,
     { description }: { description?: string }
   ) => {
-    try {
-      await this.isExist(id)
-      const date = new Date().toISOString()
+    await this.isExist(id)
+    const date = new Date().toISOString()
 
-      const data = await db.employee.findUnique({ where: { id } })
-      if (status) {
-        if (!!data?.status) {
-          throw new Error('Pegawai sudah aktif')
-        }
-      } else if (!status && !data?.status) {
-        throw new Error('Pegawai sudah nonaktif')
+    const data = await db.employee.findUnique({ where: { id } })
+    if (status) {
+      if (!!data?.status) {
+        throw new Error('Pegawai sudah aktif')
       }
-
-      await db.employee.update({ data: { status }, where: { id } })
-
-      return await db.employeeStatusTrack.create({
-        data: {
-          status,
-          date,
-          description: description ?? null,
-          employeeId: id,
-        },
-        select: {
-          employeeId: true,
-        },
-      })
-    } catch (error) {
-      throw error
+    } else if (!status && !data?.status) {
+      throw new Error('Pegawai sudah nonaktif')
     }
+
+    await db.employee.update({ data: { status }, where: { id } })
+
+    return await db.employeeStatusTrack.create({
+      data: {
+        status,
+        date,
+        description: description ?? null,
+        employeeId: id,
+      },
+      select: {
+        employeeId: true,
+      },
+    })
   }
 
   readEmployeeTrack = async (id: number) => {
