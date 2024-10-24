@@ -432,11 +432,10 @@ export default class EmployeeRepository {
   }
   // competencyId
   deleteCompetency = async (id: number) => {
-    try {
-      await db.competency.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    return await db.employeeCompetency.delete({
+      where: { id },
+      select: { employeeId: true },
+    })
   }
   // competencyId
   readCompetency = async (employeeId: number, id?: number) => {
