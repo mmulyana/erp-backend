@@ -36,7 +36,11 @@ export default class EmployeeController extends BaseController {
       next(error)
     }
   }
-  softDeleteHandler = async (req: Request, res: Response, next: NextFunction) => {
+  softDeleteHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { id } = req.params
       await this.repository.softDelete(Number(id))
@@ -282,7 +286,11 @@ export default class EmployeeController extends BaseController {
   activeHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { employeeId } = req.params
-      const data = await this.repository.updateStatusEmployee(Number(employeeId), true, req.body)
+      const data = await this.repository.updateStatusEmployee(
+        Number(employeeId),
+        true,
+        req.body
+      )
       this.response.success(res, this.message.successActive(), data)
     } catch (error) {
       next(error)
@@ -291,7 +299,11 @@ export default class EmployeeController extends BaseController {
   inactiveHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { employeeId } = req.params
-      const data = await this.repository.updateStatusEmployee(Number(employeeId), false, req.body)
+      const data = await this.repository.updateStatusEmployee(
+        Number(employeeId),
+        false,
+        req.body
+      )
       this.response.success(res, this.message.successInactive(), data)
     } catch (error) {
       next(error)
@@ -520,6 +532,25 @@ export default class EmployeeController extends BaseController {
       return this.response.success(
         res,
         this.message.successUpdateField('kompetensi')
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  readExpiringCertificationHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.repository.getExpiringCertificates()
+      return this.response.success(
+        res,
+        this.message.customMessage(
+          'yang sertifikatnya akan dan sudah kadaluwarsa'
+        ),
+        data
       )
     } catch (error) {
       next(error)
