@@ -349,10 +349,11 @@ export default class EmployeeController extends BaseController {
   ) => {
     try {
       const { competencyId } = req.params
-      await this.repository.deleteCompetency(Number(competencyId))
+      const data = await this.repository.deleteCompetency(Number(competencyId))
       return this.response.success(
         res,
-        this.message.successDeleteField('kompetensi')
+        this.message.successDeleteField('kompetensi'),
+        data
       )
     } catch (error) {
       next(error)
