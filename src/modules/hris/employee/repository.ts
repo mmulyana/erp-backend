@@ -599,26 +599,26 @@ export default class EmployeeRepository {
 
   private isExist = async (id: number) => {
     const data = await db.employee.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.customNotFound('Pegawai'))
+    if (!data) throw Error(this.message.notfoundCustom('Pegawai'))
   }
   private isAddressExist = async (id: number) => {
     const data = await db.address.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.customNotFound('Alamat'))
+    if (!data) throw Error(this.message.notfoundCustom('Alamat'))
   }
   private isContactExist = async (id: number) => {
     const data = await db.phoneNumbers.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.customNotFound('Nomor telp'))
+    if (!data) throw Error(this.message.notfoundCustom('Nomor telp'))
   }
   private isPositionExist = async (id: number) => {
     const data = await db.position.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.customNotFound('Jabatan'))
+    if (!data) throw Error(this.message.notfoundCustom('Jabatan'))
   }
   private isCompetencyExist = async (id: number) => {
     const data = await db.competency.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.customNotFound('Kompetensi'))
+    if (!data) throw Error(this.message.notfoundCustom('Kompetensi'))
   }
   private isCertifExist = async (id: number) => {
     const data = await db.certification.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.customNotFound('Sertifikat'))
+    if (!data) throw Error(this.message.notfoundCustom('Sertifikat'))
   }
 }
