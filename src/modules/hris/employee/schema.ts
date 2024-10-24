@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-const EmployeeStatus = z.enum(['active', 'inactive'])
 const JoinedType = z.enum(['date', 'year'])
 const PayType = z.enum(['daily', 'monthly'])
 const EmploymentType = z.enum(['permanent', 'contract', 'partime'])
@@ -9,7 +8,7 @@ const MaritalStatus = z.enum(['single', 'married', 'divorced'])
 
 export const employeeSchema = z.object({
   fullname: z.string(),
-  status: EmployeeStatus.default('active'),
+  status: z.boolean().default(true),
   joined_at: z.string().optional().nullable(),
   joined_type: JoinedType.default('date').optional().nullable(),
   basic_salary: z.string().optional().nullable(),
@@ -49,10 +48,9 @@ export const updateEmployeeSchema = employeeSchema
     addresses: true,
     competencies: true,
     phoneNumbers: true,
-    positionId: true
+    positionId: true,
   })
   .partial()
-
 
 export const contactSchema = z.object({
   id: z.number().optional(),
