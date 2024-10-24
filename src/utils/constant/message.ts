@@ -14,7 +14,9 @@ export default class Message {
     `data ${field} untuk ${this.name} ini berhasil disimpan`
   public successDeleteCustom = (field: string) =>
     `data ${field} untuk ${this.name} ini berhasil dihapus`
-  public successReadCustom = (field: string) => `data ${field} berhasil didapatkan`
+  public successReadCustom = (field: string) =>
+    `data ${field} berhasil didapatkan`
+  public customNotFound = (field: string) => `${field} tidak ditemukan`
 
   public fileRequired = (field?: string) => `${field ?? 'Photo'} wajib diisi`
 }
