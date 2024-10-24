@@ -1,5 +1,4 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
-import { MESSAGE_ERROR } from '../../utils/constant/error'
 import { genSalt, hash } from 'bcryptjs'
 import { Prisma } from '@prisma/client'
 import db from '../../lib/db'
@@ -136,7 +135,7 @@ export default class AccountRepository {
       }
 
       if (user) {
-        throw new Error(MESSAGE_ERROR.ACCOUNT_ALREADY_USED)
+        throw new Error('Akun sudah terdaftar')
       }
     } catch (error) {
       throw error
