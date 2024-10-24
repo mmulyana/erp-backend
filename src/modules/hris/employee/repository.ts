@@ -1,4 +1,7 @@
-import { z } from 'zod'
+import { deleteFile, PATHS } from '../../../utils/file'
+import Message from '../../../utils/constant/message'
+import { parse } from 'date-fns'
+import db from '../../../lib/db'
 import {
   contactSchema,
   addressSchema,
@@ -7,10 +10,7 @@ import {
   certifchema,
   updateEmployeeSchema,
 } from './schema'
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
-import db from '../../../lib/db'
-import { deleteFile, PATHS } from '../../../utils/file'
-import { parse } from 'date-fns'
+import { z } from 'zod'
 
 type Employee = z.infer<typeof employeeSchema>
 type UpdateEmployee = z.infer<typeof updateEmployeeSchema>
@@ -25,6 +25,7 @@ export type FilterEmployee = {
 }
 
 export default class EmployeeRepository {
+  private message: Message = new Message('pegawai')
   // EMPLOYEE
   create = async (payload: Employee) => {
     const data = await db.employee.create({
@@ -354,18 +355,18 @@ export default class EmployeeRepository {
     }
   }
 
-  updateStatusEmployee = async (id: number, status: 'active' | 'inactive') => {
+  updateStatusEmployee = async (id: number, status: boolean) => {
     try {
       await this.isExist(id)
       const date = new Date().toISOString()
 
       const data = await db.employee.findUnique({ where: { id } })
-      if (status == 'active') {
+      if (status) {
         if (!!data?.status) {
-          throw new Error(MESSAGE_ERROR.EMPLOYEE.STATUS.ACTIVE)
+          throw new Error('Pegawai sudah aktif')
         }
-      } else if (status == 'inactive' && !data?.status) {
-        throw new Error(MESSAGE_ERROR.EMPLOYEE.STATUS.INACTIVE)
+      } else if (!status && !data?.status) {
+        throw new Error('Pegawai sudah nonaktif')
       }
 
       await db.employee.update({ data: { status }, where: { id } })
@@ -383,15 +384,10 @@ export default class EmployeeRepository {
   }
 
   readEmployeeTrack = async (id: number) => {
-    try {
-      const data = await db.employeeStatusTrack.findMany({
-        where: { employeeId: id },
-        orderBy: { date: 'asc' },
-      })
-      return data
-    } catch (error) {
-      throw error
-    }
+    return await db.employeeStatusTrack.findMany({
+      where: { employeeId: id },
+      orderBy: { date: 'asc' },
+    })
   }
 
   // Competency
@@ -603,26 +599,26 @@ export default class EmployeeRepository {
 
   private isExist = async (id: number) => {
     const data = await db.employee.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.NOT_FOUND)
+    if (!data) throw Error(this.message.customNotFound('Pegawai'))
   }
   private isAddressExist = async (id: number) => {
     const data = await db.address.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.ADDRESS_NOT_FOUND)
+    if (!data) throw Error(this.message.customNotFound('Alamat'))
   }
   private isContactExist = async (id: number) => {
     const data = await db.phoneNumbers.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.CONTACT_NOT_FOUND)
+    if (!data) throw Error(this.message.customNotFound('Nomor telp'))
   }
   private isPositionExist = async (id: number) => {
     const data = await db.position.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.POSITION_NOT_FOUND)
+    if (!data) throw Error(this.message.customNotFound('Jabatan'))
   }
   private isCompetencyExist = async (id: number) => {
     const data = await db.competency.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.COMPETENCY_NOT_FOUND)
+    if (!data) throw Error(this.message.customNotFound('Kompetensi'))
   }
   private isCertifExist = async (id: number) => {
     const data = await db.certification.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.EMPLOYEE.CERTIF_NOT_FOUND)
+    if (!data) throw Error(this.message.customNotFound('Sertifikat'))
   }
 }
