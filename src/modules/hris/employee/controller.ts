@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
 import EmployeeRepository, { FilterEmployee } from './repository'
-import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import BaseController from '../../../helper/base-controller'
 
 export default class EmployeeController extends BaseController {
@@ -93,11 +91,7 @@ export default class EmployeeController extends BaseController {
     try {
       const { id } = req.params
       const data = await this.repository.deletePhoto(Number(id))
-      this.response.success(
-        res,
-        this.message.successUpdateCustom('photo'),
-        data
-      )
+      this.response.success(res, this.message.successUpdateField('photo'), data)
     } catch (error) {
       next(error)
     }
@@ -116,7 +110,7 @@ export default class EmployeeController extends BaseController {
       )
       this.response.success(
         res,
-        this.message.successCreateCustom('alamat'),
+        this.message.successCreateField('alamat'),
         data
       )
     } catch (error) {
@@ -136,7 +130,7 @@ export default class EmployeeController extends BaseController {
       )
       this.response.success(
         res,
-        this.message.successUpdateCustom('alamat'),
+        this.message.successUpdateField('alamat'),
         data
       )
     } catch (error) {
@@ -153,7 +147,7 @@ export default class EmployeeController extends BaseController {
       const data = await this.repository.deleteAddress(Number(addressId))
       this.response.success(
         res,
-        this.message.successDeleteCustom('alamat'),
+        this.message.successDeleteField('alamat'),
         data
       )
     } catch (error) {
@@ -172,7 +166,7 @@ export default class EmployeeController extends BaseController {
         Number(employeeId),
         Number(addressId)
       )
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ADDRESS.READ, data)
+      this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
@@ -191,7 +185,7 @@ export default class EmployeeController extends BaseController {
       )
       this.response.success(
         res,
-        this.message.successCreateCustom('nomor telp'),
+        this.message.successCreateField('nomor telp'),
         data
       )
     } catch (error) {
@@ -211,7 +205,7 @@ export default class EmployeeController extends BaseController {
       )
       this.response.success(
         res,
-        this.message.successUpdateCustom('nomor telp'),
+        this.message.successUpdateField('nomor telp'),
         data
       )
     } catch (error) {
@@ -228,7 +222,7 @@ export default class EmployeeController extends BaseController {
       const data = await this.repository.deleteContact(Number(contactId))
       this.response.success(
         res,
-        this.message.successDeleteCustom('nomor telp'),
+        this.message.successDeleteField('nomor telp'),
         data
       )
     } catch (error) {
@@ -247,7 +241,11 @@ export default class EmployeeController extends BaseController {
         Number(employeeId),
         Number(contactId)
       )
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.CONTACT.READ, data)
+      this.response.success(
+        res,
+        this.message.successReadField('Nomor telp'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -258,11 +256,15 @@ export default class EmployeeController extends BaseController {
       const { id } = req.params
       const { positionId } = req.body
 
-      await this.repository.updatePositionEmployee(
+      const data = await this.repository.updatePositionEmployee(
         Number(id),
         Number(positionId)
       )
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.POSITION)
+      this.response.success(
+        res,
+        this.message.successUpdateField('jabatan'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -272,16 +274,8 @@ export default class EmployeeController extends BaseController {
     try {
       const { employeeId } = req.params
       await this.repository.updateStatusEmployee(Number(employeeId), true)
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ACTIVE)
-    } catch (error: any) {
-      if (
-        [
-          MESSAGE_ERROR.EMPLOYEE.STATUS.ACTIVE,
-          MESSAGE_ERROR.EMPLOYEE.STATUS.INACTIVE,
-        ].includes(error?.message)
-      ) {
-        error.code = 400
-      }
+      this.response.success(res, this.message.successActive())
+    } catch (error) {
       next(error)
     }
   }
@@ -289,7 +283,7 @@ export default class EmployeeController extends BaseController {
     try {
       const { employeeId } = req.params
       await this.repository.updateStatusEmployee(Number(employeeId), false)
-      this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.UNACTIVE)
+      this.response.success(res, this.message.successInactive())
     } catch (error) {
       next(error)
     }
@@ -302,7 +296,11 @@ export default class EmployeeController extends BaseController {
     try {
       const { employeeId } = req.params
       const data = await this.repository.readEmployeeTrack(Number(employeeId))
-      return this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.TRACK, data)
+      return this.response.success(
+        res,
+        this.message.successReadField('Aktivasi'),
+        data
+      )
     } catch (error) {
       next(error)
     }
@@ -318,7 +316,7 @@ export default class EmployeeController extends BaseController {
       await this.repository.createCompetency(Number(employeeId), req.body)
       return this.response.success(
         res,
-        MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.CREATE
+        this.message.successCreateField('kompetensi')
       )
     } catch (error) {
       next(error)
@@ -334,7 +332,7 @@ export default class EmployeeController extends BaseController {
       await this.repository.deleteCompetency(Number(competencyId))
       return this.response.success(
         res,
-        MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.DELETE
+        this.message.successDeleteField('kompetensi')
       )
     } catch (error) {
       next(error)
@@ -354,7 +352,7 @@ export default class EmployeeController extends BaseController {
       )
       return this.response.success(
         res,
-        MESSAGE_SUCCESS.EMPLOYEE.COMPETENCY.READ,
+        this.message.successReadField('kompetensi'),
         data
       )
     } catch (error) {
@@ -397,7 +395,7 @@ export default class EmployeeController extends BaseController {
       await this.repository.createCertif(Number(employeeId), dataArray)
       return this.response.success(
         res,
-        this.message.successCreateCustom('sertifikat')
+        this.message.successCreateField('sertifikat')
       )
     } catch (error) {
       next(error)
@@ -416,7 +414,7 @@ export default class EmployeeController extends BaseController {
       )
       return this.response.success(
         res,
-        this.message.successCreateCustom('sertifikat'),
+        this.message.successCreateField('sertifikat'),
         data
       )
     } catch (error) {
@@ -436,7 +434,7 @@ export default class EmployeeController extends BaseController {
       })
       return this.response.success(
         res,
-        this.message.successUpdateCustom('sertifikat'),
+        this.message.successUpdateField('sertifikat'),
         data
       )
     } catch (error) {
@@ -453,7 +451,7 @@ export default class EmployeeController extends BaseController {
       const data = await this.repository.deleteCertif(Number(certifId))
       return this.response.success(
         res,
-        this.message.successDeleteCustom('sertifikat'),
+        this.message.successDeleteField('sertifikat'),
         data
       )
     } catch (error) {
@@ -474,7 +472,7 @@ export default class EmployeeController extends BaseController {
       )
       return this.response.success(
         res,
-        this.message.successReadCustom('sertifikat'),
+        this.message.successReadField('sertifikat'),
         data
       )
     } catch (error) {
@@ -491,7 +489,7 @@ export default class EmployeeController extends BaseController {
       await this.repository.updateCompentencies(Number(id), req.body)
       return this.response.success(
         res,
-        this.message.successUpdateCustom('kompetensi')
+        this.message.successUpdateField('kompetensi')
       )
     } catch (error) {
       next(error)
