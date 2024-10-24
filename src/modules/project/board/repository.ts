@@ -1,6 +1,6 @@
-import db from '../../../lib/db'
 import { generateUUID } from '../../../utils/generate-uuid'
 import { Board } from './schema'
+import db from '../../../lib/db'
 
 export default class BoardRepository {
   create = async (data: Board) => {
