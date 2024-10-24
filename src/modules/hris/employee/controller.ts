@@ -556,4 +556,22 @@ export default class EmployeeController extends BaseController {
       next(error)
     }
   }
+  readExpiringSafetyHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.repository.getExpiringSafety()
+      return this.response.success(
+        res,
+        this.message.customMessage(
+          'yang safety induction akan dan sudah kadaluwarsa'
+        ),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
 }
