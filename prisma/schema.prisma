@@ -84,7 +84,7 @@ model Employee {
   email                 String?
   isHidden              Boolean?              @default(false)
   positionId            Int?
-  safety_induction_date DateTime?             
+  safety_induction_date DateTime?
   position              Position?             @relation(fields: [positionId], references: [id])
   attendances           Attendance[]
   cashAdvances          CashAdvance[]
@@ -144,9 +144,9 @@ model Competency {
 
 model Certification {
   id                   Int         @id @default(autoincrement())
-  certif_name          String      @db.VarChar(100)
-  certif_file          String?     @db.VarChar(100)
-  issuing_organization String?     @db.VarChar(10)
+  certif_name          String
+  certif_file          String?
+  issuing_organization String?
   issue_year           String?     @db.VarChar(10)
   issue_month          String?     @db.VarChar(10)
   expiry_year          String?     @db.VarChar(10)

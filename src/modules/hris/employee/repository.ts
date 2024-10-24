@@ -11,7 +11,7 @@ import {
 } from './schema'
 import { z } from 'zod'
 
-import { differenceInDays } from 'date-fns'
+import { differenceInDays, format } from 'date-fns'
 
 type Employee = z.infer<typeof employeeSchema>
 type UpdateEmployee = z.infer<typeof updateEmployeeSchema>
@@ -547,17 +547,32 @@ export default class EmployeeRepository {
       },
     })
   }
-  updateCertif = async (certifId: number, payload: Certification) => {
+  updateCertif = async (certifId: number, payload: Certification & {certif_file: string}) => {
+    let expire_at: null | Date = null
+
+    if(payload.certif_file) {
+      const existing = await db.certification.findUnique({where: {id: certifId}, select: {certif_file: true}})
+      if(existing?.certif_file) {
+        deleteFile(existing.certif_file, PATHS.FILES)
+      }
+    }
+
+    if (payload.expiry_year && payload.expiry_month) {
+      const date = new Date(
+        Number(payload.expiry_year),
+        Number(payload.expiry_month),
+        1
+      )
+      expire_at = date
+    }
+    console.log('expire at', expire_at)
     return await db.certification.update({
       data: {
         ...payload,
         competencyId: payload.competencyId
           ? Number(payload.competencyId)
           : null,
-        expire_at:
-          payload.expiry_year && payload.expiry_month
-            ? new Date(`${payload.expiry_year}-${payload.expiry_month}-01`)
-            : null,
+        ...(expire_at ? { expire_at } : undefined),
       },
       where: { id: certifId },
       select: {
@@ -605,41 +620,34 @@ export default class EmployeeRepository {
     const expiringCertificates = await db.certification.findMany({
       where: {
         expire_at: {
-          gte: jakartaTime,
           lte: oneMonthFromNow,
         },
         employee: {
           isHidden: false,
         },
       },
-      include: {
+
+      select: {
+        certif_name: true,
+        expire_at: true,
         employee: {
           select: {
+            id: true,
             fullname: true,
             photo: true,
           },
         },
-        competency: true,
       },
     })
 
     return expiringCertificates.map((cert) => {
       if (!cert.expire_at) return
-      const expireDate = new Date(cert.expire_at)
+      const expireDate = new Date(new Date(cert.expire_at).getTime() + (7 * 60 * 60 * 1000))
 
       return {
         ...cert,
-        id: cert.id,
         certif_name: cert.certif_name,
-        expire_at: expireDate.toLocaleString('id-ID', {
-          timeZone: 'Asia/Jakarta',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        }),
+        expireAt: format(expireDate, 'EEEE, d MMM yyyy'),
         daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
       }
     })
@@ -653,10 +661,15 @@ export default class EmployeeRepository {
     const expiringSafety = await db.employee.findMany({
       where: {
         safety_induction_date: {
-          gte: jakartaTime,
           lte: oneMonthFromNow,
         },
         isHidden: false,
+      },
+      select: {
+        id: true,
+        fullname: true,
+        photo: true,
+        safety_induction_date: true,
       },
     })
 
@@ -666,15 +679,7 @@ export default class EmployeeRepository {
 
       return {
         ...item,
-        expire_at: expireDate.toLocaleString('id-ID', {
-          timeZone: 'Asia/Jakarta',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        }),
+        expire_at: format(expireDate, 'EEEE, d MMM yyyy'),
         daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
       }
     })
