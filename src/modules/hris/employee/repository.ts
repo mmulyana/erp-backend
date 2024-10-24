@@ -221,6 +221,7 @@ export default class EmployeeRepository {
         competencies: {
           select: {
             competency: true,
+            id: true,
           },
         },
       },
@@ -392,32 +393,42 @@ export default class EmployeeRepository {
 
   // Competency
   createCompetency = async (employeeId: number, payload: Competency) => {
-    try {
-      const existingCompetencies = await db.employeeCompetency.findMany({
-        where: { employeeId },
-        select: { competencyId: true },
+    const existingCompetencies = await db.employeeCompetency.findMany({
+      where: { employeeId },
+      select: { competencyId: true },
+    })
+
+    const existingCompetencyIds = existingCompetencies.map(
+      (ec) => ec.competencyId
+    )
+
+    // Filter competencies that not exists
+    const newCompetencyIds = payload.competencyId.filter(
+      (id) => !existingCompetencyIds.includes(id)
+    )
+
+    if (newCompetencyIds.length > 0) {
+      await db.employeeCompetency.createMany({
+        data: newCompetencyIds.map((item) => ({
+          competencyId: item,
+          employeeId,
+        })),
       })
-
-      const existingCompetencyIds = existingCompetencies.map(
-        (ec) => ec.competencyId
-      )
-
-      // Filter competencies that not exists
-      const newCompetencyIds = payload.competencyId.filter(
-        (id) => !existingCompetencyIds.includes(id)
-      )
-
-      if (newCompetencyIds.length > 0) {
-        await db.employeeCompetency.createMany({
-          data: newCompetencyIds.map((item) => ({
-            competencyId: item,
-            employeeId,
-          })),
-        })
-      }
-    } catch (error) {
-      throw error
     }
+  }
+  createSingleCompetency = async (
+    employeeId: number,
+    payload: { competencyId: number }
+  ) => {
+    return await db.employeeCompetency.create({
+      data: {
+        competencyId: payload.competencyId,
+        employeeId,
+      },
+      select: {
+        employeeId: true,
+      },
+    })
   }
   // competencyId
   deleteCompetency = async (id: number) => {
