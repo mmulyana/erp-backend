@@ -84,7 +84,7 @@ model Employee {
   email                 String?
   isHidden              Boolean?              @default(false)
   positionId            Int?
-  safety_induction_date DateTime?             @db.Date
+  safety_induction_date DateTime?             
   position              Position?             @relation(fields: [positionId], references: [id])
   attendances           Attendance[]
   cashAdvances          CashAdvance[]
