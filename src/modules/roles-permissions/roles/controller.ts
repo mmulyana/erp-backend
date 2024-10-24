@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express'
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import { CustomRequest } from '../../../utils/types/common'
 import ApiResponse from '../../../helper/api-response'
 import RolesRepository from './repository'
@@ -25,8 +24,7 @@ export default class RoleController {
       await this.repository.update(Number(id), { name, permissionIds })
       return this.response.success(res, 'succes update roles')
     } catch (error: any) {
-      
-      if (error.message == MESSAGE_ERROR.ROLE_NOT_FOUND) {
+      if (error.message == 'Role tidak ditemukan') {
         error.code = 404
       }
       next(error)
@@ -39,7 +37,7 @@ export default class RoleController {
       await this.repository.delete(Number(id))
       return this.response.success(res, 'succes delete roles')
     } catch (error: any) {
-      if (error.message == MESSAGE_ERROR.ROLE_NOT_FOUND) {
+      if (error.message == 'Role tidak ditemukan') {
         error.code = 404
       }
       next(error)
@@ -52,7 +50,7 @@ export default class RoleController {
       const data = await this.repository.read(Number(id))
       return this.response.success(res, 'success read role', data)
     } catch (error: any) {
-      if (error.message == MESSAGE_ERROR.ROLE_NOT_FOUND) {
+      if (error.message == 'Role tidak ditemukan') {
         error.code = 404
       }
       next(error)
