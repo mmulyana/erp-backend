@@ -37,6 +37,7 @@ export default class EmployeeRouter extends RouterWithFile {
     this.router.patch('/:id', this.updateEmployeeSchema.validate, this.controller.updateHandler)
     this.router.post('/', this.employeeSchema.validate, this.controller.createHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
+    this.router.patch('/soft-delete/:id', this.controller.softDeleteHandler)
     this.router.get('/', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readHandler)
     this.router.patch('/update-photo/:id', 
