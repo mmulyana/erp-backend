@@ -608,6 +608,9 @@ export default class EmployeeRepository {
           gte: jakartaTime,
           lte: oneMonthFromNow,
         },
+        employee: {
+          isHidden: false,
+        },
       },
       include: {
         employee: {
@@ -628,7 +631,7 @@ export default class EmployeeRepository {
         ...cert,
         id: cert.id,
         certif_name: cert.certif_name,
-        expireAt: expireDate.toLocaleString('id-ID', {
+        expire_at: expireDate.toLocaleString('id-ID', {
           timeZone: 'Asia/Jakarta',
           year: 'numeric',
           month: '2-digit',
