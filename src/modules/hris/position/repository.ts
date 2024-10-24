@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import positionSchema from './schema'
 import db from '../../../lib/db'
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
+import Message from '../../../utils/constant/message'
 
 type Payload = z.infer<typeof positionSchema.create>
 type ChartDataItem = {
@@ -22,6 +22,7 @@ type ChartConfig = {
 }
 
 export default class PositionRepository {
+  private message: Message = new Message('Jabatan')
   create = async (payload: Payload) => {
     await db.position.create({ data: payload })
   }
@@ -134,6 +135,6 @@ export default class PositionRepository {
 
   protected isExist = async (id: number) => {
     const data = await db.position.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.POSITION.NOT_FOUND)
+    if (!data) throw Error(this.message.notfound())
   }
 }
