@@ -1,4 +1,3 @@
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import db from '../../../lib/db'
 
 type Permission = {
@@ -117,7 +116,7 @@ export default class PermissionGroupRepository {
       })
 
       if (data) {
-        throw new Error(MESSAGE_ERROR.GROUP_NAME_ALREADY_USED)
+        throw new Error("Nama grup sudah ada")
       }
 
       return true
@@ -135,7 +134,7 @@ export default class PermissionGroupRepository {
       })
 
       if (permissions.length > 0) {
-        throw new Error(MESSAGE_ERROR.CANT_DELETE_GROUP)
+        throw new Error("Grup tidak bisa dihapus")
       }
 
       await db.permissionGroup.delete({
