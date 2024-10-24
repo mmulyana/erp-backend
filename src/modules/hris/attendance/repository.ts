@@ -1,12 +1,14 @@
-import { date, z } from 'zod'
-import db from '../../../lib/db'
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import { createAttendanceSchema, updateAttendanceSchema } from './schema'
+import Message from '../../../utils/constant/message'
+import db from '../../../lib/db'
 import { parse } from 'date-fns'
+import { z } from 'zod'
 
 type CreateAttendance = z.infer<typeof createAttendanceSchema>
 type UpdateAttendance = z.infer<typeof updateAttendanceSchema>
+
 export default class AttendanceRepository {
+  private message: Message = new Message('Kehadiran')
   create = async (payload: CreateAttendance) => {
     await db.attendance.create({
       data: { ...payload, date: parse(payload.date, 'dd-MM-yyyy', new Date()) },
@@ -77,6 +79,6 @@ export default class AttendanceRepository {
 
   private isExist = async (id: number) => {
     const data = await db.attendance.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.ATTENDANCE.NOT_FOUND)
+    if (!data) throw Error(this.message.notfound())
   }
 }
