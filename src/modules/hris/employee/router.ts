@@ -6,6 +6,7 @@ import {
   positionSchema,
   certifchema,
   updateEmployeeSchema,
+  competencySingleSchema,
 } from './schema'
 import RouterWithFile from '../../../helper/router-with-file'
 import { MulterConfig } from '../../../utils/multer-config'
@@ -16,6 +17,7 @@ import { Multer } from 'multer'
 export default class EmployeeRouter extends RouterWithFile {
   private controller: EmployeeController = new EmployeeController()
   private comptencySchema: Validation = new Validation(competencySchema)
+  private comptencySingleSchema: Validation = new Validation(competencySingleSchema)
   private employeeSchema: Validation = new Validation(employeeSchema)
   private updateEmployeeSchema: Validation = new Validation(updateEmployeeSchema)
   private positionSchema: Validation = new Validation(positionSchema)
@@ -62,6 +64,7 @@ export default class EmployeeRouter extends RouterWithFile {
     this.router.get('/status/track/:employeeId', this.controller.employeeTrackHandler)
 
     this.router.post('/competency/:employeeId', this.comptencySchema.validate, this.controller.createCompetencyHandler)
+    this.router.post('/competency/single/:employeeId', this.comptencySingleSchema.validate, this.controller.createSingleCompetencyHandler)
     this.router.delete('/competency/:competencyId', this.controller.deleteCompetencyHandler)
     this.router.get('/competency/:employeeId', this.controller.readCompetencyHandler)
 
