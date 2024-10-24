@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import ApiResponse from '../../helper/api-response'
 import { compare, genSalt, hash } from 'bcryptjs'
-import { MESSAGE_SUCCESS } from '../../utils/constant/success'
 import db from '../../lib/db'
 dotenv.config()
 
@@ -51,7 +50,7 @@ export default class AuthController {
         token,
       }
 
-      return this.responseHandler.success(res, MESSAGE_SUCCESS.LOGIN, payload)
+      return this.responseHandler.success(res, 'Berhasil login', payload)
     } catch (error: any) {
       error.code = 400
       next(error)
@@ -91,7 +90,7 @@ export default class AuthController {
 
       await db.user.create(payload)
 
-      this.responseHandler.success(res, MESSAGE_SUCCESS.REGISTER)
+      this.responseHandler.success(res, 'berhasil daftar')
     } catch (error: any) {
       error.code = 400
       next(error)
