@@ -117,14 +117,14 @@ export default class PositionRepository {
       count: item._count.status,
     }))
     const chartData: ChartDataItem2[] = data.map((item) => ({
-      status: item.status,
+      status: item.status ? 'active' : 'nonactive',
       count: item.count,
-      fill: item.status === 'active' ? '#2A9D90' : '#F4A462',
+      fill: item.status ? '#2A9D90' : '#F4A462',
     }))
 
     const chartConfig: ChartConfig = data.reduce((config, item) => {
-      config[item.status] = {
-        label: item.status.charAt(0).toUpperCase() + item.status.slice(1),
+      config[item.status ? 'active' : 'nonactive'] = {
+        label: item.status ? 'Aktif' : 'Nonaktif',
       }
       return config
     }, {} as ChartConfig)
