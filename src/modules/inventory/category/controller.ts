@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import Message from '../../../utils/constant/message'
+import BaseController from '../../../helper/base-controller'
 import CategoryRepository from './repository'
 
-export default class CategoryController {
-  private response: ApiResponse = new ApiResponse()
+export default class CategoryController extends BaseController {
   private repository: CategoryRepository = new CategoryRepository()
-  private message: Message = new Message('Kategori')
+
+  constructor() {
+    super('Kategori')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
