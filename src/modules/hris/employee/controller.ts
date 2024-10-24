@@ -271,7 +271,7 @@ export default class EmployeeController extends BaseController {
   activeHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { employeeId } = req.params
-      await this.repository.updateStatusEmployee(Number(employeeId), 'active')
+      await this.repository.updateStatusEmployee(Number(employeeId), true)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.ACTIVE)
     } catch (error: any) {
       if (
@@ -288,7 +288,7 @@ export default class EmployeeController extends BaseController {
   inactiveHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { employeeId } = req.params
-      await this.repository.updateStatusEmployee(Number(employeeId), 'inactive')
+      await this.repository.updateStatusEmployee(Number(employeeId), false)
       this.response.success(res, MESSAGE_SUCCESS.EMPLOYEE.UNACTIVE)
     } catch (error) {
       next(error)
