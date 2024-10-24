@@ -8,15 +8,19 @@ export default class Message {
   public successUpdate = () => `${this.name} berhasil diperbarui`
   public successDelete = () => `${this.name} berhasil dihapus`
   public successRead = () => `${this.name} berhasil didapatkan`
-  public successUpdateCustom = (field: string) =>
-    `data ${field} dari ${this.name} ini berhasil diperbarui`
-  public successCreateCustom = (field: string) =>
-    `data ${field} untuk ${this.name} ini berhasil disimpan`
-  public successDeleteCustom = (field: string) =>
-    `data ${field} untuk ${this.name} ini berhasil dihapus`
-  public successReadCustom = (field: string) =>
+  public notfound = () => `${this.name} tidak ditemukan`
+  public notfoundCustom = (field: string) => `${field} tidak ditemukan`
+  public successReadField = (field: string) =>
     `data ${field} berhasil didapatkan`
-  public customNotFound = (field: string) => `${field} tidak ditemukan`
+  public successUpdateField = (field: string) =>
+    `data ${field} dari ${this.name} ini berhasil diperbarui`
+  public successCreateField = (field: string) =>
+    `data ${field} untuk ${this.name} ini berhasil disimpan`
+  public successDeleteField = (field: string) =>
+    `data ${field} untuk ${this.name} ini berhasil dihapus`
+  public successActive = () => `${this.name} berhasil diaktifkan`
+  public successInactive = () => `${this.name} berhasil dinonaktifkan`
+  public customMessage = (message: string) => `data ${this.name} ${message}`
 
   public fileRequired = (field?: string) => `${field ?? 'Photo'} wajib diisi`
 }
