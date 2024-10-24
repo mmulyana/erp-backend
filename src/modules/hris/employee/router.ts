@@ -76,5 +76,6 @@ export default class EmployeeRouter extends RouterWithFile {
     this.router.get('/certification/:employeeId', this.controller.readCertifHandler)
 
     this.router.get('/expiring/certification', this.controller.readExpiringCertificationHandler)
+    this.router.get('/expiring/safety', this.controller.readExpiringSafetyHandler)
   }
 }
