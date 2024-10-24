@@ -322,6 +322,26 @@ export default class EmployeeController extends BaseController {
       next(error)
     }
   }
+  createSingleCompetencyHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { employeeId } = req.params
+      const data = await this.repository.createSingleCompetency(
+        Number(employeeId),
+        req.body
+      )
+      return this.response.success(
+        res,
+        this.message.successCreateField('kompetensi'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
   deleteCompetencyHandler = async (
     req: Request,
     res: Response,
