@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
 import CompetencyRepository from './repository'
-import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
 import BaseController from '../../../helper/base-controller'
 
 export default class CompetencyController extends BaseController {
