@@ -1,16 +1,19 @@
 import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../../helper/api-response'
-import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
 import CashAdvanceRepository from './repository'
+import BaseController from '../../../helper/base-controller'
 
-export default class CashAdvanceController {
-  private response: ApiResponse = new ApiResponse()
+export default class CashAdvanceController extends BaseController {
   private repository: CashAdvanceRepository = new CashAdvanceRepository()
+
+  constructor() {
+    super('Kasbon')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.repository.create(req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.CASH_ADVANCE.CREATE)
+      return this.response.success(res, this.message.successCreate())
     } catch (error) {
       next(error)
     }
@@ -19,7 +22,7 @@ export default class CashAdvanceController {
     try {
       const { id } = req.params
       await this.repository.update(Number(id), req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.CASH_ADVANCE.UPDATE)
+      return this.response.success(res, this.message.successUpdate())
     } catch (error) {
       next(error)
     }
@@ -28,7 +31,7 @@ export default class CashAdvanceController {
     try {
       const { id } = req.params
       await this.repository.delete(Number(id))
-      return this.response.success(res, MESSAGE_SUCCESS.CASH_ADVANCE.DELETE)
+      return this.response.success(res, this.message.successDelete())
     } catch (error) {
       next(error)
     }
@@ -37,7 +40,7 @@ export default class CashAdvanceController {
     try {
       const { id } = req.query
       const data = await this.repository.read(Number(id))
-      return this.response.success(res, MESSAGE_SUCCESS.CASH_ADVANCE.READ, data)
+      return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
