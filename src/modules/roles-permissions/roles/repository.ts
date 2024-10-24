@@ -1,4 +1,3 @@
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
 import db from '../../../lib/db'
 
 type Payload = {
@@ -41,7 +40,7 @@ export default class RolesRepository {
     const existingRole = await db.role.findUnique({ where: { id } })
 
     if (!existingRole) {
-      throw Error(MESSAGE_ERROR.ROLE_NOT_FOUND)
+      throw Error('Role tidak ditemukan')
     }
 
     try {
@@ -85,7 +84,7 @@ export default class RolesRepository {
       const existingRole = await db.role.findUnique({ where: { id } })
 
       if (!existingRole) {
-        throw new Error(MESSAGE_ERROR.ROLE_NOT_FOUND)
+        throw new Error('Role tidak ditemukan')
       }
 
       if (payload.name !== '') {
@@ -122,7 +121,7 @@ export default class RolesRepository {
     const existingRole = await db.role.findUnique({ where: { id } })
 
     if (!existingRole) {
-      throw Error(MESSAGE_ERROR.ROLE_NOT_FOUND)
+      throw Error('Role tidak ditemukan')
     }
 
     await db.rolePermission.deleteMany({
