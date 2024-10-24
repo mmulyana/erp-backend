@@ -1,12 +1,13 @@
+import BaseController from '../../../helper/base-controller'
 import { NextFunction, Request, Response } from 'express'
 import ProjectRepository from './repository'
-import ApiResponse from '../../../helper/api-response'
-import Message from '../../../utils/constant/message'
 
-export default class ProjectController {
-  private response: ApiResponse = new ApiResponse()
+export default class ProjectController extends BaseController {
   private repository: ProjectRepository = new ProjectRepository()
-  private message: Message = new Message('Proyek')
+
+  constructor() {
+    super('Proyek')
+  }
 
   handleCreate = async (req: Request, res: Response, next: NextFunction) => {
     try {
