@@ -36,6 +36,15 @@ export default class EmployeeController extends BaseController {
       next(error)
     }
   }
+  softDeleteHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      await this.repository.softDelete(Number(id))
+      this.response.success(res, this.message.successDelete())
+    } catch (error) {
+      next(error)
+    }
+  }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
