@@ -60,7 +60,7 @@ export default class EmployeeRouter extends RouterWithFile {
     this.router.patch('/position/:id', this.positionSchema.validate, this.controller.positionHandler)
 
     this.router.patch('/status/active/:employeeId', this.controller.activeHandler)
-    this.router.patch('/status/unactive/:employeeId', this.controller.inactiveHandler)
+    this.router.patch('/status/inactive/:employeeId', this.controller.inactiveHandler)
     this.router.get('/status/track/:employeeId', this.controller.employeeTrackHandler)
 
     this.router.post('/competency/:employeeId', this.comptencySchema.validate, this.controller.createCompetencyHandler)
