@@ -1,6 +1,7 @@
+import { deleteFile } from '../../../utils/file'
 import db from '../../../lib/db'
 import { Brand } from './schema'
-import { deleteFile } from '../../../utils/file'
+
 export default class BrandRepository {
   create = async (payload: Brand & { photoUrl?: string }) => {
     await db.brand.create({ data: payload })
