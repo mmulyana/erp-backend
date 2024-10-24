@@ -1,10 +1,11 @@
 import { z } from 'zod'
 import { cashAdvanceSchema } from './schema'
 import db from '../../../lib/db'
-import { MESSAGE_ERROR } from '../../../utils/constant/error'
+import Message from '../../../utils/constant/message'
 
 type cashAdvance = z.infer<typeof cashAdvanceSchema>
 export default class CashAdvanceRepository {
+  private messagge: Message = new Message('Kasbon')
   create = async (payload: cashAdvance) => {
     try {
       await db.cashAdvance.create({
@@ -83,6 +84,6 @@ export default class CashAdvanceRepository {
   }
   protected isExist = async (id: number) => {
     const data = await db.cashAdvance.findUnique({ where: { id } })
-    if (!data) throw Error(MESSAGE_ERROR.CASH_ADVANCE.NOT_FOUND)
+    if (!data) throw Error(this.messagge.notfound())
   }
 }
