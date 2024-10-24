@@ -1,16 +1,18 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import { MESSAGE_SUCCESS } from '../../../utils/constant/success'
+import BaseController from '../../../helper/base-controller'
 import BoardRepository from './repository'
 
-export default class CompanyController {
-  private response: ApiResponse = new ApiResponse()
+export default class BoardController extends BaseController {
   private repository: BoardRepository = new BoardRepository()
+
+  constructor() {
+    super('Board')
+  }
 
   handleCreate = async (req: Request, res: Response, next: NextFunction) => {
     try {
       await this.repository.create(req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.BOARD.CREATE)
+      return this.response.success(res, this.message.successCreate())
     } catch (error) {
       next(error)
     }
@@ -19,7 +21,7 @@ export default class CompanyController {
     try {
       const { id } = req.params
       await this.repository.update(id, req.body)
-      return this.response.success(res, MESSAGE_SUCCESS.BOARD.CREATE)
+      return this.response.success(res, this.message.successUpdate())
     } catch (error) {
       next(error)
     }
@@ -28,7 +30,7 @@ export default class CompanyController {
     try {
       const { id } = req.params
       await this.repository.delete(id)
-      return this.response.success(res, MESSAGE_SUCCESS.BOARD.CREATE)
+      return this.response.success(res, this.message.successDelete())
     } catch (error) {
       next(error)
     }
@@ -36,7 +38,7 @@ export default class CompanyController {
   handleRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await this.repository.read()
-      return this.response.success(res, MESSAGE_SUCCESS.BOARD.CREATE, data)
+      return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
