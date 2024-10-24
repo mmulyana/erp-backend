@@ -62,7 +62,7 @@ export default class PositionController extends BaseController {
       const data = await this.repository.totalEmployeePerPosition()
       return this.response.success(
         res,
-        this.message.successReadCustom('pegawai per jabatan'),
+        this.message.customMessage('pegawai per jabatan'),
         data
       )
     } catch (error) {
@@ -78,7 +78,7 @@ export default class PositionController extends BaseController {
       const data = await this.repository.totalEmployeePerStatus()
       return this.response.success(
         res,
-        this.message.successReadCustom('pegawai per status'),
+        this.message.customMessage('pegawai per status'),
         data
       )
     } catch (error) {
