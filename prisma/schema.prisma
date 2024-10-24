@@ -238,7 +238,7 @@ model ActivityLog {
 model EmployeeStatusTrack {
   id          Int      @id @default(autoincrement())
   date        DateTime
-  status      Status
+  status      Boolean
   employeeId  Int
   employee    Employee @relation(fields: [employeeId], references: [id])
   description String?
