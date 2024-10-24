@@ -1,6 +1,4 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import Message from '../../../utils/constant/message'
 import LocationRepository from './repository'
 import BaseController from '../../../helper/base-controller'
 
