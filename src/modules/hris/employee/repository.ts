@@ -1,6 +1,5 @@
 import { deleteFile, PATHS } from '../../../utils/file'
 import Message from '../../../utils/constant/message'
-import { parse } from 'date-fns'
 import db from '../../../lib/db'
 import {
   contactSchema,
@@ -11,6 +10,8 @@ import {
   updateEmployeeSchema,
 } from './schema'
 import { z } from 'zod'
+
+import { differenceInDays } from 'date-fns'
 
 type Employee = z.infer<typeof employeeSchema>
 type UpdateEmployee = z.infer<typeof updateEmployeeSchema>
@@ -507,15 +508,11 @@ export default class EmployeeRepository {
 
         if (item.expiry_year && item.expiry_month) {
           try {
-            const month = this.getMonthNumber(item.expiry_month)
-            const tmpDate = `01-${month}-${item.expiry_year}`
-
-            const date = parse(tmpDate, 'dd-MM-yyyy', new Date())
-
-            if (isNaN(date.getTime())) {
-              throw new Error('Invalid date')
-            }
-
+            const date = new Date(
+              Number(item.expiry_year),
+              Number(item.expiry_month),
+              1
+            )
             certifData.expire_at = date
           } catch (error) {
             certifData.expire_at = null
@@ -529,15 +526,11 @@ export default class EmployeeRepository {
   createSingleCertif = async (employeeId: number, payload: Certification) => {
     let expire_at: null | Date = null
     if (payload.expiry_year && payload.expiry_month) {
-      const month = payload.expiry_month.toString().padStart(2, '0')
-      const tmpDate = `01-${month}-${payload.expiry_year}`
-
-      const date = parse(tmpDate, 'dd-MM-yyyy', new Date())
-
-      if (isNaN(date.getTime())) {
-        throw new Error('Invalid date')
-      }
-
+      const date = new Date(
+        Number(payload.expiry_year),
+        Number(payload.expiry_month),
+        1
+      )
       expire_at = date
     }
     return await db.certification.create({
@@ -603,23 +596,52 @@ export default class EmployeeRepository {
     return data
   }
 
-  getMonthNumber = (monthName: string): string => {
-    const months: { [key: string]: string } = {
-      januari: '01',
-      februari: '02',
-      maret: '03',
-      april: '04',
-      mei: '05',
-      juni: '06',
-      juli: '07',
-      agustus: '08',
-      september: '09',
-      oktober: '10',
-      november: '11',
-      desember: '12',
-    }
+  getExpiringCertificates = async () => {
+    const today = new Date()
+    const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
+    const oneMonthFromNow = new Date(jakartaTime)
+    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
 
-    return months[monthName.toLowerCase()] || '01'
+    const expiringCertificates = await db.certification.findMany({
+      where: {
+        expire_at: {
+          gte: jakartaTime,
+          lte: oneMonthFromNow,
+        },
+      },
+      include: {
+        employee: {
+          select: {
+            fullname: true,
+            photo: true,
+          },
+        },
+        competency: true,
+      },
+    })
+
+    const formattedResults = expiringCertificates.map((cert) => {
+      if (!cert.expire_at) return
+      const expireDate = new Date(cert.expire_at)
+
+      return {
+        ...cert,
+        id: cert.id,
+        certif_name: cert.certif_name,
+        expireAt: expireDate.toLocaleString('id-ID', {
+          timeZone: 'Asia/Jakarta',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }),
+        daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
+      }
+    })
+
+    return formattedResults
   }
 
   private isExist = async (id: number) => {
