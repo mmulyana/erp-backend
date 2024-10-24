@@ -1,7 +1,7 @@
-import { z } from 'zod'
 import { overtimeSchema } from './schema'
 import db from '../../../lib/db'
 import { parse } from 'date-fns'
+import { z } from 'zod'
 
 type payload = z.infer<typeof overtimeSchema>
 export default class OvertimeRepository {
