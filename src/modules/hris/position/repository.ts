@@ -80,7 +80,11 @@ export default class PositionRepository {
         color: true,
         _count: {
           select: {
-            employees: true,
+            employees: {
+              where: {
+                isHidden: false,
+              },
+            },
           },
         },
       },
@@ -107,6 +111,9 @@ export default class PositionRepository {
   }
   totalEmployeePerStatus = async () => {
     const employees = await db.employee.groupBy({
+      where: {
+        isHidden: false,
+      },
       by: 'status',
       _count: {
         status: true,
