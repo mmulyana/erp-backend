@@ -79,28 +79,28 @@ export default class ProjectRepository {
     })
     if (!existingProject) throw new Error('proyek tidak ditemukan')
 
-    const existingLabelIds = existingProject.labels.map(
-      (label) => label.labelId
-    )
+    // const existingLabelIds = existingProject.labels.map(
+    //   (label) => label.labelId
+    // )
 
-    const labelsToAdd = payload?.labels.filter(
-      (id) => !existingLabelIds.includes(id)
-    )
-    const labelsToRemove = existingLabelIds.filter(
-      (id) => !payload.labels.includes(id)
-    )
+    // const labelsToAdd = payload?.labels.filter(
+    //   (id) => !existingLabelIds.includes(id)
+    // )
+    // const labelsToRemove = existingLabelIds.filter(
+    //   (id) => !payload.labels.includes(id)
+    // )
 
-    const existingEmployeeIds = existingProject.employees.map(
-      (employee) => employee.employeeId
-    )
-    const employeesToAdd = payload.employees.filter(
-      (id) => !existingEmployeeIds.includes(id)
-    )
-    const employeesToRemove = existingEmployeeIds.filter(
-      (id) => !payload.employees.includes(id)
-    )
+    // const existingEmployeeIds = existingProject.employees.map(
+    //   (employee) => employee.employeeId
+    // )
+    // const employeesToAdd = payload.employees.filter(
+    //   (id) => !existingEmployeeIds.includes(id)
+    // )
+    // const employeesToRemove = existingEmployeeIds.filter(
+    //   (id) => !payload.employees.includes(id)
+    // )
 
-    await db.project.update({
+    return await db.project.update({
       where: { id: id },
       data: {
         name: payload.name,
@@ -116,28 +116,31 @@ export default class ProjectRepository {
           : undefined),
 
         // handle label
-        labels: {
-          deleteMany: {
-            labelId: {
-              in: labelsToRemove,
-            },
-          },
-          create: labelsToAdd.map((labelId) => ({
-            labelId: labelId,
-          })),
-        },
+        // labels: {
+        //   deleteMany: {
+        //     labelId: {
+        //       in: labelsToRemove,
+        //     },
+        //   },
+        //   create: labelsToAdd.map((labelId) => ({
+        //     labelId: labelId,
+        //   })),
+        // },
 
         // handle employee
-        employees: {
-          deleteMany: {
-            employeeId: {
-              in: employeesToRemove,
-            },
-          },
-          create: employeesToAdd.map((employeeId) => ({
-            employeeId: employeeId,
-          })),
-        },
+        // employees: {
+        //   deleteMany: {
+        //     employeeId: {
+        //       in: employeesToRemove,
+        //     },
+        //   },
+        //   create: employeesToAdd.map((employeeId) => ({
+        //     employeeId: employeeId,
+        //   })),
+        // },
+      },
+      select: {
+        id: true,
       },
     })
   }
