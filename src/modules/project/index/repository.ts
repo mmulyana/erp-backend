@@ -1,7 +1,6 @@
 import { generateUUID } from '../../../utils/generate-uuid'
 import { Project } from './schema'
 import db from '../../../lib/db'
-import { format, parse } from 'date-fns'
 
 export default class ProjectRepository {
   create = async (payload: Project) => {
@@ -23,15 +22,15 @@ export default class ProjectRepository {
       data: {
         boardItemsId: id,
         name: payload.name,
-        date_created: payload.date_created,
+        date_created: new Date(),
         date_started: payload.date_started,
         date_ended: payload.date_ended,
         net_value: payload.net_value,
-        progress: payload.progress,
-        payment_status: payload.payment_status,
         leadId: payload.leadId,
         description: payload.description,
         clientId: payload.clientId,
+        payment_status: payload.payment_status || 0,
+        progress: payload.progress || 0,
 
         // handle label
         labels: {
@@ -108,9 +107,13 @@ export default class ProjectRepository {
         date_started: payload.date_started,
         date_ended: payload.date_ended,
         net_value: payload.net_value,
-        progress: payload.progress,
-        payment_status: payload.payment_status,
+        leadId: payload.leadId,
+        description: payload.description,
         clientId: payload.clientId,
+        ...(payload.progress ? { progress: payload.progress } : undefined),
+        ...(payload.payment_status
+          ? { payment_status: payload.payment_status }
+          : undefined),
 
         // handle label
         labels: {
