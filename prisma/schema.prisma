@@ -265,16 +265,16 @@ model Project {
   name             String
   progress         Int                 @default(0)
   payment_status   Int                 @default(0)
-  date_created     DateTime            @default(now())
   description      String?
-  date_started     String?
-  date_ended       String?
+  date_created     DateTime            @default(now())
+  date_started     DateTime?
+  date_ended       DateTime?
   isArchive        Boolean?            @default(false)
   net_value        Decimal?            @db.Decimal(10, 2)
-  boardItemsId     String              @unique
   leadId           Int?
-  lead             Employee?           @relation(fields: [leadId], references: [id])
   clientId         Int?
+  boardItemsId     String              @unique
+  lead             Employee?           @relation(fields: [leadId], references: [id])
   client           Client?             @relation(fields: [clientId], references: [id])
   boardItems       BoardItems          @relation(fields: [boardItemsId], references: [id])
   employees        EmployeeAssigned[]
