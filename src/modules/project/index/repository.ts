@@ -154,6 +154,7 @@ export default class ProjectRepository {
           _count: {
             select: {
               attachments: true,
+              employees: true,
             },
           },
           activities: {
