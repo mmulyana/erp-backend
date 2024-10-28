@@ -3,7 +3,10 @@ import { Activity } from './schema'
 
 export default class ActivityRepository {
   create = async (data: Activity) => {
-    return await db.activity.create({ data, select: { projectId: true } })
+    return await db.activity.create({
+      data,
+      select: { projectId: true, replyId: true },
+    })
   }
   update = async (id: number, data: Partial<Activity>) => {
     return await db.activity.update({
@@ -12,6 +15,7 @@ export default class ActivityRepository {
       select: {
         id: true,
         projectId: true,
+        replyId: true,
       },
     })
   }
@@ -23,18 +27,36 @@ export default class ActivityRepository {
       },
     })
   }
-  read = async (id?: number) => {
+  read = async (projectId: number, id?: number) => {
     let baseQuery: any = {
       include: {
         attachments: true,
-        user: true
+        user: true,
+        replies: {
+          include: {
+            user: true,
+          },
+        },
+        likes: true,
       },
+    }
+    if (projectId) {
+      baseQuery.where = {
+        projectId,
+      }
     }
     if (id) {
       baseQuery.where = {
-        projectId: id,
+        ...baseQuery.query,
+        id,
       }
+      return await db.activity.findUnique(baseQuery)
+    } else {
+      baseQuery.where = {
+        ...baseQuery.where,
+        replyId: null,
+      }
+      return await db.activity.findMany(baseQuery)
     }
-    return await db.activity.findMany(baseQuery)
   }
 }
