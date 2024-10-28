@@ -21,6 +21,7 @@ model User {
   ProjectAttachment ProjectAttachment[]
   employeeId        Int?                @unique
   employee          Employee?           @relation(fields: [employeeId], references: [id])
+  ActivityLike      ActivityLike[]
 }
 
 model Role {
@@ -296,15 +297,31 @@ model ProjectAttachment {
 }
 
 model Activity {
-  id          Int                  @id @default(autoincrement())
-  userId      Int
-  user        User                 @relation(fields: [userId], references: [id])
-  comment     String
-  projectId   Int
-  likes       Int?                 @default(0)
-  replyId     Int?
-  project     Project              @relation(fields: [projectId], references: [id], onDelete: NoAction)
-  attachments ActivityAttachment[]
+  id             Int                  @id @default(autoincrement())
+  userId         Int?
+  user           User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name           String?
+  comment        String
+  projectId      Int
+  replyId        Int?
+  project        Project              @relation(fields: [projectId], references: [id], onDelete: NoAction)
+  attachments    ActivityAttachment[]
+  replies        Activity[]           @relation("ActivityReplies")
+  parentActivity Activity?            @relation("ActivityReplies", fields: [replyId], references: [id], onDelete: NoAction)
+  created_at     DateTime             @default(now())
+  updated_at     DateTime?
+  likes          ActivityLike[]
+}
+
+model ActivityLike {
+  id         Int      @id @default(autoincrement())
+  activityId Int
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  created_at DateTime @default(now())
+
+  @@unique([activityId, userId])
 }
 
 model ActivityAttachment {
