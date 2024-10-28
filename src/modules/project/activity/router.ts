@@ -14,8 +14,8 @@ export default class ActivityRouter extends RouterWithFile {
   }
 
   protected register() {
-    this.router.post('/', this.upload.array('photos'), this.commentSchema.validate, this.controller.handleCreate)
-    this.router.patch('/:id', this.upload.array('photos'), this.commentSchema.validate, this.controller.handleUpdate)
+    this.router.post('/', this.upload.array('photos', 5), this.commentSchema.validate, this.controller.handleCreate)
+    this.router.patch('/:id', this.upload.array('photos', 5), this.commentSchema.validate, this.controller.handleUpdate)
     this.router.delete('/:id', this.controller.handleDelete)
     this.router.get('/', this.controller.handleRead)
   }
