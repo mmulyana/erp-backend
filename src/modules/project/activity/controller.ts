@@ -37,8 +37,8 @@ export default class ActivityController extends BaseController {
   }
   handleRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.query
-      const data = await this.repository.read(Number(id))
+      const { id, projectId } = req.query
+      const data = await this.repository.read(Number(projectId), Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
