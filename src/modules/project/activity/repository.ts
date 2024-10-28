@@ -3,15 +3,38 @@ import { Activity } from './schema'
 
 export default class ActivityRepository {
   create = async (data: Activity) => {
-    await db.activity.create({ data })
+    return await db.activity.create({ data, select: { projectId: true } })
   }
   update = async (id: number, data: Partial<Activity>) => {
-    await db.activity.update({ data, where: { id } })
+    return await db.activity.update({
+      data,
+      where: { id },
+      select: {
+        id: true,
+        projectId: true,
+      },
+    })
   }
   delete = async (id: number) => {
-    await db.activity.delete({ where: { id } })
+    return await db.activity.delete({
+      where: { id },
+      select: {
+        projectId: true,
+      },
+    })
   }
-  read = async () => {
-    return await db.activity.findMany()
+  read = async (id?: number) => {
+    let baseQuery: any = {
+      include: {
+        attachments: true,
+        user: true
+      },
+    }
+    if (id) {
+      baseQuery.where = {
+        projectId: id,
+      }
+    }
+    return await db.activity.findMany(baseQuery)
   }
 }
