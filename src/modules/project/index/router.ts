@@ -3,7 +3,7 @@ import Validation from '../../../helper/validation'
 import { createProjectSchema, updateProjectSchema } from './schema'
 import ProjectController from './controller'
 
-export default class OvertimeRouter {
+export default class ProjectRouter {
   public router: Router
   private createProjectSchema: Validation = new Validation(createProjectSchema)
   private updateProjectSchema: Validation = new Validation(updateProjectSchema)
