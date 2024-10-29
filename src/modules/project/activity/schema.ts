@@ -7,3 +7,9 @@ export const activitySchema = z.object({
   replyId: z.number().optional().nullable(),
 })
 export type Activity = z.infer<typeof activitySchema>
+
+export const toggleLikeSchema = z.object({
+  activityId: z.number(),
+  userId: z.number(),
+})
+export type ToggleLike = z.infer<typeof toggleLikeSchema>
