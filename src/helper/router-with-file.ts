@@ -38,5 +38,40 @@ export default class RouterWithFile {
     next()
   }
 
+  protected handleMultipleImage = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    if (!req.files || !Array.isArray(req.files)) {
+      return next()
+    }
+
+    try {
+      const processedFiles = await Promise.all(
+        req.files.map(async (file) => {
+          const originalName = file.originalname
+          const fileExtension = path.extname(originalName)
+          const baseFilename = path.basename(originalName, fileExtension)
+
+          const newFilename = `${this.name}-${baseFilename}-${Date.now()}.jpeg`
+          file.filename = newFilename
+
+          await sharp(file.buffer)
+            .toFormat('jpeg')
+            .jpeg()
+            .toFile(`public/img/${file.filename}`)
+
+          return file
+        })
+      )
+
+      req.files = processedFiles
+      next()
+    } catch (error) {
+      next(error)
+    }
+  }
+
   protected register(): void {}
 }
