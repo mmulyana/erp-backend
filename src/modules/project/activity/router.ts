@@ -14,9 +14,12 @@ export default class ActivityRouter extends RouterWithFile {
   }
 
   protected register() {
-    this.router.post('/', this.upload.array('photos', 5), this.commentSchema.validate, this.controller.handleCreate)
-    this.router.patch('/:id', this.upload.array('photos', 5), this.commentSchema.validate, this.controller.handleUpdate)
+    this.router.post('/', this.commentSchema.validate, this.controller.handleCreate)
+    this.router.patch('/:id', this.commentSchema.validate, this.controller.handleUpdate)
     this.router.delete('/:id', this.controller.handleDelete)
     this.router.get('/', this.controller.handleRead)
+
+    this.router.post('/toggle/like', this.controller.handleToggleLike)
+    this.router.post('/:id/upload/photo', this.upload.array('photos', 5), this.handleMultipleImage, this.controller.handleUploadAttachment)
   }
 }
