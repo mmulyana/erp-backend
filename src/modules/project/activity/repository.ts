@@ -24,39 +24,48 @@ export default class ActivityRepository {
       where: { id },
       select: {
         projectId: true,
+        replyId: true
       },
     })
   }
   read = async (projectId: number, id?: number) => {
-    let baseQuery: any = {
-      include: {
-        attachments: true,
-        user: true,
-        replies: {
-          include: {
-            user: true,
+    const baseInclude = {
+      attachments: true,
+      user: true,
+      likes: true,
+      replies: true,
+    }
+
+    if (id) {
+      return await db.activity.findUnique({
+        where: { id },
+        include: {
+          ...baseInclude,
+          replies: {
+            include: {
+              user: true,
+              likes: true,
+              attachments: true,
+            },
+            orderBy: [
+              { updated_at: 'desc' },
+              { created_at: 'desc' },
+            ],
           },
         },
-        likes: true,
-      },
+      })
     }
-    if (projectId) {
-      baseQuery.where = {
+
+    return await db.activity.findMany({
+      where: {
         projectId,
-      }
-    }
-    if (id) {
-      baseQuery.where = {
-        ...baseQuery.query,
-        id,
-      }
-      return await db.activity.findUnique(baseQuery)
-    } else {
-      baseQuery.where = {
-        ...baseQuery.where,
         replyId: null,
-      }
-      return await db.activity.findMany(baseQuery)
-    }
+      },
+      include: baseInclude,
+      orderBy: [
+        { updated_at: 'desc' },
+        { created_at: 'desc' },
+      ],
+    })
   }
 }
