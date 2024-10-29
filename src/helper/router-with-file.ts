@@ -73,5 +73,34 @@ export default class RouterWithFile {
     }
   }
 
+  protected handleImage = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    if (!req.file) {
+      return next()
+    }
+
+    try {
+      const file = req.file
+      const originalName = file.originalname
+      const fileExtension = path.extname(originalName)
+      const baseFilename = path.basename(originalName, fileExtension)
+
+      const newFilename = `${this.name}-${baseFilename}-${Date.now()}.jpeg`
+      file.filename = newFilename
+
+      await sharp(file.buffer)
+        .toFormat('jpeg')
+        .jpeg()
+        .toFile(`public/img/${file.filename}`)
+
+      next()
+    } catch (error) {
+      next(error)
+    }
+  }
+
   protected register(): void {}
 }
