@@ -1,4 +1,5 @@
 import db from '../../../lib/db'
+import { deleteFile, PATHS } from '../../../utils/file'
 import { Activity, ToggleLike } from './schema'
 
 export default class ActivityRepository {
@@ -124,5 +125,57 @@ export default class ActivityRepository {
         projectId: true,
       },
     })
+  }
+  removeAttachment = async (ids: number[]) => {
+    const data = await db.activityAttachment.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    })
+
+    data.forEach(async (item) => {
+      if (item.attachment) {
+        await deleteFile(item.attachment)
+      }
+    })
+
+    const activity = await db.activity.findUnique({
+      where: { id: data[0].activityId },
+      select: {
+        id: true,
+        projectId: true,
+      },
+    })
+    await db.activityAttachment.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    })
+    return activity
+  }
+  changeAttachment = async (id: number, file: Express.Multer.File) => {
+    const data = await db.activityAttachment.findUnique({ where: { id } })
+
+    if (data?.attachment) {
+      deleteFile(data.attachment)
+    }
+    const activity = await db.activity.findUnique({
+      where: { id: data?.activityId },
+      select: {
+        id: true,
+        projectId: true,
+      },
+    })
+    await db.activityAttachment.update({
+      where: { id },
+      data: {
+        attachment: file.filename,
+      },
+    })
+    return activity
   }
 }
