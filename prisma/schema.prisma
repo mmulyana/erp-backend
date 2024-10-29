@@ -327,8 +327,8 @@ model ActivityLike {
 model ActivityAttachment {
   id         Int      @id @default(autoincrement())
   attachment String
-  commentId  Int
-  comment    Activity @relation(fields: [commentId], references: [id])
+  activityId  Int
+  activity    Activity @relation(fields: [activityId], references: [id])
 }
 
 model ProjectHasLabel {
