@@ -126,35 +126,52 @@ export default class ActivityRepository {
       },
     })
   }
-  removeAttachment = async (ids: number[]) => {
-    const data = await db.activityAttachment.findMany({
+  removeAttachment = async (payload: {ids: number[]}) => {
+    const attachments = await db.activityAttachment.findMany({
       where: {
         id: {
-          in: ids,
+          in: payload.ids,
         },
+      },
+      select: {
+        id: true,
+        attachment: true,
+        activityId: true,
       },
     })
 
-    data.forEach(async (item) => {
-      if (item.attachment) {
-        await deleteFile(item.attachment)
-      }
-    })
+    if (!attachments.length) {
+      throw new Error('No attachments found with the provided IDs')
+    }
+
+    await Promise.all(
+      attachments
+        .filter((item) => item.attachment)
+        .map((item) => deleteFile(item.attachment))
+    )
 
     const activity = await db.activity.findUnique({
-      where: { id: data[0].activityId },
+      where: {
+        id: attachments[0].activityId,
+      },
       select: {
         id: true,
         projectId: true,
       },
     })
+
+    if (!activity) {
+      throw new Error('Associated activity not found')
+    }
+
     await db.activityAttachment.deleteMany({
       where: {
         id: {
-          in: ids,
+          in: payload.ids,
         },
       },
     })
+
     return activity
   }
   changeAttachment = async (id: number, file: Express.Multer.File) => {
