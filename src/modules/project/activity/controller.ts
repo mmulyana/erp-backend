@@ -44,4 +44,46 @@ export default class ActivityController extends BaseController {
       next(error)
     }
   }
+  handleToggleLike = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.repository.toggleLike(req.body)
+      return this.response.success(
+        res,
+        this.message.successCreateField('likes'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  handleUploadAttachment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const files = req.files as Express.Multer.File[]
+      const { id } = req.params
+
+      if (!files || files.length === 0) {
+        return this.response.error(res, 'No files uploaded', 400)
+      }
+      const data = await this.repository.uploadAttachments(
+        files,
+        Number(id)
+      )
+      console.log(data)
+      return this.response.success(
+        res,
+        this.message.successCreateField('attachments'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
 }
