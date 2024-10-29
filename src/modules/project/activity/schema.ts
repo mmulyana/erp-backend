@@ -6,6 +6,7 @@ export const activitySchema = z.object({
   projectId: z.number(),
   replyId: z.number().optional().nullable(),
 })
+export const updateActivitySchema = activitySchema.partial()
 export type Activity = z.infer<typeof activitySchema>
 
 export const toggleLikeSchema = z.object({
