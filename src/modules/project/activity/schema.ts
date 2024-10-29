@@ -13,3 +13,7 @@ export const toggleLikeSchema = z.object({
   userId: z.number(),
 })
 export type ToggleLike = z.infer<typeof toggleLikeSchema>
+
+export const removeAttachmentSchema = z.object({
+  ids: z.number().array()
+})
