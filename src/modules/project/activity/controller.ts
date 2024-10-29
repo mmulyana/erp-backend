@@ -60,7 +60,7 @@ export default class ActivityController extends BaseController {
       next(error)
     }
   }
-  handleUploadAttachment = async (
+  handleUploadAttachments = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -72,14 +72,52 @@ export default class ActivityController extends BaseController {
       if (!files || files.length === 0) {
         return this.response.error(res, 'No files uploaded', 400)
       }
-      const data = await this.repository.uploadAttachments(
-        files,
-        Number(id)
-      )
-      console.log(data)
+      const data = await this.repository.uploadAttachments(files, Number(id))
       return this.response.success(
         res,
         this.message.successCreateField('attachments'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  handleRemoveAttachments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.repository.removeAttachment(req.body)
+      return this.response.success(
+        res,
+        this.message.customMessage('berhasil merubah photo'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  handleChangeAttachment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { attachmentId } = req.params
+      const file = req.file as Express.Multer.File
+
+      if (!file) {
+        return this.response.error(res, 'No files uploaded', 400)
+      }
+
+      const data = await this.repository.changeAttachment(
+        Number(attachmentId),
+        file
+      )
+      return this.response.success(
+        res,
+        this.message.successUpdateField('photo'),
         data
       )
     } catch (error) {
