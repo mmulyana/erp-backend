@@ -1,11 +1,11 @@
 import db from '../../../lib/db'
-import { Activity } from './schema'
+import { Activity, ToggleLike } from './schema'
 
 export default class ActivityRepository {
   create = async (data: Activity) => {
     return await db.activity.create({
       data,
-      select: { projectId: true, replyId: true },
+      select: { projectId: true, replyId: true, id: true },
     })
   }
   update = async (id: number, data: Partial<Activity>) => {
@@ -24,7 +24,7 @@ export default class ActivityRepository {
       where: { id },
       select: {
         projectId: true,
-        replyId: true
+        replyId: true,
       },
     })
   }
@@ -47,10 +47,7 @@ export default class ActivityRepository {
               likes: true,
               attachments: true,
             },
-            orderBy: [
-              { updated_at: 'desc' },
-              { created_at: 'desc' },
-            ],
+            orderBy: [{ updated_at: 'desc' }, { created_at: 'desc' }],
           },
         },
       })
@@ -62,10 +59,70 @@ export default class ActivityRepository {
         replyId: null,
       },
       include: baseInclude,
-      orderBy: [
-        { updated_at: 'desc' },
-        { created_at: 'desc' },
-      ],
+      orderBy: [{ updated_at: 'desc' }, { created_at: 'desc' }],
+    })
+  }
+  toggleLike = async (payload: ToggleLike) => {
+    const existing = await db.activityLike.findUnique({
+      where: {
+        activityId_userId: {
+          activityId: payload.activityId,
+          userId: payload.userId,
+        },
+      },
+    })
+
+    if (existing) {
+      return await db.activityLike.delete({
+        where: {
+          activityId_userId: {
+            activityId: payload.activityId,
+            userId: payload.userId,
+          },
+        },
+        select: {
+          activityId: true,
+          activity: {
+            select: {
+              projectId: true,
+            },
+          },
+        },
+      })
+    } else {
+      return await db.activityLike.create({
+        data: {
+          activityId: payload.activityId,
+          userId: payload.userId,
+        },
+        select: {
+          activityId: true,
+          activity: {
+            select: {
+              projectId: true,
+            },
+          },
+        },
+      })
+    }
+  }
+  uploadAttachments = async (
+    files: Express.Multer.File[],
+    activityId: number
+  ) => {
+    await db.activityAttachment.createMany({
+      data: files.map((file) => ({
+        activityId,
+        attachment: file.filename,
+      })),
+    })
+
+    return db.activity.findUnique({
+      where: { id: activityId },
+      select: {
+        id: true,
+        projectId: true,
+      },
     })
   }
 }
