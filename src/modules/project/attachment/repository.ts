@@ -9,9 +9,9 @@ export default class AttachmentRepository {
     return await db.projectAttachment.create({
       data: {
         name: payload.name,
-        type: payload.file?.mimetype,
-        uploaded_by: payload.uploaded_by,
-        projectId: payload.projectId,
+        type: payload.type,
+        uploaded_by: Number(payload.uploaded_by),
+        projectId: Number(payload.projectId),
         isSecret: payload.isSecret,
         file: payload.file?.filename as string,
         uploaded_at: new Date(),
@@ -44,7 +44,11 @@ export default class AttachmentRepository {
 
     return await db.projectAttachment.update({
       where: { id },
-      data: payload,
+      data: {
+        ...payload,
+        uploaded_by: Number(payload.uploaded_by),
+        projectId: Number(payload.projectId),
+      },
     })
   }
 
