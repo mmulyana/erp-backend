@@ -26,6 +26,7 @@ import CompanyRoutes from './modules/project/company/router'
 import BoardRoutes from './modules/project/board/router'
 import ActivityRoutes from './modules/project/activity/router'
 import AttachmentRoutes from './modules/project/attachment/router'
+import EstimateRoutes from './modules/project/estimate/router'
 
 // INVENTORY
 import BrandRoutes from './modules/inventory/brand/router'
@@ -77,6 +78,7 @@ export function setupRoutes(
     { path: '/project/board', router: new BoardRoutes().router, auth: true },
     { path: '/project/activity', router: new ActivityRoutes(multerConfig).router, auth: true, },
     { path: '/project/attachment', router: new AttachmentRoutes(multerConfig).router, auth: true, },
+    { path: '/project/estimate', router: new EstimateRoutes().router, auth: true, },
 
     // INVENTORY
     { path: '/inventory/brand', router: new BrandRoutes(multerConfig.uploadImg).router, auth: true, },
