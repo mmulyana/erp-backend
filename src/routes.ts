@@ -25,6 +25,7 @@ import LabelRoutes from './modules/project/label/router'
 import CompanyRoutes from './modules/project/company/router'
 import BoardRoutes from './modules/project/board/router'
 import ActivityRoutes from './modules/project/activity/router'
+import AttachmentRoutes from './modules/project/attachment/router'
 
 // INVENTORY
 import BrandRoutes from './modules/inventory/brand/router'
@@ -75,6 +76,7 @@ export function setupRoutes(
     { path: '/project/client/company', router: new CompanyRoutes(multerConfig).router, auth: true, },
     { path: '/project/board', router: new BoardRoutes().router, auth: true },
     { path: '/project/activity', router: new ActivityRoutes(multerConfig).router, auth: true, },
+    { path: '/project/attachment', router: new AttachmentRoutes(multerConfig).router, auth: true, },
 
     // INVENTORY
     { path: '/inventory/brand', router: new BrandRoutes(multerConfig.uploadImg).router, auth: true, },
