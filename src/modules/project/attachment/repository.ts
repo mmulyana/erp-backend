@@ -24,7 +24,7 @@ export default class AttachmentRepository {
   }
 
   readAttachment = async (id: number) => {
-    await db.projectAttachment.findUnique({
+    return await db.projectAttachment.findUnique({
       where: { id },
       include: {
         project: true,
@@ -33,21 +33,16 @@ export default class AttachmentRepository {
     })
   }
 
-  updateAttachment = async (
-    id: number,
-    payload: Partial<Attachment> & { newFile: string | null }
-  ) => {
-    const existing = await db.projectAttachment.findUnique({ where: { id } })
-    if (payload.newFile !== '' && existing?.file) {
-      deleteFile(existing.file, PATHS.FILES)
-    }
+  updateAttachment = async (id: number, payload: Partial<Attachment>) => {
+    // const existing = await db.projectAttachment.findUnique({ where: { id } })
+    // if (payload.newFile !== '' && existing?.file) {
+    //   deleteFile(existing.file, PATHS.FILES)
+    // }
 
     return await db.projectAttachment.update({
       where: { id },
       data: {
-        ...payload,
-        uploaded_by: Number(payload.uploaded_by),
-        projectId: Number(payload.projectId),
+        isSecret: payload.isSecret,
       },
     })
   }
