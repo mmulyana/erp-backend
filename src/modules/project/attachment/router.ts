@@ -27,7 +27,7 @@ export default class AttachmentRouter {
     )
     this.router.patch(
       '/:id',
-      this.upload.single('file'),
+      // this.upload.single('file'),
       this.updateSchema.validate,
       this.controller.handleUpdate
     )
