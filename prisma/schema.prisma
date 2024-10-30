@@ -288,11 +288,13 @@ model Project {
 model ProjectAttachment {
   id          Int       @id @default(autoincrement())
   file        String
-  uploaded_by Int
+  name        String
+  type        String?
+  uploaded_by Int?
   projectId   Int
   isSecret    Boolean?  @default(false)
   uploaded_at DateTime? @default(now())
-  user        User      @relation(fields: [uploaded_by], references: [id])
+  user        User?     @relation(fields: [uploaded_by], references: [id])
   project     Project   @relation(fields: [projectId], references: [id])
 }
 
@@ -327,8 +329,8 @@ model ActivityLike {
 model ActivityAttachment {
   id         Int      @id @default(autoincrement())
   attachment String
-  activityId  Int
-  activity    Activity @relation(fields: [activityId], references: [id])
+  activityId Int
+  activity   Activity @relation(fields: [activityId], references: [id])
 }
 
 model ProjectHasLabel {
