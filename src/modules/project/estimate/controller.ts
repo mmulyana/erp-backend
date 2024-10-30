@@ -8,18 +8,13 @@ export default class EstimateController extends BaseController {
     super('Estimasi')
   }
 
-  createHandle = async (req: Request, res: Response, next: NextFunction) => {
+  saveHandle = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await this.repository.create(req.body)
-      return this.response.success(res, this.message.successCreate(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  updateHandle = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const data = await this.repository.update(Number(id), req.body)
+      const { projectId } = req.params
+      const data = await this.repository.saveEstimate(
+        Number(projectId),
+        req.body
+      )
       return this.response.success(res, this.message.successCreate(), data)
     } catch (error) {
       next(error)
@@ -27,8 +22,7 @@ export default class EstimateController extends BaseController {
   }
   deleteHandle = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params
-      const data = await this.repository.delete(Number(id))
+      const data = await this.repository.deleteMany(req.body)
       return this.response.success(res, this.message.successDelete(), data)
     } catch (error) {
       next(error)
@@ -36,8 +30,8 @@ export default class EstimateController extends BaseController {
   }
   readHandle = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params
-      const data = await this.repository.read(Number(id))
+      const { projectId } = req.params
+      const data = await this.repository.read(Number(projectId))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
