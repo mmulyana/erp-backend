@@ -283,6 +283,7 @@ model Project {
   activities       Activity[]
   TransactionGoods TransactionGoods[]
   attachments      ProjectAttachment[]
+  ProjectEstimate  ProjectEstimate[]
 }
 
 model ProjectAttachment {
@@ -296,6 +297,15 @@ model ProjectAttachment {
   uploaded_at DateTime? @default(now())
   user        User?     @relation(fields: [uploaded_by], references: [id])
   project     Project   @relation(fields: [projectId], references: [id])
+}
+
+model ProjectEstimate {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Decimal? @db.Decimal(10, 2)
+  qty       Int?
+  projectId Int?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 }
 
 model Activity {
