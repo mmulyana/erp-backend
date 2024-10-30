@@ -1,10 +1,13 @@
 import { z } from 'zod'
 
 export const estimateSchema = z.object({
-  name: z.string(),
-  price: z.number().optional().nullable(),
-  qty: z.number().optional().nullable(),
-  projectId: z.number(),
+  items: z
+    .object({
+      id: z.number().nullable(),
+      name: z.string(),
+      price: z.number().optional().nullable(),
+      qty: z.number().optional().nullable(),
+    })
+    .array(),
 })
-export const updateEstimate = estimateSchema.partial()
 export type Estimate = z.infer<typeof estimateSchema>
