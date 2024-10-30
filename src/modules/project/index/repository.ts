@@ -167,6 +167,7 @@ export default class ProjectRepository {
             },
           },
           attachments: true,
+          ProjectEstimate: true,
           boardItems: {
             select: {
               container: {
