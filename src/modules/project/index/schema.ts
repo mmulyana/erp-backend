@@ -3,8 +3,8 @@ import { z } from 'zod'
 export const createProjectSchema = z.object({
   name: z.string(),
   containerId: z.string(),
-  progress: z.number().optional().nullable().default(0),
-  payment_status: z.number().optional().nullable().default(0),
+  progress: z.number().optional().default(0),
+  payment_status: z.number().optional().default(0),
   description: z.string().optional().nullable(),
   // date_created: z.string().datetime().optional(),
   date_started: z.string().optional(),
