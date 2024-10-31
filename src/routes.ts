@@ -74,7 +74,7 @@ export function setupRoutes(
     { path: '/project/index', router: new ProjectRoutes().router, auth: true },
     { path: '/project/client', router: new ClientRoutes().router, auth: true },
     { path: '/project/label', router: new LabelRoutes().router, auth: true },
-    { path: '/project/client/company', router: new CompanyRoutes(multerConfig).router, auth: true, },
+    { path: '/project/client-company', router: new CompanyRoutes(multerConfig).router, auth: true, },
     { path: '/project/board', router: new BoardRoutes().router, auth: true },
     { path: '/project/activity', router: new ActivityRoutes(multerConfig).router, auth: true, },
     { path: '/project/attachment', router: new AttachmentRoutes(multerConfig).router, auth: true, },
