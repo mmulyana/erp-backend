@@ -259,7 +259,18 @@ export default class ProjectRepository {
         name: true,
         boardItemsId: true,
         clientId: true,
-        boardItems: true,
+        net_value: true,
+        progress: true,
+        boardItems: {
+          select: {
+            container: {
+              select: {
+                color: true,
+                name: true,
+              },
+            },
+          },
+        },
         labels: {
           select: {
             label: true,
@@ -285,9 +296,18 @@ export default class ProjectRepository {
             },
           },
         },
+        lead: {
+          select: {
+            id: true,
+            fullname: true,
+            photo: true,
+          },
+        },
         _count: {
           select: {
             employees: true,
+            activities: true,
+            attachments: true,
           },
         },
       },
