@@ -49,4 +49,76 @@ export default class ProjectController extends BaseController {
       next(error)
     }
   }
+  handleAddEmployee = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { projectId } = req.params
+      const { employeeId } = req.body
+      const data = await this.repository.addEmployee(
+        Number(projectId),
+        Number(employeeId)
+      )
+      return this.response.success(
+        res,
+        this.message.successCreateField('pegawai'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  handleRemoveEmployee = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.removeEmployee(Number(id))
+      return this.response.success(
+        res,
+        this.message.successDeleteField('pegawai'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  handleAddLabel = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { projectId } = req.params
+      const { labelId } = req.body
+      const data = await this.repository.addLabel(
+        Number(projectId),
+        Number(labelId)
+      )
+      return this.response.success(
+        res,
+        this.message.successCreateField('label'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  handleRemoveLabel = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.removeLabel(Number(id))
+      return this.response.success(
+        res,
+        this.message.successDeleteField('label'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
 }
