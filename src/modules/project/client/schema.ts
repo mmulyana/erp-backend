@@ -4,7 +4,7 @@ export const createSchema = z.object({
   name: z.string(),
   phone: z.string().optional(),
   email: z.string().optional(),
-  companyId: z.string().optional(),
+  companyId: z.number().optional(),
   positon: z.string().optional()
 })
 
