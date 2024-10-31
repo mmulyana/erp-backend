@@ -184,6 +184,7 @@ export default class ProjectRepository {
           },
           employees: {
             select: {
+              id: true,
               employee: {
                 select: {
                   fullname: true,
