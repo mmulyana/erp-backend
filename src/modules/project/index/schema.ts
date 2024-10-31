@@ -21,7 +21,7 @@ export const updateProjectSchema = createProjectSchema.partial()
 export type Project = z.infer<typeof createProjectSchema>
 
 export const addEmployeeSchema = z.object({
-  employeId: z.number(),
+  employeeId: z.number(),
 })
 export const addLabelSchema = z.object({
   labelId: z.number(),
