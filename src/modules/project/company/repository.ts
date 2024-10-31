@@ -13,7 +13,7 @@ export default class CompanyRepository {
         deleteFile(data.logo)
       }
     }
-    await db.companyClient.update({ data, where: { id } })
+    return await db.companyClient.update({ data, where: { id }, select: { id: true } })
   }
   delete = async (id: number) => {
     const data = await db.companyClient.findUnique({ where: { id } })
@@ -24,5 +24,8 @@ export default class CompanyRepository {
   }
   read = async () => {
     return await db.companyClient.findMany()
+  }
+  readOne = async (id: number) => {
+    return await db.companyClient.findUnique({ where: { id } })
   }
 }
