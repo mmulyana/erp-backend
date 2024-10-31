@@ -71,7 +71,7 @@ export function setupRoutes(
     { path: '/hris/overtime', router: new OvertimeRoutes().router, auth: true },
 
     // PROJECT
-    { path: '/project', router: new ProjectRoutes().router, auth: true },
+    { path: '/project/index', router: new ProjectRoutes().router, auth: true },
     { path: '/project/client', router: new ClientRoutes().router, auth: true },
     { path: '/project/label', router: new LabelRoutes().router, auth: true },
     { path: '/project/client/company', router: new CompanyRoutes(multerConfig).router, auth: true, },
