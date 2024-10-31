@@ -8,9 +8,10 @@ export default class ClientRepository {
     })
   }
   update = async (id: number, payload: Client) => {
-    await db.client.update({
+    return await db.client.update({
       data: { ...payload, companyId: Number(payload.companyId) || null },
       where: { id },
+      select: { id: true },
     })
   }
   delete = async (id: number) => {
@@ -18,6 +19,14 @@ export default class ClientRepository {
   }
   read = async () => {
     return await db.client.findMany({
+      include: {
+        company: true,
+      },
+    })
+  }
+  readOne = async (id: number) => {
+    return await db.client.findUnique({
+      where: { id },
       include: {
         company: true,
       },
