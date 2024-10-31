@@ -110,10 +110,8 @@ export default class ProjectRepository {
         leadId: payload.leadId,
         description: payload.description,
         clientId: payload.clientId,
-        ...(payload.progress ? { progress: payload.progress } : undefined),
-        ...(payload.payment_status
-          ? { payment_status: payload.payment_status }
-          : undefined),
+        progress: payload.progress,
+        payment_status: payload.payment_status,
 
         // handle label
         // labels: {
@@ -197,6 +195,7 @@ export default class ProjectRepository {
           },
           labels: {
             select: {
+              id: true,
               label: {
                 select: {
                   color: true,
@@ -291,6 +290,30 @@ export default class ProjectRepository {
           },
         },
       },
+    })
+  }
+  addLabel = async (projectId: number, labelId: number) => {
+    return await db.projectHasLabel.create({
+      data: { projectId, labelId },
+      select: { projectId: true },
+    })
+  }
+  removeLabel = async (id: number) => {
+    return await db.projectHasLabel.delete({
+      where: { id },
+      select: { projectId: true },
+    })
+  }
+  addEmployee = async (projectId: number, employeeId: number) => {
+    return await db.employeeAssigned.create({
+      data: { projectId, employeeId },
+      select: { projectId: true },
+    })
+  }
+  removeEmployee = async (id: number) => {
+    return await db.employeeAssigned.delete({
+      where: { id },
+      select: { projectId: true },
     })
   }
 }
