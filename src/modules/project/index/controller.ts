@@ -44,7 +44,7 @@ export default class ProjectController extends BaseController {
         Number(labelId),
         Number(clientId)
       )
-      return this.response.success(res, this.message.successDelete(), data)
+      return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
