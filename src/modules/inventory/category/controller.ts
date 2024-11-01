@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from 'express'
 import BaseController from '../../../helper/base-controller'
+import { NextFunction, Request, Response } from 'express'
 import CategoryRepository from './repository'
 
 export default class CategoryController extends BaseController {
@@ -39,6 +39,15 @@ export default class CategoryController extends BaseController {
     try {
       const { name } = req.query
       const data = await this.repository.read(name?.toString())
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readOne(Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)

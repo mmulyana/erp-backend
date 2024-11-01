@@ -1,51 +1,47 @@
-import db from '../../../lib/db'
 import { Category } from './schema'
+import db from '../../../lib/db'
 
 export default class CategoryRepository {
   create = async (payload: Category) => {
-    try {
-      await db.goodsCategory.create({ data: payload })
-    } catch (error) {
-      throw error
-    }
+    await db.goodsCategory.create({ data: payload })
   }
   update = async (id: number, payload: Category) => {
-    try {
-      await this.isExist(id)
-      await db.goodsCategory.update({ data: payload, where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.goodsCategory.update({ data: payload, where: { id } })
   }
   delete = async (id: number) => {
-    try {
-      await this.isExist(id)
-      await db.goodsCategory.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.goodsCategory.delete({ where: { id } })
   }
   read = async (name?: string) => {
-    try {
-      const baseQuery = {
-        where: {},
-      }
-
-      if (name) {
-        baseQuery.where = {
-          ...baseQuery.where,
-          OR: [
-            { name: { contains: name.toLowerCase() } },
-            { name: { contains: name.toUpperCase() } },
-            { name: { contains: name } },
-          ],
-        }
-      }
-
-      return await db.goodsCategory.findMany(baseQuery)
-    } catch (error) {
-      throw error
+    const baseQuery = {
+      where: {},
     }
+
+    if (name) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        OR: [
+          { name: { contains: name.toLowerCase() } },
+          { name: { contains: name.toUpperCase() } },
+          { name: { contains: name } },
+        ],
+      }
+    }
+
+    return await db.goodsCategory.findMany(baseQuery)
+  }
+  readOne = async (id: number) => {
+    return await db.goodsCategory.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            goods: true,
+          },
+        },
+      },
+    })
   }
 
   isExist = async (id: number) => {
