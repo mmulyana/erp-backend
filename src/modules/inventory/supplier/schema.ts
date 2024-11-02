@@ -5,7 +5,7 @@ export const supplierSchema = z.object({
   phone: z.string().optional(),
   email: z.string().optional(),
   address: z.string().optional(),
-  tags: z.string().array().optional(),
+  tags: z.string().optional(),
 })
 export const updateSchema = supplierSchema.partial({
   name: true,
