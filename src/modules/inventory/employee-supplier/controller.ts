@@ -1,12 +1,13 @@
+import BaseController from '../../../helper/base-controller'
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import Message from '../../../utils/constant/message'
 import Repository from './repository'
 
-export default class EmployeeSupplierController {
-  private response: ApiResponse = new ApiResponse()
+export default class EmployeeSupplierController extends BaseController {
   private repository: Repository = new Repository()
-  private message: Message = new Message('Pegawai supplier')
+
+  constructor() {
+    super('Pegawai supplier')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
