@@ -44,4 +44,13 @@ export default class TransactionController extends BaseController {
       next(error)
     }
   }
+
+  readBorrowedGoodsHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await this.repository.readGoodsBorrowed()
+      return this.response.success(res, this.message.successReadField('dipinjam'), data)
+    } catch(error) {
+      next(error)
+    }
+  }
 }
