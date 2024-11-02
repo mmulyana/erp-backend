@@ -8,6 +8,26 @@ export default class TransactionRepository {
 
     await db.$transaction(async (prisma) => {
       for (const item of payload.items) {
+        if (item.type === 'out' || item.type === 'borrowed') {
+          const goods = await prisma.goods.findUnique({
+            where: { id: Number(item.goodsId) },
+            select: { available: true, name: true },
+          })
+
+          if (!goods) {
+            throw new Error(`Barang dengan ID ${item.goodsId} tidak ditemukan`)
+          }
+
+          const requestedQty = Number(item.qty)
+          if (requestedQty > goods.available) {
+            throw new Error(
+              `Stok tidak mencukupi untuk ${goods.name}. Stok tersedia: ${goods.available}, Permintaan: ${requestedQty}`
+            )
+          }
+        }
+      }
+
+      for (const item of payload.items) {
         await prisma.transactionGoods.create({
           data: {
             qty: Number(item.qty),
@@ -28,9 +48,8 @@ export default class TransactionRepository {
         )
       }
     })
-
-    return { type: payload.items[0].type }
   }
+
   update = async (id: number, payload: Partial<TransactionGoods>) => {
     await this.isExist(id)
     const transaction = await db.transactionGoods.findUnique({
