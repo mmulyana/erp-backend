@@ -1,9 +1,11 @@
-import db from '../../../lib/db'
 import { deleteFile } from '../../../utils/file'
 import { Supplier } from './schema'
+import db from '../../../lib/db'
 
 export default class SupplierRepository {
-  create = async (payload: Supplier & { photoUrl?: string }) => {
+  create = async (
+    payload: Supplier & { photoUrl?: string; tags: string[] }
+  ) => {
     await db.supplier.create({
       data: {
         address: payload.address,
@@ -23,7 +25,10 @@ export default class SupplierRepository {
       },
     })
   }
-  update = async (id: number, payload: Supplier & { photoUrl?: string }) => {
+  update = async (
+    id: number,
+    payload: Supplier & { photoUrl?: string; tags: string[] }
+  ) => {
     await this.isExist(id)
     if (payload.photoUrl) {
       const data = await db.supplier.findUnique({ where: { id } })
