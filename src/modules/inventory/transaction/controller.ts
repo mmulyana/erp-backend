@@ -1,20 +1,18 @@
+import BaseController from '../../../helper/base-controller'
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
 import Repository from './repository'
-import Message from '../../../utils/constant/message'
 
-export default class TransactionController {
-  private response: ApiResponse = new ApiResponse()
+export default class TransactionController extends BaseController {
   private repository: Repository = new Repository()
-  private message: Message = new Message('Transaksi')
+  
+  constructor() {
+    super('Transaksi')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.repository.create({
-        ...req.body,
-        photoUrl: req.file?.filename,
-      })
-      return this.response.success(res, this.message.successCreate())
+      const data = await this.repository.create(req.body)
+      return this.response.success(res, this.message.successCreate(), data)
     } catch (error) {
       next(error)
     }
@@ -22,10 +20,7 @@ export default class TransactionController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), {
-        ...req.body,
-        photoUrl: req.file?.filename,
-      })
+      await this.repository.update(Number(id), req.body)
       return this.response.success(res, this.message.successUpdate())
     } catch (error) {
       next(error)
