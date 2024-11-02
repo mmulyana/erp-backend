@@ -1,3 +1,5 @@
+import { Goods as GoodsSchema } from '@prisma/client'
+import { toNumber } from '../../../utils/to-number'
 import { deleteFile } from '../../../utils/file'
 import db from '../../../lib/db'
 import { Goods } from './schema'
@@ -24,48 +26,59 @@ export default class GoodsRepository {
   }
   update = async (
     id: number,
-    payload: Partial<Goods> & { newPhotoUrl?: string }
+    payload: Partial<Goods> & { newPhotoUrl?: string; photoUrl: string }
   ) => {
-    if (payload.newPhotoUrl !== '') {
-      const data = await db.brand.findUnique({ where: { id } })
+    
+    const updateData: Partial<GoodsSchema> = {}
+    if (payload.newPhotoUrl || payload.photoUrl == null) {
+      const data = await db.goods.findUnique({ where: { id } })
       if (data?.photoUrl) {
         deleteFile(data.photoUrl)
       }
+      updateData.photoUrl = null
     }
+    if (payload.newPhotoUrl) {
+      updateData.photoUrl = payload.newPhotoUrl
+    }
+
+    if (payload.name) {
+      updateData.name = payload.name
+    }
+
+    const qty = toNumber(payload.qty)
+    if (qty) {
+      updateData.qty = qty
+      updateData.available = qty
+    }
+
+    const minimum = toNumber(payload.minimum)
+    if (minimum) {
+      updateData.minimum = minimum
+    }
+
+    const locationId = toNumber(payload.locationId)
+    if (locationId) {
+      updateData.locationId = locationId
+    }
+
+    const measurementId = toNumber(payload.measurementId)
+    if (measurementId) {
+      updateData.measurementId = measurementId
+    }
+
+    const brandId = toNumber(payload.brandId)
+    if (brandId) {
+      updateData.brandId = brandId
+    }
+
+    const categoryId = toNumber(payload.categoryId)
+    if (categoryId) {
+      updateData.categoryId = categoryId
+    }
+
     return await db.goods.update({
-      data: {
-        name: payload.name,
-        qty: Number(payload.qty),
-        available: Number(payload.qty),
-        minimum: Number(payload.minimum),
-        ...(payload.newPhotoUrl !== ''
-          ? { photoUrl: payload.newPhotoUrl }
-          : undefined),
-        location: {
-          connect: {
-            id: Number(payload.locationId),
-          },
-        },
-        ...(payload.measurementId !== ''
-          ? {
-              measurement: { connect: { id: Number(payload.measurementId) } },
-            }
-          : undefined),
-        ...(payload.brandId !== ''
-          ? {
-              brand: { connect: { id: Number(payload.brandId) } },
-            }
-          : undefined),
-        ...(payload.categoryId !== ''
-          ? {
-              category: { connect: { id: Number(payload.categoryId) } },
-            }
-          : undefined),
-      },
+      data: updateData,
       where: { id },
-      select: {
-        id: true,
-      },
     })
   }
   delete = async (id: number) => {
