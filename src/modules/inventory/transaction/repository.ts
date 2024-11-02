@@ -254,6 +254,16 @@ export default class TransactionRepository {
     })
   }
 
+  readGoodsBorrowed = async () => {
+    return await db.transactionGoods.findMany({
+      where: { isReturned: false },
+      include: {
+        project: true,
+        good: true,
+      },
+    })
+  }
+
   isExist = async (id: number) => {
     const data = await db.transactionGoods.findUnique({ where: { id } })
     if (!data) throw Error('Transaksi tidak ditemukan')
