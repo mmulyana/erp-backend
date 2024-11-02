@@ -15,7 +15,7 @@ export default class TransactionRouter extends RouterWithFile {
 
   protected register(): void {
     this.router.post('/', this.schema.validate, this.controller.createHandler)
-    this.router.patch('/:id', this.compressImage, this.controller.updateHandler)
+    this.router.patch('/:id', this.controller.updateHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readHandler)
   }
