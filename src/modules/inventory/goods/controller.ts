@@ -1,12 +1,13 @@
+import BaseController from '../../../helper/base-controller'
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
 import Repository from './repository'
-import Message from '../../../utils/constant/message'
 
-export default class GoodsController {
-  private response: ApiResponse = new ApiResponse()
+export default class GoodsController extends BaseController {
   private repository: Repository = new Repository()
-  private message: Message = new Message('Barang')
+
+  constructor() {
+    super('Barang')
+  }
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -22,13 +23,13 @@ export default class GoodsController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), {
+      const data = await this.repository.update(Number(id), {
         ...req.body,
         ...(req.file?.filename
           ? { newPhotoUrl: req.file?.filename }
           : undefined),
       })
-      return this.response.success(res, this.message.successUpdate())
+      return this.response.success(res, this.message.successUpdate(), data)
     } catch (error) {
       next(error)
     }
@@ -46,6 +47,15 @@ export default class GoodsController {
     try {
       const { name } = req.query
       const data = await this.repository.read(name?.toString() || undefined)
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readOne(Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
