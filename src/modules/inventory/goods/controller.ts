@@ -61,4 +61,36 @@ export default class GoodsController extends BaseController {
       next(error)
     }
   }
+  readLowStockHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.repository.readLowStock()
+      return this.response.success(
+        res,
+        this.message.successReadField('hampir habis'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  readOutOfStockHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.repository.readOutofStock()
+      return this.response.success(
+        res,
+        this.message.successReadField('hampir habis'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
 }
