@@ -28,7 +28,6 @@ export default class GoodsRepository {
     id: number,
     payload: Partial<Goods> & { newPhotoUrl?: string; photoUrl: string }
   ) => {
-    
     const updateData: Partial<GoodsSchema> = {}
     if (payload.newPhotoUrl || payload.photoUrl == null) {
       const data = await db.goods.findUnique({ where: { id } })
@@ -130,5 +129,16 @@ export default class GoodsRepository {
         },
       },
     })
+  }
+
+  readLowStock = async () => {
+    return await db.$queryRaw`
+      select * from "Goods" where qty <= minimum OR available <= minimum
+    `
+  }
+  readOutofStock = async () => {
+    return await db.$queryRaw`
+      select * from "Goods" where qty = 0 OR available = 0
+    `
   }
 }
