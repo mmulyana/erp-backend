@@ -1,98 +1,73 @@
-import db from '../../../lib/db'
-import { deleteFile } from '../../../utils/file'
+import { TransactionGoods, TransactionType } from '@prisma/client'
 import { Transaction } from './schema'
-import { TransactionType } from '@prisma/client'
+import db from '../../../lib/db'
 
-export default class BrandRepository {
-  create = async (payload: Transaction & { photoUrl?: string }) => {
-    try {
-      const date = new Date(payload.date)
-      await db.transactionGoods.create({
-        data: {
-          qty: Number(payload.qty),
-          type: payload.type,
-          goodsId: Number(payload.goodsId),
-          ...(payload.price ? { price: Number(payload.price) } : undefined),
-          ...(payload.supplierId
-            ? { supplierId: Number(payload.supplierId) }
-            : undefined),
-          date,
-          isReturned: payload.isReturned === 'true',
-          ...(payload.projectId
-            ? { projectId: Number(payload.projectId) }
-            : undefined),
-        },
-      })
-      await this.updateGoods(
-        Number(payload.goodsId),
-        payload.type,
-        Number(payload.qty)
-      )
-    } catch (error) {
-      throw error
-    }
-  }
-  update = async (
-    id: number,
-    payload: Partial<Transaction> & { photoUrl?: string }
-  ) => {
-    try {
-      await this.isExist(id)
-      const transaction = await db.transactionGoods.findUnique({
-        where: { id },
-      })
-      const goods = await db.goods.findUnique({
-        where: { id: Number(payload.goodsId) },
-      })
+export default class TransactionRepository {
+  create = async (payload: Transaction) => {
+    const date = new Date(payload.date)
 
-      if (!transaction) throw Error('transaksi tidak ada')
-      if (!goods) throw Error('barang tidak ada')
+    await db.$transaction(async (prisma) => {
+      for (const item of payload.items) {
+        await prisma.transactionGoods.create({
+          data: {
+            qty: Number(item.qty),
+            type: item.type,
+            goodsId: Number(item.goodsId),
+            ...(item.price ? { price: Number(item.price) } : undefined),
+            ...(payload.supplierId
+              ? { supplierId: Number(payload.supplierId) }
+              : undefined),
+            date,
+          },
+        })
 
-      await this.updateGoodsQty(
-        goods.id,
-        transaction.type,
-        payload.type as TransactionType,
-        transaction.qty,
-        Number(payload.qty)
-      )
-
-      // handle when theres new photo
-      if (payload.photoUrl) {
-        if (transaction?.photoUrl) {
-          deleteFile(transaction.photoUrl)
-        }
+        await this.updateGoods(
+          Number(item.goodsId),
+          item.type,
+          Number(item.qty)
+        )
       }
+    })
 
-      const date = payload.date ? new Date(payload.date) : new Date()
+    return { type: payload.items[0].type }
+  }
+  update = async (id: number, payload: Partial<TransactionGoods>) => {
+    await this.isExist(id)
+    const transaction = await db.transactionGoods.findUnique({
+      where: { id },
+    })
+    const goods = await db.goods.findUnique({
+      where: { id: Number(payload.goodsId) },
+    })
 
-      await db.transactionGoods.update({
-        data: {
-          price: Number(payload.price),
-          qty: Number(payload.qty),
-          type: payload.type,
-          goodsId: Number(payload.goodsId),
-          supplierId: Number(payload.supplierId),
-          date,
-        },
-        where: { id },
-      })
-    } catch (error) {
-      throw error
-    }
+    if (!transaction) throw Error('transaksi tidak ada')
+    if (!goods) throw Error('barang tidak ada')
+
+    await this.updateGoodsQty(
+      goods.id,
+      transaction.type,
+      payload.type as TransactionType,
+      transaction.qty,
+      Number(payload.qty)
+    )
+
+    const date = payload.date ? new Date(payload.date) : new Date()
+
+    await db.transactionGoods.update({
+      data: {
+        price: Number(payload.price),
+        qty: Number(payload.qty),
+        type: payload.type,
+        goodsId: Number(payload.goodsId),
+        supplierId: Number(payload.supplierId),
+        date,
+      },
+      where: { id },
+    })
   }
   delete = async (id: number) => {
-    try {
-      await this.isExist(id)
-      const data = await db.transactionGoods.findUnique({ where: { id } })
-
-      if (data?.photoUrl) {
-        deleteFile(data.photoUrl)
-      }
-
-      await db.transactionGoods.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
+    await this.isExist(id)
+    await db.transactionGoods.delete({ where: { id } })
   }
   read = async (type?: string) => {
     let baseQuery = {
