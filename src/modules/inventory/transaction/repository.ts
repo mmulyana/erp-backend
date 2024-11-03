@@ -202,17 +202,6 @@ export default class TransactionRepository {
       })
     }
 
-    if (type == 'returned') {
-      await db.goods.update({
-        data: {
-          available: {
-            increment: qty,
-          },
-        },
-        where: { id },
-      })
-    }
-
     if (type == 'opname') {
       await db.goods.update({
         data: {
@@ -245,9 +234,6 @@ export default class TransactionRepository {
       case 'borrowed':
         updateData.available = { increment: oldQty }
         break
-      case 'returned':
-        updateData.available = { decrement: oldQty }
-        break
       case 'opname':
         break
     }
@@ -268,9 +254,6 @@ export default class TransactionRepository {
       case 'borrowed':
         updateData.available = { decrement: newQty }
         break
-      case 'returned':
-        updateData.available = { increment: newQty }
-        break
     }
 
     await db.goods.update({
@@ -281,7 +264,7 @@ export default class TransactionRepository {
 
   readGoodsBorrowed = async () => {
     return await db.transactionGoods.findMany({
-      where: { isReturned: false },
+      where: { is_returned: false },
       include: {
         project: true,
         good: true,
