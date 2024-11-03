@@ -21,13 +21,12 @@ export const deleteSchema = z.object({
 
 export const updateSchema = z
   .object({
-    goodsId: z.number(),
-    qty: z.number(),
-    price: z.number(),
-    supplierId: z.number(),
-    date: z.string().date(),
-    projectId: z.number(),
-    is_returned: z.boolean(),
+    qty: z.number().optional(),
+    price: z.number().optional(),
+    supplierId: z.number().optional(),
+    date: z.string().datetime().optional(),
+    projectId: z.number().optional(),
+    // is_returned: z.boolean(),
   })
   .partial()
 
