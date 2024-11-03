@@ -121,10 +121,10 @@ export default class GoodsRepository {
         category: true,
         location: true,
         measurement: true,
-        transaction: true,
+        transactions: true,
         _count: {
           select: {
-            transaction: true,
+            transactions: true,
           },
         },
       },
