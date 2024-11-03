@@ -4,7 +4,7 @@ import Repository from './repository'
 
 export default class TransactionController extends BaseController {
   private repository: Repository = new Repository()
-  
+
   constructor() {
     super('Transaksi')
   }
@@ -37,19 +37,39 @@ export default class TransactionController extends BaseController {
   }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { type } = req.query
-      const data = await this.repository.read(type?.toString())
+      const { type, goodsId } = req.query
+      const data = await this.repository.read(
+        type ? String(type) : undefined,
+        Number(goodsId)
+      )
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readOne(Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
   }
 
-  readBorrowedGoodsHandler = async (req: Request, res: Response, next: NextFunction) => {
+  readBorrowedGoodsHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const data = await this.repository.readGoodsBorrowed()
-      return this.response.success(res, this.message.successReadField('dipinjam'), data)
-    } catch(error) {
+      return this.response.success(
+        res,
+        this.message.successReadField('dipinjam'),
+        data
+      )
+    } catch (error) {
       next(error)
     }
   }
