@@ -1,5 +1,5 @@
-import { TransactionGoods, TransactionType } from '@prisma/client'
-import { Transaction } from './schema'
+import { Transaction, UpdateSchema } from './schema'
+import { TransactionType } from '@prisma/client'
 import db from '../../../lib/db'
 
 export default class TransactionRepository {
@@ -11,7 +11,11 @@ export default class TransactionRepository {
         if (item.type === 'out' || item.type === 'borrowed') {
           const goods = await prisma.goods.findUnique({
             where: { id: Number(item.goodsId) },
-            select: { available: true, name: true },
+            select: {
+              available: true,
+              name: true,
+              qty: true,
+            },
           })
 
           if (!goods) {
@@ -28,7 +32,19 @@ export default class TransactionRepository {
       }
 
       for (const item of payload.items) {
-        await prisma.transactionGoods.create({
+        const goodsBefore = await prisma.goods.findUnique({
+          where: { id: Number(item.goodsId) },
+          select: {
+            qty: true,
+            available: true,
+          },
+        })
+
+        if (!goodsBefore) {
+          throw new Error(`Barang dengan ID ${item.goodsId} tidak ditemukan`)
+        }
+
+        const transaction = await prisma.transactionGoods.create({
           data: {
             qty: Number(item.qty),
             type: item.type,
@@ -41,6 +57,15 @@ export default class TransactionRepository {
           },
         })
 
+        await prisma.stockHistory.create({
+          data: {
+            transactionId: transaction.id,
+            goodsId: Number(item.goodsId),
+            qty_before: goodsBefore.qty,
+            available_before: goodsBefore.available,
+          },
+        })
+
         await this.updateGoods(
           Number(item.goodsId),
           item.type,
@@ -50,43 +75,246 @@ export default class TransactionRepository {
     })
   }
 
-  update = async (id: number, payload: Partial<TransactionGoods>) => {
+  update = async (id: number, payload: UpdateSchema) => {
     await this.isExist(id)
+
     const transaction = await db.transactionGoods.findUnique({
       where: { id },
-    })
-    const goods = await db.goods.findUnique({
-      where: { id: Number(payload.goodsId) },
-    })
-
-    if (!transaction) throw Error('transaksi tidak ada')
-    if (!goods) throw Error('barang tidak ada')
-
-    await this.updateGoodsQty(
-      goods.id,
-      transaction.type,
-      payload.type as TransactionType,
-      transaction.qty,
-      Number(payload.qty)
-    )
-
-    const date = payload.date ? new Date(payload.date) : new Date()
-
-    await db.transactionGoods.update({
-      data: {
-        price: Number(payload.price),
-        qty: Number(payload.qty),
-        type: payload.type,
-        goodsId: Number(payload.goodsId),
-        supplierId: Number(payload.supplierId),
-        date,
+      include: {
+        good: true,
       },
-      where: { id },
+    })
+
+    if (!transaction) {
+      throw new Error('Transaksi tidak ditemukan')
+    }
+
+    if (payload.projectId) {
+      const project = await db.project.findUnique({
+        where: { id: Number(payload.projectId) },
+      })
+
+      if (!project) {
+        throw new Error('Project tidak ditemukan')
+      }
+    }
+
+    const newQty = payload.qty ? Number(payload.qty) : transaction.qty
+
+    return await db.$transaction(async (prisma) => {
+      if (transaction.type === 'opname') {
+        await this.handleOpnameUpdate(
+          transaction.goodsId,
+          transaction.qty,
+          newQty
+        )
+      } else {
+        if (payload.qty && payload.qty !== transaction.qty) {
+          if (transaction.type === 'out' || transaction.type === 'borrowed') {
+            const currentStock = transaction.good.available + transaction.qty
+            if (newQty > currentStock) {
+              throw new Error(
+                `Stock tidak mencukupi. Tersedia: ${currentStock}, Diminta: ${newQty}`
+              )
+            }
+          }
+
+          await this.updateGoodsQty(
+            transaction.goodsId,
+            transaction.type,
+            transaction.qty,
+            newQty
+          )
+        }
+      }
+
+      const updatedTransaction = await prisma.transactionGoods.update({
+        where: { id },
+        data: {
+          ...(payload.qty && { qty: Number(payload.qty) }),
+          ...(payload.price && { price: Number(payload.price) }),
+          ...(payload.supplierId && { supplierId: Number(payload.supplierId) }),
+          ...(payload.projectId !== undefined && {
+            projectId: payload.projectId ? Number(payload.projectId) : null,
+          }),
+          ...(payload.date && { date: new Date(payload.date) }),
+          updated_at: new Date(),
+        },
+      })
+
+      return updatedTransaction
     })
   }
+
+  updateGoodsQty = async (
+    goodsId: number,
+    type: TransactionType,
+    oldQty: number,
+    newQty: number
+  ) => {
+    await this.resetStock(goodsId, type, oldQty)
+    await this.applyNewStock(goodsId, type, newQty)
+  }
+
+  resetStock = async (goodsId: number, type: TransactionType, qty: number) => {
+    switch (type) {
+      case 'in':
+        await db.goods.update({
+          where: { id: goodsId },
+          data: {
+            qty: { decrement: qty },
+            available: { decrement: qty },
+          },
+        })
+        break
+
+      case 'out':
+        await db.goods.update({
+          where: { id: goodsId },
+          data: {
+            qty: { increment: qty },
+            available: { increment: qty },
+          },
+        })
+        break
+
+      case 'borrowed':
+        await db.goods.update({
+          where: { id: goodsId },
+          data: {
+            available: { increment: qty },
+          },
+        })
+        break
+    }
+  }
+
+  applyNewStock = async (
+    goodsId: number,
+    type: TransactionType,
+    qty: number
+  ) => {
+    switch (type) {
+      case 'in':
+        await db.goods.update({
+          where: { id: goodsId },
+          data: {
+            qty: { increment: qty },
+            available: { increment: qty },
+          },
+        })
+        break
+
+      case 'out':
+        await db.goods.update({
+          where: { id: goodsId },
+          data: {
+            qty: { decrement: qty },
+            available: { decrement: qty },
+          },
+        })
+        break
+
+      case 'borrowed':
+        await db.goods.update({
+          where: { id: goodsId },
+          data: {
+            available: { decrement: qty },
+          },
+        })
+        break
+    }
+  }
+
+  handleOpnameUpdate = async (
+    goodsId: number,
+    oldQty: number,
+    newQty: number
+  ) => {
+    if (oldQty === newQty) return
+
+    await db.goods.update({
+      where: { id: goodsId },
+      data: {
+        qty: newQty,
+        available: newQty,
+      },
+    })
+  }
+
   delete = async (id: number) => {
     await this.isExist(id)
-    await db.transactionGoods.delete({ where: { id } })
+
+    return await db.$transaction(async (prisma) => {
+      const transaction = await prisma.transactionGoods.findUnique({
+        where: { id },
+        include: {
+          good: true,
+          stock_history: true,
+        },
+      })
+
+      if (!transaction) {
+        throw new Error('Transaksi tidak ditemukan')
+      }
+
+      if (transaction.type === 'opname') {
+        // Untuk opname, kembalikan ke stock sebelumnya dari history
+        if (transaction.stock_history) {
+          await prisma.goods.update({
+            where: { id: transaction.goodsId },
+            data: {
+              qty: transaction.stock_history.qty_before,
+              available: transaction.stock_history.available_before,
+            },
+          })
+        }
+      } else {
+        // selain opname seperti biasa
+        switch (transaction.type) {
+          case 'in':
+            await prisma.goods.update({
+              where: { id: transaction.goodsId },
+              data: {
+                qty: { decrement: transaction.qty },
+                available: { decrement: transaction.qty },
+              },
+            })
+            break
+
+          case 'out':
+            await prisma.goods.update({
+              where: { id: transaction.goodsId },
+              data: {
+                qty: { increment: transaction.qty },
+                available: { increment: transaction.qty },
+              },
+            })
+            break
+
+          case 'borrowed':
+            await prisma.goods.update({
+              where: { id: transaction.goodsId },
+              data: {
+                available: { increment: transaction.qty },
+              },
+            })
+            break
+        }
+      }
+
+      if (transaction.stock_history) {
+        await prisma.stockHistory.delete({
+          where: { transactionId: id },
+        })
+      }
+
+      await prisma.transactionGoods.delete({
+        where: { id },
+      })
+
+      return transaction
+    })
   }
   read = async (type?: string, goodsId?: number) => {
     let baseQuery = {
@@ -213,58 +441,9 @@ export default class TransactionRepository {
     }
   }
 
-  updateGoodsQty = async (
-    goodsId: number,
-    oldType: TransactionType,
-    newType: TransactionType,
-    oldQty: number,
-    newQty: number
-  ) => {
-    const updateData: any = {}
-
-    switch (oldType) {
-      case 'in':
-        updateData.available = { decrement: oldQty }
-        updateData.qty = { decrement: oldQty }
-        break
-      case 'out':
-        updateData.available = { increment: oldQty }
-        updateData.qty = { increment: oldQty }
-        break
-      case 'borrowed':
-        updateData.available = { increment: oldQty }
-        break
-      case 'opname':
-        break
-    }
-
-    switch (newType) {
-      case 'in':
-        updateData.available = { increment: newQty }
-        updateData.qty = { increment: newQty }
-        break
-      case 'out':
-        updateData.available = { decrement: newQty }
-        updateData.qty = { decrement: newQty }
-        break
-      case 'opname':
-        updateData.available = newQty
-        updateData.qty = newQty
-        break
-      case 'borrowed':
-        updateData.available = { decrement: newQty }
-        break
-    }
-
-    await db.goods.update({
-      where: { id: goodsId },
-      data: updateData,
-    })
-  }
-
   readGoodsBorrowed = async () => {
     return await db.transactionGoods.findMany({
-      where: { is_returned: false },
+      where: { is_returned: false, type: 'borrowed' },
       include: {
         project: true,
         good: true,
