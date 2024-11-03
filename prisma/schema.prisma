@@ -22,6 +22,7 @@ model User {
   employeeId        Int?                @unique
   employee          Employee?           @relation(fields: [employeeId], references: [id])
   ActivityLike      ActivityLike[]
+  TransactionGoods  TransactionGoods[]
 }
 
 model Role {
@@ -389,21 +390,81 @@ model CompanyClient {
 
 // MODULE INVENTORY
 model Goods {
-  id            Int                @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   name          String
   qty           Int
   available     Int
-  minimum       Int
+  minimum       Int      @default(1)
   photoUrl      String?
   locationId    Int?
-  measurementId Int
-  categoryId    Int
-  brandId       Int
-  location      Location?          @relation(fields: [locationId], references: [id])
-  measurement   Measurements       @relation(fields: [measurementId], references: [id])
-  brand         Brand              @relation(fields: [brandId], references: [id])
-  category      goodsCategory      @relation(fields: [categoryId], references: [id])
-  transaction   TransactionGoods[]
+  measurementId Int?
+  categoryId    Int?
+  brandId       Int?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  location        Location?          @relation(fields: [locationId], references: [id])
+  measurement     Measurements?      @relation(fields: [measurementId], references: [id])
+  brand           Brand?             @relation(fields: [brandId], references: [id])
+  category        goodsCategory?     @relation(fields: [categoryId], references: [id])
+  transactions    TransactionGoods[]
+  stock_histories StockHistory[]
+
+  @@index([locationId])
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([available])
+}
+
+model StockHistory {
+  id               Int      @id @default(autoincrement())
+  transactionId    Int      @unique
+  goodsId          Int
+  qty_before       Int
+  available_before Int
+  created_at       DateTime @default(now())
+
+  transaction TransactionGoods @relation(fields: [transactionId], references: [id])
+  good        Goods            @relation(fields: [goodsId], references: [id])
+
+  @@index([goodsId, created_at])
+}
+
+model TransactionGoods {
+  id          Int             @id @default(autoincrement())
+  goodsId     Int
+  qty         Int
+  price       Decimal?
+  supplierId  Int?
+  date        DateTime
+  type        TransactionType
+  created_at  DateTime        @default(now())
+  updated_at  DateTime        @updatedAt
+  projectId   Int?
+  is_returned Boolean?        @default(false)
+
+  is_deleted    Boolean   @default(false)
+  deleted_at    DateTime?
+  deleted_by    Int?
+  delete_reason String?
+
+  project       Project?      @relation(fields: [projectId], references: [id])
+  good          Goods         @relation(fields: [goodsId], references: [id])
+  supplier      Supplier?     @relation(fields: [supplierId], references: [id])
+  stock_history StockHistory?
+  User          User?         @relation(fields: [userId], references: [id])
+  userId        Int?
+
+  @@index([goodsId, date])
+  @@index([is_deleted])
+  @@index([supplierId])
+}
+
+enum TransactionType {
+  in
+  out
+  opname
+  borrowed
 }
 
 model Location {
@@ -423,6 +484,12 @@ model Brand {
   name     String
   photoUrl String?
   goods    Goods[]
+}
+
+model goodsCategory {
+  id    Int     @id @default(autoincrement())
+  name  String
+  goods Goods[]
 }
 
 model Supplier {
@@ -459,35 +526,4 @@ model SupplierToTag {
   tagId      Int
   supplier   Supplier    @relation(fields: [supplierId], references: [id])
   tag        SupplierTag @relation(fields: [tagId], references: [id])
-}
-
-model goodsCategory {
-  id    Int     @id @default(autoincrement())
-  name  String
-  goods Goods[]
-}
-
-model TransactionGoods {
-  id          Int             @id @default(autoincrement())
-  goodsId     Int
-  qty         Int
-  price       Decimal?
-  photoUrl    String?
-  supplierId  Int?
-  date        DateTime
-  type        TransactionType
-  description String?
-  projectId   Int?
-  isReturned  Boolean?
-  project     Project?        @relation(fields: [projectId], references: [id])
-  good        Goods           @relation(fields: [goodsId], references: [id])
-  supplier    Supplier?       @relation(fields: [supplierId], references: [id])
-}
-
-enum TransactionType {
-  in
-  out
-  opname
-  borrowed
-  returned
 }
