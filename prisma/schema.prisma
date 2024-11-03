@@ -445,7 +445,7 @@ model TransactionGoods {
 
   is_deleted    Boolean   @default(false)
   deleted_at    DateTime?
-  deleted_by    Int?
+  deletedBy     Int?
   delete_reason String?
 
   project       Project?      @relation(fields: [projectId], references: [id])
