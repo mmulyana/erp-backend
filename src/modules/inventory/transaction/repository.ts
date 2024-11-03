@@ -88,7 +88,7 @@ export default class TransactionRepository {
     await this.isExist(id)
     await db.transactionGoods.delete({ where: { id } })
   }
-  read = async (type?: string) => {
+  read = async (type?: string, goodsId?: number) => {
     let baseQuery = {
       where: {},
       select: {
@@ -106,6 +106,11 @@ export default class TransactionRepository {
                 name: true,
               },
             },
+            location: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
         supplier: {
@@ -113,10 +118,16 @@ export default class TransactionRepository {
             name: true,
           },
         },
+        id: true,
         date: true,
         qty: true,
         price: true,
         type: true,
+        project: {
+          select: {
+            name: true,
+          },
+        },
       },
     }
 
@@ -129,12 +140,26 @@ export default class TransactionRepository {
         },
       }
     }
+
+    if (goodsId) {
+      baseQuery = {
+        ...baseQuery,
+        where: {
+          ...baseQuery.where,
+          goodsId,
+        },
+      }
+    }
+
     return await db.transactionGoods.findMany({
       ...baseQuery,
       orderBy: {
         date: 'desc',
       },
     })
+  }
+  readOne = async (id: number) => {
+    return await db.transactionGoods.findUnique({ where: { id } })
   }
 
   updateGoods = async (id: number, type: TransactionType, qty: number) => {
