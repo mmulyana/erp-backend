@@ -6,23 +6,42 @@ import { Goods } from './schema'
 
 export default class GoodsRepository {
   create = async (payload: Goods & { photoUrl?: string }) => {
-    await db.goods.create({
-      data: {
-        name: payload.name,
-        qty: Number(payload.qty),
-        available: Number(payload.qty),
-        minimum: Number(payload.minimum),
-        photoUrl: payload.photoUrl,
-        location: {
-          connect: {
-            id: Number(payload.locationId),
-          },
-        },
-        measurement: { connect: { id: Number(payload.measurementId) } },
-        brand: { connect: { id: Number(payload.brandId) } },
-        category: { connect: { id: Number(payload.categoryId) } },
-      },
-    })
+    const data: any = {
+      name: payload.name,
+      qty: Number(payload.qty),
+      available: Number(payload.qty),
+      minimum: Number(payload.minimum),
+    }
+
+    if (payload.photoUrl) {
+      data.photoUrl = payload.photoUrl
+    }
+
+    if (payload.locationId) {
+      data.location = {
+        connect: { id: Number(payload.locationId) },
+      }
+    }
+
+    if (payload.measurementId) {
+      data.measurement = {
+        connect: { id: Number(payload.measurementId) },
+      }
+    }
+
+    if (payload.brandId) {
+      data.brand = {
+        connect: { id: Number(payload.brandId) },
+      }
+    }
+
+    if (payload.categoryId) {
+      data.category = {
+        connect: { id: Number(payload.categoryId) },
+      }
+    }
+
+    await db.goods.create({ data })
   }
   update = async (
     id: number,
