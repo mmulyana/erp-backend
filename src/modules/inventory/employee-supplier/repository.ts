@@ -13,15 +13,15 @@ export default class EmployeeSupplierRepository {
     await this.isExist(id)
     return await db.supplierEmployee.delete({ where: { id } })
   }
-  read = async (id?: number, name?: string) => {
+  read = async (supplierId?: number, name?: string) => {
     const baseQuery = {
       where: {},
     }
 
-    if (Number(id)) {
+    if (supplierId) {
       baseQuery.where = {
         ...baseQuery.where,
-        OR: [{ supplierId: Number(id) }],
+        supplierId,
       }
     }
     if (name) {
@@ -36,6 +36,11 @@ export default class EmployeeSupplierRepository {
     }
 
     return await db.supplierEmployee.findMany(baseQuery)
+  }
+  readOne = async (id: number) => {
+    await this.isExist(id)
+
+    return db.supplierEmployee.findUnique({ where: { id } })
   }
   isExist = async (id: number) => {
     const data = await db.supplierEmployee.findUnique({ where: { id } })
