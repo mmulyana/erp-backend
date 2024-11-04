@@ -74,4 +74,21 @@ export default class SupplierController extends BaseController {
       next(error)
     }
   }
+  readTransactionHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readTransactionBySupplierId(Number(id))
+      return this.response.success(
+        res,
+        this.message.successReadField('transaksi'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
 }
