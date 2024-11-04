@@ -11,8 +11,8 @@ export default class EmployeeSupplierController extends BaseController {
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.repository.create(req.body)
-      return this.response.success(res, this.message.successCreate())
+      const data = await this.repository.create(req.body)
+      return this.response.success(res, this.message.successCreate(), data)
     } catch (error) {
       next(error)
     }
@@ -20,8 +20,8 @@ export default class EmployeeSupplierController extends BaseController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), req.body)
-      return this.response.success(res, this.message.successUpdate())
+      const data = await this.repository.update(Number(id), req.body)
+      return this.response.success(res, this.message.successUpdate(), data)
     } catch (error) {
       next(error)
     }
@@ -29,8 +29,8 @@ export default class EmployeeSupplierController extends BaseController {
   deleteHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.delete(Number(id))
-      return this.response.success(res, this.message.successDelete())
+      const data = await this.repository.delete(Number(id))
+      return this.response.success(res, this.message.successDelete(), data)
     } catch (error) {
       next(error)
     }
@@ -38,7 +38,19 @@ export default class EmployeeSupplierController extends BaseController {
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, id } = req.query
-      const data = await this.repository.read(Number(id), name?.toString())
+      const data = await this.repository.read(
+        id ? Number(id) : undefined,
+        name ? String(name) : undefined
+      )
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readOne(Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
