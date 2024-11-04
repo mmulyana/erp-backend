@@ -84,7 +84,7 @@ export function setupRoutes(
     { path: '/inventory/brand', router: new BrandRoutes(multerConfig.uploadImg).router, auth: true, },
     { path: '/inventory/category', router: new CategoryRoutes().router, auth: true, },
     { path: '/inventory/supplier', router: new SupplierRoutes(multerConfig.uploadImg).router, auth: true, },
-    { path: '/inventory/supplier/employee', router: new EmployeeSupplierRoutes().router, auth: true, },
+    { path: '/inventory/supplier-employee', router: new EmployeeSupplierRoutes().router, auth: true, },
     { path: '/inventory/location', router: new LocationRoutes().router, auth: true, },
     { path: '/inventory/measurement', router: new MeasurementRoutes().router, auth: true, },
     { path: '/inventory/tag', router: new TagRoutes().router, auth: true },
