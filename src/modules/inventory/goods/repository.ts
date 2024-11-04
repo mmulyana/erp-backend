@@ -1,16 +1,24 @@
-import { Goods as GoodsSchema } from '@prisma/client'
+import { Goods as GoodsSchema, Prisma } from '@prisma/client'
 import { toNumber } from '../../../utils/to-number'
 import { deleteFile } from '../../../utils/file'
 import db from '../../../lib/db'
 import { Goods } from './schema'
 
+interface FilterGoods {
+  name?: string
+  locationId?: number
+  categoryId?: number
+  brandId?: number
+  measurementId?: number
+}
+
 export default class GoodsRepository {
   create = async (payload: Goods & { photoUrl?: string }) => {
     const data: any = {
       name: payload.name,
-      qty: Number(payload.qty),
-      available: Number(payload.qty),
-      minimum: Number(payload.minimum),
+      qty: Number(payload.qty) || 0,
+      available: Number(payload.qty) || 0,
+      minimum: Number(payload.minimum) || 1,
     }
 
     if (payload.photoUrl) {
@@ -108,29 +116,87 @@ export default class GoodsRepository {
 
     await db.goods.delete({ where: { id } })
   }
-  read = async (name: string | undefined) => {
-    const baseQuery = {
-      where: {},
+  softDelete = async (id: number) => {
+    await db.goods.update({ data: { is_deleted: true }, where: { id } })
+  }
+  readByPagination = async (
+    page: number = 1,
+    limit: number = 10,
+    filter?: FilterGoods
+  ) => {
+    const skip = (page - 1) * limit
+    let where: Prisma.GoodsWhereInput = {
+      is_deleted: false,
+    }
+
+    if (filter) {
+      if (
+        filter.name &&
+        filter.name !== 'undefined' &&
+        filter.name.trim() !== ''
+      ) {
+        where = {
+          ...where,
+          OR: [
+            { name: { contains: filter.name.toLowerCase() } },
+            { name: { contains: filter.name.toUpperCase() } },
+            { name: { contains: filter.name } },
+          ],
+        }
+      }
+
+      if (filter.locationId && !isNaN(filter.locationId)) {
+        where.locationId = filter.locationId
+      }
+
+      if (filter.categoryId && !isNaN(filter.categoryId)) {
+        where.categoryId = filter.categoryId
+      }
+
+      if (filter.brandId && !isNaN(filter.brandId)) {
+        where.brandId = filter.brandId
+      }
+
+      if (filter.measurementId && !isNaN(filter.measurementId)) {
+        where.measurementId = filter.measurementId
+      }
+    }
+
+    const data = await db.goods.findMany({
+      skip,
+      take: limit,
+      where,
       include: {
         brand: true,
         category: true,
         location: true,
         measurement: true,
       },
-    }
+    })
 
-    if (name) {
-      baseQuery.where = {
-        ...baseQuery.where,
-        OR: [
-          { name: { contains: name.toLowerCase() } },
-          { name: { contains: name.toUpperCase() } },
-          { name: { contains: name } },
-        ],
-      }
-    }
+    const total = await db.goods.count({ where })
+    const total_pages = Math.ceil(total / limit)
 
-    return await db.goods.findMany(baseQuery)
+    return {
+      data,
+      total,
+      page,
+      limit,
+      total_pages,
+    }
+  }
+  readAll = async () => {
+    return await db.goods.findMany({
+      where: {
+        is_deleted: false,
+      },
+      include: {
+        brand: true,
+        category: true,
+        location: true,
+        measurement: true,
+      },
+    })
   }
   readOne = async (id: number) => {
     return await db.goods.findUnique({
@@ -152,12 +218,12 @@ export default class GoodsRepository {
 
   readLowStock = async () => {
     return await db.$queryRaw`
-      select * from "Goods" where qty <= minimum OR available <= minimum
+      select * from "Goods" where qty <= minimum AND qty > 0 OR available <= minimum AND available > 0 AND is_deleted = false
     `
   }
   readOutofStock = async () => {
     return await db.$queryRaw`
-      select * from "Goods" where qty = 0 OR available = 0
+      select * from "Goods" where qty = 0 OR available = 0 AND is_deleted = false
     `
   }
 }
