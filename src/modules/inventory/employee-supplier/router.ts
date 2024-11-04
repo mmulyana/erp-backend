@@ -21,7 +21,8 @@ export default class EmployeeSupplierRouter {
       this.updateSchema.validate,
       this.controller.updateHandler
     )
-    this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readHandler)
+    this.router.get('/:id', this.controller.readOneHandler)
+    this.router.delete('/:id', this.controller.deleteHandler)
   }
 }
