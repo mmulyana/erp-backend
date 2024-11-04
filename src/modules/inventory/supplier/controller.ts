@@ -1,8 +1,6 @@
-import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import Message from '../../../utils/constant/message'
-import SupplierRepository from './repository'
 import BaseController from '../../../helper/base-controller'
+import { NextFunction, Request, Response } from 'express'
+import SupplierRepository from './repository'
 
 export default class SupplierController extends BaseController {
   private repository: SupplierRepository = new SupplierRepository()
@@ -13,11 +11,16 @@ export default class SupplierController extends BaseController {
 
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await this.repository.create({
+      const tags = Array.isArray(req.body.tags)
+        ? req.body.tags
+        : [req.body.tags].filter(Boolean)
+
+      const data = await this.repository.create({
         ...req.body,
         photoUrl: req.file?.filename,
+        tags,
       })
-      return this.response.success(res, this.message.successCreate())
+      return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
@@ -41,8 +44,8 @@ export default class SupplierController extends BaseController {
   ) => {
     try {
       const { id } = req.params
-      await this.repository.updateTag(Number(id), req.body)
-      return this.response.success(res, this.message.successUpdate())
+      const data = await this.repository.updateTag(Number(id), req.body)
+      return this.response.success(res, this.message.successUpdate(), data)
     } catch (error) {
       next(error)
     }
