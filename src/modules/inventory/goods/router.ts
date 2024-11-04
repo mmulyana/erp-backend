@@ -18,7 +18,7 @@ export default class GoodsRouter extends RouterWithFile {
     this.router.post(
       '/',
       this.upload.single('photo'),
-    this.compressImage,
+      this.compressImage,
       this.schema.validate,
       this.controller.createHandler
     )
@@ -29,8 +29,10 @@ export default class GoodsRouter extends RouterWithFile {
       this.updateSchema.validate,
       this.controller.updateHandler
     )
+    this.router.patch('/:id/soft-delete', this.controller.deleteHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
-    this.router.get('/', this.controller.readHandler)
+    this.router.get('/', this.controller.readPaginationHandler)
+    this.router.get('/data/all', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readOneHandler)
     this.router.get('/data/low-stock', this.controller.readLowStockHandler)
     this.router.get('/data/out-of-stock', this.controller.readOutOfStockHandler)
