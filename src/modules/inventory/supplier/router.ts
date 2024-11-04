@@ -28,8 +28,9 @@ export default class SupplierRouter extends RouterWithFile {
       // this.updateTagSchema.validate,
       this.controller.updateTagsHandler
     )
-    this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readHandler)
     this.router.get('/:id', this.controller.readOneHandler)
+    this.router.delete('/:id', this.controller.deleteHandler)
+    this.router.get('/:id/transaction', this.controller.readTransactionHandler)
   }
 }
