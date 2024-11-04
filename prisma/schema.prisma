@@ -402,6 +402,7 @@ model Goods {
   brandId       Int?
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+  is_deleted    Boolean  @default(false)
 
   location        Location?          @relation(fields: [locationId], references: [id])
   measurement     Measurements?      @relation(fields: [measurementId], references: [id])
@@ -443,11 +444,6 @@ model TransactionGoods {
   projectId   Int?
   is_returned Boolean?        @default(false)
 
-  is_deleted    Boolean   @default(false)
-  deleted_at    DateTime?
-  deletedBy     Int?
-  delete_reason String?
-
   project       Project?      @relation(fields: [projectId], references: [id])
   good          Goods         @relation(fields: [goodsId], references: [id])
   supplier      Supplier?     @relation(fields: [supplierId], references: [id])
@@ -456,7 +452,6 @@ model TransactionGoods {
   userId        Int?
 
   @@index([goodsId, date])
-  @@index([is_deleted])
   @@index([supplierId])
 }
 
