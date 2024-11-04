@@ -197,7 +197,6 @@ export default class SupplierRepository {
   readOne = async (id: number) => {
     return await db.supplier.findUnique({
       include: {
-        employees: true,
         tags: {
           include: {
             tag: true,
@@ -206,6 +205,16 @@ export default class SupplierRepository {
       },
       where: {
         id,
+      },
+    })
+  }
+  readTransactionBySupplierId = async (supplierId: number) => {
+    return await db.transactionGoods.findMany({
+      where: {
+        supplierId,
+      },
+      include: {
+        good: true,
       },
     })
   }
