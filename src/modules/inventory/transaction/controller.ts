@@ -1,5 +1,6 @@
 import BaseController from '../../../helper/base-controller'
 import { NextFunction, Request, Response } from 'express'
+import { TransactionType } from '@prisma/client'
 import Repository from './repository'
 
 export default class TransactionController extends BaseController {
@@ -51,6 +52,39 @@ export default class TransactionController extends BaseController {
     try {
       const { id } = req.params
       const data = await this.repository.readOne(Number(id))
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readByPaginationHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const {
+        page,
+        limit,
+        goodsId,
+        supplierId,
+        startDate,
+        endDate,
+        type,
+        projectId,
+      } = req.query
+      const data = await this.repository.readByPagination(
+        Number(page) || 1,
+        Number(limit) || 10,
+        {
+          goodsId: goodsId ? Number(goodsId) : undefined,
+          supplierId: supplierId ? Number(supplierId) : undefined,
+          startDate: startDate ? String(startDate) : undefined,
+          endDate: endDate ? String(endDate) : undefined,
+          type: type ? (String(type) as TransactionType) : 'in',
+          projectId: projectId ? Number(projectId) : undefined,
+        }
+      )
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
