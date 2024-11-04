@@ -43,12 +43,58 @@ export default class GoodsController extends BaseController {
       next(error)
     }
   }
-  readHandler = async (req: Request, res: Response, next: NextFunction) => {
+  softDeleteHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const { name } = req.query
-      const data = await this.repository.read(name?.toString() || undefined)
+      const { id } = req.params
+      await this.repository.softDelete(Number(id))
+      return this.response.success(res, this.message.successDelete())
+    } catch (error) {
+      next(error)
+    }
+  }
+  readPaginationHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const {
+        name,
+        page,
+        limit,
+        brandId,
+        categoryId,
+        measurementId,
+        locationId,
+      } = req.query
+
+      const data = await this.repository.readByPagination(
+        Number(page) || 1,
+        Number(limit) || 10,
+        {
+          name: name ? String(name) : undefined,
+          brandId: brandId ? Number(brandId) : undefined,
+          categoryId: categoryId ? Number(categoryId) : undefined,
+          measurementId: measurementId ? Number(measurementId) : undefined,
+          locationId: locationId ? Number(locationId) : undefined,
+        }
+      )
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
+      console.log(error)
+      next(error)
+    }
+  }
+  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await this.repository.readAll()
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      console.log(error)
       next(error)
     }
   }
