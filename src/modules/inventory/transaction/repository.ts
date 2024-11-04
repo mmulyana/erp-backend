@@ -1,6 +1,15 @@
 import { Transaction, UpdateSchema } from './schema'
-import { TransactionType } from '@prisma/client'
+import { Prisma, TransactionType } from '@prisma/client'
 import db from '../../../lib/db'
+
+interface FilterTransaction {
+  goodsId?: number
+  supplierId?: number
+  startDate?: Date | string
+  endDate?: Date | string
+  type?: TransactionType
+  projectId?: number
+}
 
 export default class TransactionRepository {
   create = async (payload: Transaction) => {
@@ -389,7 +398,90 @@ export default class TransactionRepository {
   readOne = async (id: number) => {
     return await db.transactionGoods.findUnique({ where: { id } })
   }
+  readByPagination = async (
+    page: number = 1,
+    limit: number = 10,
+    filter?: FilterTransaction
+  ) => {
+    const skip = (page - 1) * limit
 
+    let where: Prisma.TransactionGoodsWhereInput = {}
+
+    if (filter) {
+      if (filter.goodsId && !isNaN(filter.goodsId)) {
+        where.goodsId = filter.goodsId
+      }
+
+      if (filter.supplierId && !isNaN(filter.supplierId)) {
+        where.supplierId = filter.supplierId
+      }
+
+      if (filter.projectId && !isNaN(filter.projectId)) {
+        where.projectId = filter.projectId
+      }
+
+      if (filter.type) {
+        where.type = filter.type
+      }
+
+      // Add date range filter if either startDate or endDate is provided
+      if (filter.startDate || filter.endDate) {
+        where.date = {}
+
+        if (filter.startDate) {
+          where.date.gte = new Date(filter.startDate)
+        }
+
+        if (filter.endDate) {
+          where.date.lte = new Date(filter.endDate)
+        }
+      }
+    }
+
+    const data = await db.transactionGoods.findMany({
+      skip,
+      take: limit,
+      where,
+      include: {
+        good: {
+          include: {
+            measurement: true,
+            brand: true,
+            location: true,
+          },
+        },
+        supplier: {
+          select: {
+            name: true,
+          },
+        },
+        project: {
+          select: {
+            name: true,
+          },
+        },
+        User: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        date: 'desc',
+      },
+    })
+
+    const total = await db.transactionGoods.count({ where })
+    const total_pages = Math.ceil(total / limit)
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      total_pages,
+    }
+  }
   updateGoods = async (id: number, type: TransactionType, qty: number) => {
     if (type == 'in') {
       await db.goods.update({
