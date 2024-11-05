@@ -1,14 +1,8 @@
 import { Router } from 'express'
 import { AuthMiddleware } from './middleware/auth-middleware'
-import multer from 'multer'
 
 import AuthRoutes from './modules/auth/router'
 import AccountRouter from './modules/account/router'
-import RolesRoutes from './modules/roles-permissions/roles/router'
-import UserRoleRoutes from './modules/roles-permissions/user-role/router'
-import PermissionRoutes from './modules/roles-permissions/permission/router'
-import PermissionGroupRoutes from './modules/roles-permissions/permission-group/router'
-import ActiviyLogRouter from './modules/log/router'
 
 // HRIS
 import PositionRoutes from './modules/hris/position/router'
@@ -55,12 +49,7 @@ export function setupRoutes(
   const routes: RouteConfig[] = [
     // COMMON
     { path: '/auth', router: new AuthRoutes().router },
-    { path: '/roles', router: new RolesRoutes().router, auth: true },
-    { path: '/user-role', router: new UserRoleRoutes().router, auth: true },
     { path: '/account', router: new AccountRouter().router, auth: true },
-    { path: '/permission', router: new PermissionRoutes().router, auth: true },
-    { path: '/permission-group', router: new PermissionGroupRoutes().router, auth: true, },
-    { path: '/log', router: new ActiviyLogRouter().router },
 
     // HRIS
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },
