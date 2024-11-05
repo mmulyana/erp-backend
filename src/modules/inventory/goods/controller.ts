@@ -85,7 +85,6 @@ export default class GoodsController extends BaseController {
       )
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
-      console.log(error)
       next(error)
     }
   }
@@ -94,7 +93,6 @@ export default class GoodsController extends BaseController {
       const data = await this.repository.readAll()
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
-      console.log(error)
       next(error)
     }
   }

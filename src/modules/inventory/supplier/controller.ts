@@ -28,14 +28,12 @@ export default class SupplierController extends BaseController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      console.log(req.body)
       const data = await this.repository.update(Number(id), {
         ...req.body,
-        photoUrl: req.file?.filename,
+        newPhotoUrl: req.file?.filename,
       })
       return this.response.success(res, this.message.successUpdate(), data)
     } catch (error) {
-      console.log(error)
       next(error)
     }
   }

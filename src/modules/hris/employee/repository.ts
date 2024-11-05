@@ -565,7 +565,6 @@ export default class EmployeeRepository {
       )
       expire_at = date
     }
-    console.log('expire at', expire_at)
     return await db.certification.update({
       data: {
         ...payload,
