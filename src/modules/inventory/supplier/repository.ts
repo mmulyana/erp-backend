@@ -13,9 +13,7 @@ export default class SupplierRepository {
         name: payload.name,
         phone: payload.phone,
         email: payload.email,
-        ...(payload.photoUrl !== ''
-          ? { photoUrl: payload.photoUrl }
-          : undefined),
+        ...(payload.photoUrl !== '' ? { photoUrl: payload.photoUrl } : null),
         tags: {
           create:
             payload.tags?.map((tagId) => ({
