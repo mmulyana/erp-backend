@@ -20,6 +20,8 @@ export default class SupplierRouter extends RouterWithFile {
     )
     this.router.patch(
       '/:id',
+      this.upload.single('photo'),
+      this.compressImage,
       // this.updateSchema.validate,
       this.controller.updateHandler
     )
