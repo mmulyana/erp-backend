@@ -1,16 +1,18 @@
 import { deleteFile } from '../../../utils/file'
 import { Supplier } from './schema'
 import db from '../../../lib/db'
+import { Prisma } from '@prisma/client'
 
 export default class SupplierRepository {
   create = async (
     payload: Supplier & { photoUrl?: string; tags: string[] }
   ) => {
-    await db.supplier.create({
+    return await db.supplier.create({
       data: {
         address: payload.address,
         name: payload.name,
         phone: payload.phone,
+        email: payload.email,
         ...(payload.photoUrl !== ''
           ? { photoUrl: payload.photoUrl }
           : undefined),
@@ -27,85 +29,89 @@ export default class SupplierRepository {
   }
   update = async (
     id: number,
-    payload: Supplier & { photoUrl?: string; tags: string[] }
+    payload: Supplier & { newPhotoUrl?: string; photoUrl: string }
   ) => {
     await this.isExist(id)
-    if (payload.photoUrl) {
-      const data = await db.supplier.findUnique({ where: { id } })
-      if (data?.photoUrl) {
-        deleteFile(data?.photoUrl)
+
+    const data: Prisma.SupplierUpdateInput = {}
+
+    if (payload.newPhotoUrl || payload.photoUrl == null) {
+      const existing = await db.supplier.findUnique({ where: { id } })
+      if (existing?.photoUrl) {
+        deleteFile(existing?.photoUrl)
       }
+      data.photoUrl = null
+    }
+    if (payload.newPhotoUrl) {
+      data.photoUrl == payload.newPhotoUrl
+    }
+    if (payload.name) {
+      data.name = payload.name
+    }
+    if (payload.email) {
+      data.email = payload.email
+    }
+    if (payload.address) {
+      data.address = payload.address
+    }
+    if (payload.phone) {
+      data.phone = payload.phone
     }
 
-    const data = await db.supplier.update({
-      data: {
-        address: payload.address,
-        name: payload.name,
-        phone: payload.phone,
-        email: payload.email,
-        ...(payload.photoUrl !== ''
-          ? { photoUrl: payload.photoUrl }
-          : undefined),
-      },
+    return await db.supplier.update({
+      data,
       where: { id },
       select: {
         id: true,
       },
     })
-
-    if (!!payload.tags?.length) {
-      this.updateTag(id, { tagIds: payload.tags.map((item) => Number(item)) })
-    }
-
-    return data
   }
   updateTag = async (id: number, payload: { tagIds: number[] }) => {
-    try {
-      const { tagIds } = payload
-      const supplier = await db.supplier.findUnique({
-        where: { id },
-        include: {
-          tags: {
-            include: {
-              tag: true,
-            },
+    const { tagIds } = payload
+    const supplier = await db.supplier.findUnique({
+      where: { id },
+      include: {
+        tags: {
+          include: {
+            tag: true,
           },
         },
-      })
+      },
+    })
 
-      if (!supplier) {
-        throw new Error('Supplier not found')
-      }
-
-      const currentTagIds = supplier.tags.map((tag) => tag.tag.id)
-
-      const tagsToConnect = tagIds.filter(
-        (tagId) => !currentTagIds.includes(tagId)
-      )
-      const tagsToDisconnect = currentTagIds.filter(
-        (tagId) => !tagIds.includes(tagId)
-      )
-
-      await db.supplier.update({
-        where: { id },
-        data: {
-          tags: {
-            deleteMany: {
-              tagId: {
-                in: tagsToDisconnect,
-              },
-            },
-            create: tagsToConnect.map((tagId) => ({
-              tag: {
-                connect: { id: tagId },
-              },
-            })),
-          },
-        },
-      })
-    } catch (error) {
-      throw error
+    if (!supplier) {
+      throw new Error('Supplier not found')
     }
+
+    const currentTagIds = supplier.tags.map((tag) => tag.tag.id)
+
+    const tagsToConnect = tagIds.filter(
+      (tagId) => !currentTagIds.includes(tagId)
+    )
+    const tagsToDisconnect = currentTagIds.filter(
+      (tagId) => !tagIds.includes(tagId)
+    )
+
+    return await db.supplier.update({
+      where: { id },
+      data: {
+        tags: {
+          deleteMany: {
+            tagId: {
+              in: tagsToDisconnect,
+            },
+          },
+          create: tagsToConnect.map((tagId) => ({
+            tag: {
+              connect: { id: tagId },
+            },
+          })),
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
   }
   delete = async (id: number) => {
     await this.isExist(id)
