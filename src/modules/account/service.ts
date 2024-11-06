@@ -1,8 +1,9 @@
-import { Prisma } from '@prisma/client'
-import AccountRepository from './repository'
 import { deleteFile } from '../../utils/file'
+import AccountRepository from './repository'
+import { compare, hash } from 'bcryptjs'
+import { Prisma } from '@prisma/client'
+import { UpdatePasswordDto } from './schema'
 
-// Types
 export type CreateAccountDto = {
   email: string
   name: string
@@ -138,5 +139,38 @@ export default class AccountService {
     }
 
     await this.repository.deleteUserPermission({ userId, permissionId })
+  }
+  updatePassword = async (userId: number, data: UpdatePasswordDto) => {
+    const user = await this.repository.getAccountById(userId)
+    if (!user) {
+      throw new Error('User tidak ditemukan')
+    }
+
+    const isValidPassword = await compare(data.oldPassword, user.password)
+    if (!isValidPassword) {
+      throw new Error('Password lama tidak sama')
+    }
+
+    if (data.oldPassword === data.newPassword) {
+      throw new Error('Password baru tidak boleh sama')
+    }
+
+    const hashedPassword = await hash(data.newPassword, 10)
+
+    await this.repository.updateAccountById(userId, {
+      password: hashedPassword,
+    })
+  }
+  resetPassword = async (userId: number, newPassword: string) => {
+    const user = await this.repository.getAccountById(userId)
+    if (!user) {
+      throw new Error('User tidak ditemukan')
+    }
+
+    const hashedPassword = await hash(newPassword, 10)
+
+    await this.repository.updateAccountById(userId, {
+      password: hashedPassword,
+    })
   }
 }
