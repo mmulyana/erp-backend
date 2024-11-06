@@ -1,74 +1,127 @@
 import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../helper/api-response'
-import AccountRepository from './repository'
-import { PayloadUser } from '../../utils/types/common'
+import BaseController from '../../helper/base-controller'
+import AccountService from './service'
 
-export default class AccountController {
-  private response: ApiResponse = new ApiResponse()
-  private repository: AccountRepository = new AccountRepository()
+export default class AccountController extends BaseController {
+  private service: AccountService = new AccountService()
 
-  getAccount = async (req: Request, res: Response, next: NextFunction) => {
+  constructor() {
+    super('Akun')
+  }
+
+  getAccountHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { id } = req.params
-      const data = await this.repository.read(Number(id))
-      this.response.success(res, 'success get account', data)
+      const data = await this.service.getAccount(Number(id))
+      return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
   }
-
-  getAccounts = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await this.repository.readAll()
-      this.response.success(res, 'success get accounts', data)
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  updateAccount = async (req: Request, res: Response, next: NextFunction) => {
+  updateAccountHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { id } = req.params
-      const { name, email, password, rolesId } = req.body
-      
-      await this.repository.readExisting(email, name)
-      
-      const data = await this.repository.update(Number(id), {
-        email,
-        name,
-        rolesId,
-        ...(password ? password : undefined),
+      await this.service.updateAccount(Number(id), {
+        ...req.body,
+        newPhoto: req.file?.filename,
       })
-      return this.response.success(res, 'success update account', data)
+      return this.response.success(res, this.message.successUpdate())
     } catch (error) {
       next(error)
     }
   }
-
-  createAccount = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { email, name, password, rolesId } = req.body
-      const payload: PayloadUser = {
-        email,
-        name,
-        rolesId,
-      }
-      if (!!password) {
-        payload.password = password
-      }
-      await this.repository.create(payload)
-
-      return this.response.success(res, 'success create account')
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  deleteAccount = async (req: Request, res: Response, next: NextFunction) => {
+  deleteAccountHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { id } = req.params
-      this.repository.delete(Number(id))
-      return this.response.success(res, 'success delete account')
+      await this.service.deleteAccount(Number(id))
+      return this.response.success(res, this.message.successUpdate())
+    } catch (error) {
+      next(error)
+    }
+  }
+  createAccountHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await this.service.createAccount({
+        ...req.body,
+        photo: req.file?.filename,
+      })
+      return this.response.success(res, this.message.successUpdate())
+    } catch (error) {
+      next(error)
+    }
+  }
+  updateRoleAccountHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id, roleId } = req.params
+      const data = await this.service.updateRoleAccount(
+        Number(id),
+        Number(roleId)
+      )
+      return this.response.success(
+        res,
+        this.message.successUpdateField('role'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  createPermissionHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id, permissionId } = req.query
+      const data = await this.service.createPermissionAccount(
+        Number(id),
+        Number(permissionId)
+      )
+      return this.response.success(
+        res,
+        this.message.successCreateField('Hak istimewa'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  deletePermissionHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id, permissionId } = req.query
+      const data = await this.service.deletePermissionAccount(
+        Number(id),
+        Number(permissionId)
+      )
+      return this.response.success(
+        res,
+        this.message.successDeleteField('Hak istimewa'),
+        data
+      )
     } catch (error) {
       next(error)
     }
