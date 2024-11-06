@@ -1,7 +1,12 @@
 import { deleteFile } from '../../../utils/file'
+import { Prisma } from '@prisma/client'
 import { Supplier } from './schema'
 import db from '../../../lib/db'
-import { Prisma } from '@prisma/client'
+
+interface FilterSupplier {
+  name?: string
+  tagIds?: number[]
+}
 
 export default class SupplierRepository {
   create = async (
@@ -211,6 +216,75 @@ export default class SupplierRepository {
         id,
       },
     })
+  }
+  readByPagination = async (
+    page: number = 1,
+    limit: number = 10,
+    filter?: FilterSupplier
+  ) => {
+    const skip = (page - 1) * limit
+
+    const baseQuery: Prisma.SupplierFindManyArgs = {
+      skip,
+      take: limit,
+      where: {},
+      include: {
+        employees: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    }
+
+    if (
+      filter?.name &&
+      filter.name !== 'undefined' &&
+      filter.name.trim() !== ''
+    ) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        OR: [
+          { name: { contains: filter.name.toLowerCase() } },
+          { name: { contains: filter.name.toUpperCase() } },
+          { name: { contains: filter.name } },
+        ],
+      }
+    }
+
+    if (
+      filter?.tagIds &&
+      Array.isArray(filter.tagIds) &&
+      filter.tagIds.length > 0
+    ) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        tags: {
+          some: {
+            tagId: {
+              in: filter.tagIds,
+            },
+          },
+        },
+      }
+    }
+
+    const data = await db.supplier.findMany(baseQuery)
+
+    const total = await db.supplier.count({
+      where: baseQuery.where,
+    })
+
+    const total_pages = Math.ceil(total / limit)
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      total_pages,
+    }
   }
   readTransactionBySupplierId = async (supplierId: number) => {
     return await db.transactionGoods.findMany({
