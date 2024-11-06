@@ -126,4 +126,32 @@ export default class AccountController extends BaseController {
       next(error)
     }
   }
+
+  updatePasswordHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      await this.service.updatePassword(Number(id), req.body)
+      return this.response.success(res, 'Password berhasil diperbarui')
+    } catch (error) {
+      next(error)
+    }
+  }
+  resetPasswordHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      const { message } = req.body
+      await this.service.resetPassword(Number(id), message ?? 'password')
+      return this.response.success(res, 'Password berhasil direset')
+    } catch (error) {
+      next(error)
+    }
+  }
 }
