@@ -4,6 +4,7 @@ import { AuthMiddleware } from './middleware/auth-middleware'
 import AuthRoutes from './modules/auth/router'
 import AccountRouter from './modules/account/router'
 import DashboardRouter from './modules/dashboard/router'
+import RoleRouter from './modules/role/router'
 
 // HRIS
 import PositionRoutes from './modules/hris/position/router'
@@ -52,6 +53,7 @@ export function setupRoutes(
     { path: '/auth', router: new AuthRoutes().router },
     { path: '/account', router: new AccountRouter(multerConfig).router, auth: true },
     { path: '/dashboard', router: new DashboardRouter().router, auth: true },
+    { path: '/role', router: new RoleRouter().router, auth: true },
 
     // HRIS
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },
