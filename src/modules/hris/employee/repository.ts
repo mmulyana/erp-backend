@@ -547,12 +547,18 @@ export default class EmployeeRepository {
       },
     })
   }
-  updateCertif = async (certifId: number, payload: Certification & {certif_file: string}) => {
+  updateCertif = async (
+    certifId: number,
+    payload: Certification & { certif_file: string }
+  ) => {
     let expire_at: null | Date = null
 
-    if(payload.certif_file) {
-      const existing = await db.certification.findUnique({where: {id: certifId}, select: {certif_file: true}})
-      if(existing?.certif_file) {
+    if (payload.certif_file) {
+      const existing = await db.certification.findUnique({
+        where: { id: certifId },
+        select: { certif_file: true },
+      })
+      if (existing?.certif_file) {
         deleteFile(existing.certif_file, PATHS.FILES)
       }
     }
@@ -610,7 +616,7 @@ export default class EmployeeRepository {
     return data
   }
 
-  getExpiringCertificates = async () => {
+  getExpiringCertificates = async (positionId?: number) => {
     const today = new Date()
     const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
     const oneMonthFromNow = new Date(jakartaTime)
@@ -623,6 +629,7 @@ export default class EmployeeRepository {
         },
         employee: {
           isHidden: false,
+          positionId: positionId ?? undefined,
         },
       },
 
@@ -641,7 +648,9 @@ export default class EmployeeRepository {
 
     return expiringCertificates.map((cert) => {
       if (!cert.expire_at) return
-      const expireDate = new Date(new Date(cert.expire_at).getTime() + (7 * 60 * 60 * 1000))
+      const expireDate = new Date(
+        new Date(cert.expire_at).getTime() + 7 * 60 * 60 * 1000
+      )
 
       return {
         ...cert,
@@ -651,7 +660,7 @@ export default class EmployeeRepository {
       }
     })
   }
-  getExpiringSafety = async () => {
+  getExpiringSafety = async (positionId?: number) => {
     const today = new Date()
     const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
     const oneMonthFromNow = new Date(jakartaTime)
@@ -663,6 +672,7 @@ export default class EmployeeRepository {
           lte: oneMonthFromNow,
         },
         isHidden: false,
+        positionId: positionId ?? undefined,
       },
       select: {
         id: true,
