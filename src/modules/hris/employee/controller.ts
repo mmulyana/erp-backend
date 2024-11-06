@@ -544,7 +544,10 @@ export default class EmployeeController extends BaseController {
     next: NextFunction
   ) => {
     try {
-      const data = await this.repository.getExpiringCertificates()
+      const { positionId } = req.query
+      const data = await this.repository.getExpiringCertificates(
+        positionId ? Number(positionId) : undefined
+      )
       return this.response.success(
         res,
         this.message.customMessage(
@@ -562,7 +565,10 @@ export default class EmployeeController extends BaseController {
     next: NextFunction
   ) => {
     try {
-      const data = await this.repository.getExpiringSafety()
+      const { positionId } = req.query
+      const data = await this.repository.getExpiringSafety(
+        positionId ? Number(positionId) : undefined
+      )
       return this.response.success(
         res,
         this.message.customMessage(
