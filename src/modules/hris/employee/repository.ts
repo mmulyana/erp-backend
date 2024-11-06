@@ -655,7 +655,6 @@ export default class EmployeeRepository {
       return {
         ...cert,
         certif_name: cert.certif_name,
-        expireAt: format(expireDate, 'EEEE, d MMM yyyy'),
         daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
       }
     })
