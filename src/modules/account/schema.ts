@@ -40,5 +40,13 @@ export const updateAccountSchema = z
   .partial()
   .strict()
 
+export const updatePasswordSchema = z
+  .object({
+    oldPassword: z.string().min(1, 'Password lama harus diisi'),
+    newPassword: z.string().min(8, 'Password sekurangnya 8 karakter'),
+  })
+  .strict()
+
+export type UpdatePasswordDto = z.infer<typeof updatePasswordSchema>
 export type CreateAccountSchema = z.infer<typeof createAccountSchema>
 export type UpdateAccountSchema = z.infer<typeof updateAccountSchema>
