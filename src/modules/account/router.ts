@@ -2,10 +2,15 @@ import RouterWithFile from '../../helper/router-with-file'
 import { MulterConfig } from '../../utils/multer-config'
 import Validation from '../../helper/validation'
 import AccountController from './controller'
-import { createAccountSchema, updateAccountSchema } from './schema'
+import {
+  createAccountSchema,
+  updateAccountSchema,
+  updatePasswordSchema,
+} from './schema'
 
 export default class AccountRouter extends RouterWithFile {
   private controller: AccountController = new AccountController()
+  private updatePassword: Validation = new Validation(updatePasswordSchema)
   private create: Validation = new Validation(createAccountSchema)
   private update: Validation = new Validation(updateAccountSchema)
 
@@ -44,6 +49,15 @@ export default class AccountRouter extends RouterWithFile {
     this.router.patch(
       '/:id/permission/remove/:permissionId',
       this.controller.createPermissionHandler
+    )
+    this.router.patch(
+      '/:id/password/update',
+      this.updatePassword.validate,
+      this.controller.updatePasswordHandler
+    )
+    this.router.patch(
+      '/:id/password/reset',
+      this.controller.resetPasswordHandler
     )
   }
 }
