@@ -59,6 +59,39 @@ export default class SupplierController extends BaseController {
       next(error)
     }
   }
+  readByPaginationHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { name, page, limit, tag } = req.query
+
+      let parsedTagIds: number[] | undefined = undefined
+
+      if (tag) {
+        if (typeof tag === 'string') {
+          const tagId = Number(tag)
+          parsedTagIds = !isNaN(tagId) ? [tagId] : undefined
+        } else if (Array.isArray(tag)) {
+          parsedTagIds = tag.map((id) => Number(id)).filter((id) => !isNaN(id))
+        }
+      }
+
+      const data = await this.repository.readByPagination(
+        Number(page) || 1,
+        Number(limit) || 10,
+        {
+          name: name ? String(name) : undefined,
+          tagIds:
+            parsedTagIds && parsedTagIds.length > 0 ? parsedTagIds : undefined,
+        }
+      )
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, tag } = req.query
