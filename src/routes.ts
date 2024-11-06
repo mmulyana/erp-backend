@@ -50,7 +50,7 @@ export function setupRoutes(
   const routes: RouteConfig[] = [
     // COMMON
     { path: '/auth', router: new AuthRoutes().router },
-    { path: '/account', router: new AccountRouter().router, auth: true },
+    { path: '/account', router: new AccountRouter(multerConfig).router, auth: true },
     { path: '/dashboard', router: new DashboardRouter().router, auth: true },
 
     // HRIS
