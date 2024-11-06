@@ -1,202 +1,122 @@
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
-import { genSalt, hash } from 'bcryptjs'
 import { Prisma } from '@prisma/client'
 import db from '../../lib/db'
-
-export interface Payload {
-  name: string
-  email: string
-  password?: string
-  rolesId: number
-}
-
-interface Query {
-  data: {
-    name: string
-    email: string
-    rolesId: number
-    password?: string
-    created_at?: string
-    updated_at?: string
-  }
-  where: {
-    id: number
-  }
-}
+import { CreateAccountDto } from './service'
 
 export default class AccountRepository {
-  create = async (payload: Payload) => {
-    try {
-      const existingUser = await db.user.findFirst({
-        where: {
-          OR: [
-            {
-              name: payload.name,
-            },
-            {
-              email: payload.email,
-            },
-          ],
-        },
-      })
-      if (existingUser) {
-        throw new Error('user already registered')
-      }
-
-      const salt = await genSalt()
-      const password = await hash(payload.password || 'password', salt)
-      const query = {
-        data: {
-          ...payload,
-          password,
-        },
-      }
-      const user = await db.user.create(query)
-      return { user }
-    } catch (error: any) {
-      if (
-        error instanceof PrismaClientKnownRequestError &&
-        error.code === 'P2002' &&
-        error.meta?.target === 'users_name_key'
-      ) {
-        console.error('A user with this name or email already exists')
-      } else {
-        throw error
-      }
-    }
-  }
-
-  read = async (id: number) => {
-    try {
-      const data = await db.user.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          roles: {
-            select: {
-              role: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+  getAccountById = async (id: number) => {
+    return await db.user.findUnique({
+      where: { id },
+      include: {
+        employee: true,
+        role: {
+          include: {
+            rolePermissions: {
+              include: {
+                permission: true,
               },
             },
           },
         },
-      })
-
-      const rolesIds = data?.roles.map((role) => role.role.id)
-
-      const dataPermissions = await db.rolePermission.findMany({
-        where: {
-          roleId: {
-            in: rolesIds,
+        UserPermission: {
+          include: {
+            permission: true,
           },
         },
-        select: {
-          permission: {
-            select: {
-              name: true,
+      },
+    })
+  }
+
+  updateAccountById = async (id: number, data: Prisma.UserUpdateInput) => {
+    return await db.user.update({ where: { id }, data })
+  }
+
+  deleteAccountById = async (id: number) => {
+    return await db.user.delete({ where: { id } })
+  }
+
+  createAccount = async (data: CreateAccountDto) => {
+    const roleId = data.roleId ? Number(data.roleId) : undefined
+
+    return await db.user.create({
+      data: {
+        email: data.email,
+        name: data.name,
+        password: data.password,
+        phoneNumber: data.phoneNumber,
+        employeeId: data.employeeId,
+        photo: data.photo,
+        roleId: roleId,
+      },
+      include: {
+        employee: true,
+        role: true,
+        UserPermission: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    })
+  }
+
+  updateRoleAccount = async (id: number, roleId: number) => {
+    return await db.$transaction(async (tx) => {
+      return await tx.user.update({
+        where: { id },
+        data: {
+          roleId: roleId,
+        },
+        include: {
+          role: true,
+          UserPermission: {
+            include: {
+              permission: true,
             },
           },
         },
       })
-
-      const permissions = dataPermissions.map(
-        (permission) => permission.permission.name
-      )
-
-      const user = {
-        name: data?.name,
-        email: data?.email,
-        roles: data?.roles.map((role) => ({
-          name: role.role.name,
-          id: role.role.id,
-        })),
-        permissions: [...new Set(permissions)],
-      }
-      return { user }
-    } catch (error) {
-      throw error
-    }
+    })
   }
 
-  readExisting = async (email: string, name: string) => {
-    try {
-      const user = await db.user.findUnique({
-        where: {
-          email: email,
-          name: name,
-        },
-      })
-      if (user?.email == email && user.name == name) {
-        return
-      }
-
-      if (user) {
-        throw new Error('Akun sudah terdaftar')
-      }
-    } catch (error) {
-      throw error
-    }
+  createUserPermission = async (data: {
+    userId: number
+    permissionId: number
+  }) => {
+    return await db.userPermission.create({ data })
   }
 
-  update = async (id: number, payload: Payload) => {
-    try {
-      const updated_at = new Date().toISOString()
-      const query: Query = {
-        data: {
-          name: payload.name,
-          email: payload.email,
-          rolesId: payload.rolesId,
-          updated_at,
+  deleteUserPermission = async (data: {
+    userId: number
+    permissionId: number
+  }) => {
+    return await db.userPermission.delete({
+      where: {
+        userId_permissionId: {
+          userId: data.userId,
+          permissionId: data.permissionId,
         },
-        where: {
-          id,
-        },
-      }
-      if (!!payload.password) {
-        query.data.password = payload.password
-      }
-      const data = await db.user.update(query)
-      let user: any = data
-      delete user.password
-      return { user }
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new Error('A user with this email already exists.')
-        }
-      }
-      throw new Error('Failed to update user')
-    }
+      },
+    })
   }
 
-  delete = async (id: number) => {
-    try {
-      await db.user.delete({
-        where: { id },
-      })
-    } catch (error) {
-      return error
-    }
+  getRoleById = async (id: number) => {
+    return await db.role.findUnique({
+      where: { id },
+      include: {
+        rolePermissions: {
+          include: {
+            permission: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    })
   }
 
-  readAll = async () => {
-    try {
-      const data = await db.user.findMany({})
-      const users = data.map((user) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        roles: {
-          permissions: [],
-        },
-      }))
-      return { users }
-    } catch (error) {
-      throw error
-    }
+  getPermissionById = async (id: number) => {
+    return await db.permission.findUnique({ where: { id } })
   }
 }
