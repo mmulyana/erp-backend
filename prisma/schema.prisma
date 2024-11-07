@@ -42,8 +42,16 @@ model Role {
 model Permission {
   id              Int              @id @default(autoincrement())
   name            String           @unique
+  groupId         Int?
   rolePermissions RolePermission[]
   userPermissions UserPermission[]
+  group           PermissionGroup? @relation(fields: [groupId], references: [id])
+}
+
+model PermissionGroup {
+  id          Int          @id @default(autoincrement())
+  name        String
+  permissions Permission[]
 }
 
 model RolePermission {
