@@ -85,14 +85,16 @@ export default class AccountService {
     await this.repository.deleteAccountById(id)
   }
   createAccount = async (data: CreateAccountDto) => {
-    if (!data.email || !data.name || !data.password || !data.phoneNumber) {
+    if (!data.email || !data.name || !data.phoneNumber) {
       throw new Error('Missing required fields')
     }
+
+    const hashedPassword = await hash(data.password || 'password', 10)
 
     const account = await this.repository.createAccount({
       email: data.email,
       name: data.name,
-      password: data.password,
+      password: hashedPassword,
       phoneNumber: data.phoneNumber,
       employeeId: data.employeeId,
       photo: data.photo,
