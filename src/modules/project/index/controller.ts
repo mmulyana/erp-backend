@@ -121,4 +121,20 @@ export default class ProjectController extends BaseController {
       next(error)
     }
   }
+  readTotalHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.repository.getTotalProject()
+      return this.response.success(
+        res,
+        this.message.successReadField('total'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
 }
