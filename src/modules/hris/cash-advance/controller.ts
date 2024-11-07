@@ -20,7 +20,7 @@ export default class CashAdvanceController extends BaseController {
   updateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      await this.repository.update(Number(id), req.body)
+      const data = await this.repository.update(Number(id), req.body)
       return this.response.success(res, this.message.successUpdate())
     } catch (error) {
       next(error)
@@ -35,10 +35,18 @@ export default class CashAdvanceController extends BaseController {
       next(error)
     }
   }
-  readHandler = async (req: Request, res: Response, next: NextFunction) => {
+  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.query
-      const data = await this.repository.read(Number(id))
+      const data = await this.repository.readAll()
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readByIdHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readById(Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
