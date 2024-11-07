@@ -29,7 +29,7 @@ export default class CashAdvanceRepository {
   }
   update = async (id: number, payload: cashAdvance) => {
     await this.isExist(id)
-    await db.cashAdvance.update({
+    return await db.cashAdvance.update({
       data: {
         ...payload,
         requestDate: new Date(payload.requestDate).toISOString(),
@@ -37,32 +37,16 @@ export default class CashAdvanceRepository {
       where: {
         id,
       },
+      select: {
+        id: true,
+      },
     })
   }
   delete = async (id: number) => {
     await this.isExist(id)
     await db.cashAdvance.delete({ where: { id } })
   }
-  read = async (id?: number) => {
-    if (!!id) {
-      await this.isExist(id)
-      const data = await db.cashAdvance.findUnique({
-        select: {
-          employee: {
-            select: {
-              id: true,
-              fullname: true,
-            },
-          },
-          amount: true,
-          id: true,
-          requestDate: true,
-          description: true,
-        },
-        where: { id },
-      })
-      return data
-    }
+  readAll = async () => {
     const data = await db.cashAdvance.findMany({
       select: {
         employee: {
@@ -75,7 +59,28 @@ export default class CashAdvanceRepository {
         id: true,
         requestDate: true,
         description: true,
+        employeeId: true,
       },
+    })
+    return data
+  }
+  readById = async (id: number) => {
+    await this.isExist(id)
+    const data = await db.cashAdvance.findUnique({
+      select: {
+        employee: {
+          select: {
+            id: true,
+            fullname: true,
+          },
+        },
+        amount: true,
+        id: true,
+        requestDate: true,
+        description: true,
+        employeeId: true,
+      },
+      where: { id },
     })
     return data
   }
