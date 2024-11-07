@@ -258,7 +258,7 @@ model EmployeeStatusTrack {
 
 model BoardContainer {
   id       String       @id
-  name     String
+  name     String       @unique
   color    String
   position Int
   items    BoardItems[]
@@ -282,6 +282,7 @@ model Project {
   date_started     DateTime?
   date_ended       DateTime?
   isArchive        Boolean?            @default(false)
+  isDeleted        Boolean?            @default(false)
   net_value        Decimal?            @db.Decimal(10, 2)
   leadId           Int?
   clientId         Int?
