@@ -60,4 +60,23 @@ export default class CashAdvanceController extends BaseController {
       next(error)
     }
   }
+  readTotalInYearHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { total } = req.query
+      const data = await this.repository.readTotalInYear(
+        total ? Number(total) : undefined
+      )
+      return this.response.success(
+        res,
+        this.message.successReadField('jumlah kasbon'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
 }
