@@ -5,6 +5,7 @@ import AuthRoutes from './modules/auth/router'
 import AccountRouter from './modules/account/router'
 import DashboardRouter from './modules/dashboard/router'
 import RoleRouter from './modules/role/router'
+import PermissionRouter from './modules/permission/router'
 
 // HRIS
 import PositionRoutes from './modules/hris/position/router'
@@ -54,6 +55,7 @@ export function setupRoutes(
     { path: '/account', router: new AccountRouter(multerConfig).router, auth: true },
     { path: '/dashboard', router: new DashboardRouter().router, auth: true },
     { path: '/role', router: new RoleRouter().router, auth: true },
+    { path: '/permission', router: new PermissionRouter().router, auth: true },
 
     // HRIS
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },
