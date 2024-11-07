@@ -43,4 +43,12 @@ export default class BoardController extends BaseController {
       next(error)
     }
   }
+  handleBoardChart = async (_: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await this.repository.getBoardChart()
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
 }
