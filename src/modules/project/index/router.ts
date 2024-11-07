@@ -34,10 +34,12 @@ export default class ProjectRouter {
     )
     this.router.delete('/:id', this.controller.handleDelete)
     this.router.get('/', this.controller.handleRead)
-
+ 
     this.router.patch('/employee/add/:projectId', this.addEmployee.validate, this.controller.handleAddEmployee)
     this.router.patch('/employee/remove/:id', this.controller.handleRemoveEmployee)
     this.router.patch('/label/add/:projectId', this.addLabel.validate, this.controller.handleAddLabel)
     this.router.patch('/label/remove/:id', this.controller.handleRemoveLabel)
+   
+    this.router.get('/data/total', this.controller.readTotalHandler)
   }
 }
