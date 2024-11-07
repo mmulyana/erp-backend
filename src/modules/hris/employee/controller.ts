@@ -58,7 +58,11 @@ export default class EmployeeController extends BaseController {
       next(error)
     }
   }
-  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
+  readByPaginationHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const page = Number(req.query.page) || 1
       const limit = Number(req.query.limit) || 10
@@ -69,7 +73,22 @@ export default class EmployeeController extends BaseController {
       if (req.query.positionId) {
         where.positionId = Number(req.query.positionId)
       }
-      const data = await this.repository.readAll(page, limit, where)
+      const data = await this.repository.readByPagination(page, limit, where)
+      this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      let where: FilterEmployee = {}
+      if (req.query.name) {
+        where.fullname = String(req.query.name)
+      }
+      if (req.query.positionId) {
+        where.positionId = Number(req.query.positionId)
+      }
+      const data = await this.repository.findAll(where)
       this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
