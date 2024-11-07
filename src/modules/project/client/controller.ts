@@ -52,4 +52,20 @@ export default class ClientController extends BaseController {
       next(error)
     }
   }
+  handleTopClientChart = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.repository.getTopClients()
+      return this.response.success(
+        res,
+        this.message.successReadField('klien dengan proyek terbanyak'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
 }
