@@ -12,6 +12,7 @@ import {
 import { z } from 'zod'
 
 import { differenceInDays, format } from 'date-fns'
+import { Prisma } from '@prisma/client'
 
 type Employee = z.infer<typeof employeeSchema>
 type UpdateEmployee = z.infer<typeof updateEmployeeSchema>
@@ -190,13 +191,13 @@ export default class EmployeeRepository {
     })
     return data
   }
-  readAll = async (
+  readByPagination = async (
     page: number = 1,
     limit: number = 10,
     filter?: FilterEmployee
   ) => {
     const skip = (page - 1) * limit
-    const where: any = {
+    const where: Prisma.EmployeeWhereInput = {
       isHidden: false,
     }
 
@@ -242,6 +243,46 @@ export default class EmployeeRepository {
     const total = await db.employee.count({ where })
     const total_pages = Math.ceil(total / limit)
     return { data, total, page, limit, total_pages }
+  }
+  findAll = async (filter?: FilterEmployee) => {
+    const where: Prisma.EmployeeWhereInput = {
+      isHidden: false,
+    }
+
+    if (filter) {
+      if (filter.fullname) {
+        where.OR = [
+          { fullname: { contains: filter.fullname.toLowerCase() } },
+          { fullname: { contains: filter.fullname.toUpperCase() } },
+          { fullname: { contains: filter.fullname } },
+        ]
+      }
+    }
+
+    const data = await db.employee.findMany({
+      where,
+      select: {
+        fullname: true,
+        id: true,
+        status: true,
+        last_education: true,
+        birth_date: true,
+        photo: true,
+        certifications: {
+          include: {
+            competency: true,
+          },
+        },
+        competencies: {
+          select: {
+            competency: true,
+            id: true,
+          },
+        },
+      },
+    })
+
+    return data
   }
 
   // PHOTO
