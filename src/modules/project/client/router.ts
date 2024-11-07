@@ -20,5 +20,6 @@ export default class ClientRouter {
     this.router.delete('/:id', this.controller.handleDelete)
     this.router.get('/', this.controller.handleRead)
     this.router.get('/:id', this.controller.handleReadOne)
+    this.router.get('/data/top-client', this.controller.handleTopClientChart)
   }
 }
