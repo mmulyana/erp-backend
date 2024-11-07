@@ -337,4 +337,25 @@ export default class ProjectRepository {
       select: { projectId: true },
     })
   }
+
+  getTotalProject = async () => {
+    const active = await db.project.count({
+      where: {
+        isArchive: false,
+        isDeleted: false,
+        date_ended: null,
+      },
+    })
+    const done = await db.project.count({
+      where: {
+        isArchive: false,
+        isDeleted: false,
+        date_ended: {
+          not: null
+        },
+      },
+    })
+
+    return { active, done }
+  }
 }
