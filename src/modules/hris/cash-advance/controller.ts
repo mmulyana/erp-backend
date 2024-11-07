@@ -1,7 +1,6 @@
-import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import CashAdvanceRepository from './repository'
 import BaseController from '../../../helper/base-controller'
+import { NextFunction, Request, Response } from 'express'
+import CashAdvanceRepository from './repository'
 
 export default class CashAdvanceController extends BaseController {
   private repository: CashAdvanceRepository = new CashAdvanceRepository()
@@ -41,6 +40,22 @@ export default class CashAdvanceController extends BaseController {
       const { id } = req.query
       const data = await this.repository.read(Number(id))
       return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readTotalHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const data = await this.repository.readTotal()
+      return this.response.success(
+        res,
+        this.message.successReadField('jumlah kasbon'),
+        data
+      )
     } catch (error) {
       next(error)
     }
