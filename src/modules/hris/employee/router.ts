@@ -1,18 +1,18 @@
-import {
-  addressSchema,
-  competencySchema,
-  contactSchema,
-  employeeSchema,
-  positionSchema,
-  certifchema,
-  updateEmployeeSchema,
-  competencySingleSchema,
-} from './schema'
 import RouterWithFile from '../../../helper/router-with-file'
 import { MulterConfig } from '../../../utils/multer-config'
 import Validation from '../../../helper/validation'
 import EmployeeController from './controller'
 import { Multer } from 'multer'
+import {
+  competencySingleSchema,
+  updateEmployeeSchema,
+  competencySchema,
+  employeeSchema,
+  positionSchema,
+  addressSchema,
+  contactSchema,
+  certifchema,
+} from './schema'
 
 export default class EmployeeRouter extends RouterWithFile {
   private controller: EmployeeController = new EmployeeController()
@@ -38,6 +38,7 @@ export default class EmployeeRouter extends RouterWithFile {
     this.router.post('/', this.employeeSchema.validate, this.controller.createHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.patch('/soft-delete/:id', this.controller.softDeleteHandler)
+    this.router.get('/pagination', this.controller.readByPaginationHandler)
     this.router.get('/', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readHandler)
     this.router.patch('/update-photo/:id', 
