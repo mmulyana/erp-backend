@@ -18,5 +18,8 @@ export default class CashAdvanceRouter {
     this.router.patch('/:id', this.cashAdvanceSchema.validate, this.controller.updateHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
     this.router.get('/', this.controller.readHandler)
+
+    this.router.get('/data/total-by-month', this.controller.readTotalInYearHandler)
+    this.router.get('/data/total', this.controller.readTotalHandler)
   }
 }
