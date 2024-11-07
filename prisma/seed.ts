@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import { generateUUID } from '../src/utils/generate-uuid'
+import { hash } from 'bcryptjs'
+import dotenv from 'dotenv'
+dotenv.config()
 
 const prisma = new PrismaClient()
 
@@ -24,7 +27,6 @@ const PERMISSIONS = [
   'overtime:read',
 ]
 
-// Define permission sets for different roles
 const ROLE_PERMISSIONS = {
   admin: [
     'employee:detail',
@@ -41,7 +43,23 @@ const ROLE_PERMISSIONS = {
   ],
 }
 
+async function cleanDatabase() {
+  await prisma.rolePermission.deleteMany({})
+  await prisma.userPermission.deleteMany({})
+  await prisma.user.deleteMany({})
+  await prisma.role.deleteMany({})
+  await prisma.permission.deleteMany({})
+  await prisma.projectLabel.deleteMany({})
+  await prisma.boardContainer.deleteMany({})
+}
+
 async function main() {
+  console.log('Cleaning existing data...')
+  await cleanDatabase()
+  console.log('Database cleaned')
+
+  console.log('Starting to seed data...')
+
   // Create board containers
   for (let i = 0; i < 4; i++) {
     let id = `container-${generateUUID()}`
@@ -79,9 +97,11 @@ async function main() {
     },
   })
 
-  await prisma.role.create({
+  // Create Superadmin role with all permissions
+  const superadminRole = await prisma.role.create({
     data: {
       name: 'Superadmin',
+      description: 'Super Administrator with full access',
       rolePermissions: {
         create: permissions.map((permission) => ({
           permission: {
@@ -125,6 +145,20 @@ async function main() {
       },
     },
   })
+
+  const hashedPassword = await hash('password', 10)
+
+  await prisma.user.create({
+    data: {
+      name: 'superadmin',
+      email: process.env.EMAIL as string,
+      phoneNumber: process.env.PHONE as string,
+      password: hashedPassword,
+      roleId: superadminRole.id,
+    },
+  })
+
+  console.log('Seeding completed')
 }
 
 main()
