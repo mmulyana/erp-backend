@@ -6,7 +6,7 @@ dotenv.config()
 
 const prisma = new PrismaClient()
 
-const BOARD_NAMES = ['Penawaran', 'Dikerjakan', 'Penagihan', 'selesai']
+const BOARD_NAMES = ['penawaran', 'dikerjakan', 'penagihan', 'selesai']
 const BOARD_COLORS = ['#DC7A50', '#506FDC', '#4FAAFF', '#2A9D90']
 
 const LABELS_NAMES = ['Maintain', 'Project']
