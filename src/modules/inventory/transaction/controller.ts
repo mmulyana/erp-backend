@@ -57,6 +57,19 @@ export default class TransactionController extends BaseController {
       next(error)
     }
   }
+  readByProjectIdHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { projectId } = req.params
+      const data = await this.repository.findByProjectId(Number(projectId))
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
   readByPaginationHandler = async (
     req: Request,
     res: Response,

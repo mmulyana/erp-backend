@@ -482,6 +482,13 @@ export default class TransactionRepository {
       total_pages,
     }
   }
+  findByProjectId = async (projectId: number) => {
+    return await db.transactionGoods.findMany({
+      where: { projectId },
+      orderBy: { created_at: 'desc' },
+    })
+  }
+
   updateGoods = async (id: number, type: TransactionType, qty: number) => {
     if (type == 'in') {
       await db.goods.update({
