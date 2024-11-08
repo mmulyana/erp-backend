@@ -58,7 +58,13 @@ export default class TransactionRepository {
             qty: Number(item.qty),
             type: item.type,
             goodsId: Number(item.goodsId),
+
+            ...(payload.projectId
+              ? { projectId: Number(payload.projectId) }
+              : undefined),
+
             ...(item.price ? { price: Number(item.price) } : undefined),
+
             ...(payload.supplierId
               ? { supplierId: Number(payload.supplierId) }
               : undefined),
@@ -359,6 +365,7 @@ export default class TransactionRepository {
         date: true,
         qty: true,
         price: true,
+        is_returned: true,
         type: true,
         project: {
           select: {
@@ -424,7 +431,6 @@ export default class TransactionRepository {
         where.type = filter.type
       }
 
-      // Add date range filter if either startDate or endDate is provided
       if (filter.startDate || filter.endDate) {
         where.date = {}
 
@@ -486,6 +492,33 @@ export default class TransactionRepository {
     return await db.transactionGoods.findMany({
       where: { projectId },
       orderBy: { created_at: 'desc' },
+      select: {
+        good: {
+          select: {
+            id: true,
+            name: true,
+            measurement: {
+              select: {
+                name: true,
+              },
+            },
+            brand: {
+              select: {
+                name: true,
+              },
+            },
+            location: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        qty: true,
+        date: true,
+        is_returned: true,
+        id: true,
+      },
     })
   }
 
@@ -538,6 +571,29 @@ export default class TransactionRepository {
         where: { id },
       })
     }
+  }
+
+  returnedGoods = async (id: number) => {
+    const transaction = await db.transactionGoods.findUnique({ where: { id } })
+    if (!!transaction?.is_returned) {
+      throw Error('Barang sudah dikembalikan')
+    }
+
+    await db.transactionGoods.update({
+      data: { is_returned: true },
+      where: { id },
+    })
+
+    await db.goods.update({
+      where: { id: transaction?.goodsId },
+      data: {
+        available: {
+          increment: transaction?.qty,
+        },
+      },
+    })
+
+    return { id: transaction?.projectId }
   }
 
   readGoodsBorrowed = async () => {
