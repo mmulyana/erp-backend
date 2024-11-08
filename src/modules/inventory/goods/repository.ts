@@ -185,11 +185,29 @@ export default class GoodsRepository {
       total_pages,
     }
   }
-  readAll = async () => {
+  readAll = async (filter?: FilterGoods) => {
+    let where: Prisma.GoodsWhereInput = {
+      is_deleted: false,
+    }
+
+    if (filter) {
+      if (
+        filter.name &&
+        filter.name !== 'undefined' &&
+        filter.name.trim() !== ''
+      ) {
+        where = {
+          ...where,
+          OR: [
+            { name: { contains: filter.name.toLowerCase() } },
+            { name: { contains: filter.name.toUpperCase() } },
+            { name: { contains: filter.name } },
+          ],
+        }
+      }
+    }
     return await db.goods.findMany({
-      where: {
-        is_deleted: false,
-      },
+      where,
       include: {
         brand: true,
         category: true,
