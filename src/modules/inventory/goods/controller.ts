@@ -90,7 +90,10 @@ export default class GoodsController extends BaseController {
   }
   readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await this.repository.readAll()
+      const { name } = req.query
+      const data = await this.repository.readAll({
+        name: name ? String(name) : undefined,
+      })
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
