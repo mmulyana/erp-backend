@@ -120,4 +120,17 @@ export default class TransactionController extends BaseController {
       next(error)
     }
   }
+  returnedGoodsHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.returnedGoods(Number(id))
+      return this.response.success(res, this.message.successUpdate(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
 }
