@@ -1,4 +1,5 @@
 import { generateUUID } from '../../../utils/generate-uuid'
+import { Prisma } from '@prisma/client'
 import { Project } from './schema'
 import db from '../../../lib/db'
 
@@ -84,29 +85,7 @@ export default class ProjectRepository {
       },
     })
     if (!existingProject) throw new Error('proyek tidak ditemukan')
-
-    // const existingLabelIds = existingProject.labels.map(
-    //   (label) => label.labelId
-    // )
-
-    // const labelsToAdd = payload?.labels.filter(
-    //   (id) => !existingLabelIds.includes(id)
-    // )
-    // const labelsToRemove = existingLabelIds.filter(
-    //   (id) => !payload.labels.includes(id)
-    // )
-
-    // const existingEmployeeIds = existingProject.employees.map(
-    //   (employee) => employee.employeeId
-    // )
-    // const employeesToAdd = payload.employees.filter(
-    //   (id) => !existingEmployeeIds.includes(id)
-    // )
-    // const employeesToRemove = existingEmployeeIds.filter(
-    //   (id) => !payload.employees.includes(id)
-    // )
-
-    return await db.project.update({
+    const project = await db.project.update({
       where: { id: id },
       data: {
         name: payload.name,
@@ -118,41 +97,38 @@ export default class ProjectRepository {
         clientId: payload.clientId,
         progress: payload.progress,
         payment_status: payload.payment_status,
-
-        // handle label
-        // labels: {
-        //   deleteMany: {
-        //     labelId: {
-        //       in: labelsToRemove,
-        //     },
-        //   },
-        //   create: labelsToAdd.map((labelId) => ({
-        //     labelId: labelId,
-        //   })),
-        // },
-
-        // handle employee
-        // employees: {
-        //   deleteMany: {
-        //     employeeId: {
-        //       in: employeesToRemove,
-        //     },
-        //   },
-        //   create: employeesToAdd.map((employeeId) => ({
-        //     employeeId: employeeId,
-        //   })),
-        // },
+        isArchive: payload.isArchive,
+        isDeleted: payload.isDeleted,
       },
       select: {
         id: true,
       },
     })
+
+    let data = {
+      id: project.id,
+      update: false,
+    }
+    if (
+      payload.name ||
+      payload.net_value ||
+      payload.leadId ||
+      payload.clientId ||
+      payload.progress ||
+      payload.isArchive ||
+      payload.isDeleted
+    ) {
+      data.update = true
+    }
+
+    return data
   }
   read = async (
     id?: number,
     search?: string,
     labelId?: number,
-    clientId?: number
+    clientId?: number,
+    isArchive?: boolean
   ) => {
     if (!!id) {
       return db.project.findUnique({
@@ -224,8 +200,12 @@ export default class ProjectRepository {
     }
 
     const baseQuery = {
-      where: {},
+      where: {
+        isArchive: false,
+        isDeleted: false,
+      } as Prisma.ProjectWhereInput,
     }
+
     if (search) {
       baseQuery.where = {
         ...baseQuery.where,
@@ -250,11 +230,7 @@ export default class ProjectRepository {
     if (clientId) {
       baseQuery.where = {
         ...baseQuery.where,
-        clientId: {
-          some: {
-            clientId,
-          },
-        },
+        clientId,
       }
     }
 
@@ -263,6 +239,8 @@ export default class ProjectRepository {
       select: {
         id: true,
         name: true,
+        isArchive: true,
+        isDeleted: true,
         boardItemsId: true,
         clientId: true,
         net_value: true,
@@ -327,7 +305,10 @@ export default class ProjectRepository {
     const skip = (page - 1) * limit
 
     const baseQuery = {
-      where: {} as any,
+      where: {
+        isArchive: false,
+        isDeleted: false,
+      } as Prisma.ProjectWhereInput,
     }
 
     if (filter?.search) {
@@ -355,11 +336,7 @@ export default class ProjectRepository {
     if (filter?.clientId) {
       baseQuery.where = {
         ...baseQuery.where,
-        clientId: {
-          some: {
-            clientId: filter.clientId,
-          },
-        },
+        clientId: filter.clientId,
       }
     }
 
@@ -370,6 +347,8 @@ export default class ProjectRepository {
       select: {
         id: true,
         name: true,
+        isArchive: true,
+        isDeleted: true,
         boardItemsId: true,
         clientId: true,
         net_value: true,
