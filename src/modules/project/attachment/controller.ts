@@ -30,10 +30,21 @@ export default class AttachmentController extends BaseController {
       next(error)
     }
   }
-  handleRead = async (req: Request, res: Response, next: NextFunction) => {
+  handleReadById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      const data = await this.repository.readAttachment(Number(id))
+      const data = await this.repository.findById(Number(id))
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  handleRead = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { name } = req.query
+      const data = await this.repository.findAll(
+        name ? String(name) : undefined
+      )
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)

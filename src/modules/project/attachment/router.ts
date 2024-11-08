@@ -32,6 +32,7 @@ export default class AttachmentRouter {
       this.controller.handleUpdate
     )
     this.router.delete('/:id', this.controller.handleDelete)
-    this.router.get('/:id', this.controller.handleRead)
+    this.router.get('/:id', this.controller.handleReadById)
+    this.router.get('/', this.controller.handleRead)
   }
 }

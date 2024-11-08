@@ -1,6 +1,7 @@
 import { deleteFile, PATHS } from '../../../utils/file'
 import { Attachment } from './schema'
 import db from '../../../lib/db'
+import { Prisma } from '@prisma/client'
 
 export default class AttachmentRepository {
   createAttachment = async (
@@ -23,12 +24,30 @@ export default class AttachmentRepository {
     })
   }
 
-  readAttachment = async (id: number) => {
+  findById = async (id: number) => {
     return await db.projectAttachment.findUnique({
       where: { id },
       include: {
         project: true,
         user: true,
+      },
+    })
+  }
+
+  findAll = async (name?: string) => {
+    const where: Prisma.ProjectAttachmentWhereInput = {}
+
+    if (name) {
+      where.OR = [{ name: { contains: name.toLowerCase() } }]
+      where.OR = [{ name: { contains: name.toUpperCase() } }]
+      where.OR = [{ name: { contains: name } }]
+    }
+
+    return await db.projectAttachment.findMany({
+      where,
+      take: name ? undefined : 20,
+      orderBy: {
+        uploaded_at: 'desc',
       },
     })
   }
