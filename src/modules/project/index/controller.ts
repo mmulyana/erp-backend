@@ -158,4 +158,24 @@ export default class ProjectController extends BaseController {
       next(error)
     }
   }
+  updateStatusHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id, containerId } = req.params
+      const data = await this.repository.updateStatus(
+        Number(id),
+        String(containerId)
+      )
+      return this.response.success(
+        res,
+        this.message.successUpdateField('status'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
 }

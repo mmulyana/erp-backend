@@ -75,16 +75,43 @@ export default class ProjectRepository {
   ) => {
     const existingProject = await db.project.findUnique({
       where: { id: id },
-      include: {
-        labels: {
-          select: { labelId: true },
+      select: {
+        boardItems: {
+          select: {
+            id: true,
+          },
         },
-        employees: {
-          select: { employeeId: true },
-        },
+        date_ended: true,
       },
     })
     if (!existingProject) throw new Error('proyek tidak ditemukan')
+
+    // handle if change date_ended status will change
+    if (!!payload.date_ended) {
+      const id = existingProject.boardItems.id
+
+      const lastContainer = await db.boardContainer.findMany({
+        orderBy: { position: 'desc' },
+        take: 1,
+      })
+
+      const boardItem = await db.boardItems.findMany({
+        where: { containerId: lastContainer[0].id },
+        take: 1,
+        orderBy: {
+          position: 'desc',
+        },
+      })
+
+      await db.boardItems.update({
+        data: {
+          position: boardItem[0].position + 1,
+          containerId: lastContainer[0].id,
+        },
+        where: { id },
+      })
+    }
+
     const project = await db.project.update({
       where: { id: id },
       data: {
@@ -116,12 +143,42 @@ export default class ProjectRepository {
       payload.clientId ||
       payload.progress ||
       payload.isArchive ||
-      payload.isDeleted
+      payload.isDeleted ||
+      payload.date_ended
     ) {
       data.update = true
     }
 
     return data
+  }
+  updateStatus = async (id: number, containerId: string) => {
+    const data = await db.project.findUnique({
+      where: { id },
+      select: {
+        boardItems: {
+          select: {
+            id: true,
+            containerId: true,
+          },
+        },
+      },
+    })
+
+    const boardItem = await db.boardItems.findMany({
+      where: { containerId },
+      take: 1,
+      orderBy: {
+        position: 'desc',
+      },
+    })
+
+    await db.boardItems.update({
+      data: {
+        position: boardItem[0].position + 1,
+        containerId: containerId,
+      },
+      where: { id: data?.boardItems.id },
+    })
   }
   read = async (
     id?: number,
