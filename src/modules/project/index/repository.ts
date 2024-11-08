@@ -2,6 +2,12 @@ import { generateUUID } from '../../../utils/generate-uuid'
 import { Project } from './schema'
 import db from '../../../lib/db'
 
+interface ProjectFilter {
+  search?: string
+  labelId?: number
+  clientId?: number
+}
+
 export default class ProjectRepository {
   create = async (payload: Project) => {
     const lastItem = await db.boardItems.findFirst({
@@ -313,6 +319,124 @@ export default class ProjectRepository {
       },
     })
   }
+  readByPagination = async (
+    page: number = 1,
+    limit: number = 10,
+    filter?: ProjectFilter
+  ) => {
+    const skip = (page - 1) * limit
+
+    const baseQuery = {
+      where: {} as any,
+    }
+
+    if (filter?.search) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        OR: [
+          { name: { contains: filter.search.toLowerCase() } },
+          { name: { contains: filter.search.toUpperCase() } },
+          { name: { contains: filter.search } },
+        ],
+      }
+    }
+
+    if (filter?.labelId) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        labels: {
+          some: {
+            labelId: filter.labelId,
+          },
+        },
+      }
+    }
+
+    if (filter?.clientId) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        clientId: {
+          some: {
+            clientId: filter.clientId,
+          },
+        },
+      }
+    }
+
+    const data = await db.project.findMany({
+      skip,
+      take: limit,
+      ...baseQuery,
+      select: {
+        id: true,
+        name: true,
+        boardItemsId: true,
+        clientId: true,
+        net_value: true,
+        progress: true,
+        boardItems: {
+          select: {
+            container: {
+              select: {
+                color: true,
+                name: true,
+              },
+            },
+          },
+        },
+        labels: {
+          select: {
+            label: true,
+          },
+        },
+        employees: {
+          select: {
+            employee: {
+              select: {
+                fullname: true,
+                photo: true,
+              },
+            },
+          },
+        },
+        client: {
+          select: {
+            name: true,
+            company: {
+              select: {
+                logo: true,
+              },
+            },
+          },
+        },
+        lead: {
+          select: {
+            id: true,
+            fullname: true,
+            photo: true,
+          },
+        },
+        _count: {
+          select: {
+            employees: true,
+            activities: true,
+            attachments: true,
+          },
+        },
+      },
+    })
+
+    const total = await db.project.count({ where: baseQuery.where })
+    const total_pages = Math.ceil(total / limit)
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      total_pages,
+    }
+  }
   addLabel = async (projectId: number, labelId: number) => {
     return await db.projectHasLabel.create({
       data: { projectId, labelId },
@@ -351,7 +475,7 @@ export default class ProjectRepository {
         isArchive: false,
         isDeleted: false,
         date_ended: {
-          not: null
+          not: null,
         },
       },
     })

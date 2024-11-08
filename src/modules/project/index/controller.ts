@@ -49,6 +49,27 @@ export default class ProjectController extends BaseController {
       next(error)
     }
   }
+  handleReadByPagination = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { search, labelId, clientId, page, limit } = req.query
+      const data = await this.repository.readByPagination(
+        page ? Number(page) : undefined,
+        limit ? Number(limit) : undefined,
+        {
+          search: search ? String(search) : undefined,
+          clientId: clientId ? Number(clientId) : undefined,
+          labelId: labelId ? Number(labelId) : undefined,
+        }
+      )
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
   handleAddEmployee = async (
     req: Request,
     res: Response,

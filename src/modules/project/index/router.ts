@@ -34,6 +34,7 @@ export default class ProjectRouter {
     )
     this.router.delete('/:id', this.controller.handleDelete)
     this.router.get('/', this.controller.handleRead)
+    this.router.get('/list/pagination', this.controller.handleReadByPagination)
  
     this.router.patch('/employee/add/:projectId', this.addEmployee.validate, this.controller.handleAddEmployee)
     this.router.patch('/employee/remove/:id', this.controller.handleRemoveEmployee)
