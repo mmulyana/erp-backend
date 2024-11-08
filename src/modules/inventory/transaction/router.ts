@@ -17,17 +17,17 @@ export default class TransactionRouter extends RouterWithFile {
 
   protected register(): void {
     this.router.post('/', this.create.validate, this.controller.createHandler)
-    this.router.patch(
-      '/:id',
-      this.update.validate,
-      this.controller.updateHandler
-    )
+
+    this.router.patch('/:id',this.update.validate,this.controller.updateHandler)
+    this.router.patch('/:id/returned', this.controller.returnedGoodsHandler)
+
     this.router.get('/', this.controller.readHandler)
     this.router.get('/:id', this.controller.readOneHandler)
-    
+
     this.router.delete('/:id', this.controller.deleteHandler)
+
+    this.router.get('/list/project/:projectId',this.controller.readByProjectIdHandler)
     this.router.get('/list/pagination', this.controller.readByPaginationHandler)
     this.router.get('/list/borrowed', this.controller.readBorrowedGoodsHandler)
-    this.router.get('/list/project/:projectId', this.controller.readOneHandler)
   }
 }
