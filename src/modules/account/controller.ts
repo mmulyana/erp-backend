@@ -22,6 +22,32 @@ export default class AccountController extends BaseController {
       next(error)
     }
   }
+  getAllAccountHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const page = req.query.page ? Number(req.query.page) : undefined
+      const limit = req.query.limit ? Number(req.query.limit) : undefined
+      const name = req.query.name ? String(req.query.name) : undefined
+      const email = req.query.email ? String(req.query.email) : undefined
+      const phoneNumber = req.query.phoneNumber
+        ? String(req.query.phoneNumber)
+        : undefined
+      const roleId = req.query.roleId ? Number(req.query.roleId) : undefined
+
+      const data = await this.service.getAllAccount(page, limit, {
+        name,
+        email,
+        phoneNumber,
+        roleId,
+      })
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
   updateAccountHandler = async (
     req: Request,
     res: Response,

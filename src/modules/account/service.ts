@@ -27,6 +27,12 @@ interface Account {
   permissions: string[]
 }
 
+export interface FilterUser {
+  name?: string
+  email?: string
+  phoneNumber?: string
+  roleId?: number
+}
 export default class AccountService {
   private repository: AccountRepository = new AccountRepository()
 
@@ -59,6 +65,30 @@ export default class AccountService {
       },
       permissions,
     }
+  }
+  getAllAccount = async (
+    page?: number,
+    limit?: number,
+    filter?: FilterUser
+  ) => {
+    const result = await this.repository.findByPagination(page, limit, filter)
+    const data = result.data.map((item) => {
+      return {
+        id: item.id,
+        email: item.email,
+        name: item.name,
+        phoneNumber: item.phoneNumber,
+        photo: item.photo,
+        roleId: item.roleId,
+        role: {
+          id: item.role?.id,
+          name: item.role?.name,
+          description: item.role?.description,
+        },
+      }
+    })
+
+    return { ...result, data }
   }
   updateAccount = async (
     id: number,
