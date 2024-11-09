@@ -52,7 +52,11 @@ export default class AccountService {
       roleId: data.roleId,
       employeeId: data.employeeId,
       employee: data.employee,
-      role: data.role,
+      role: {
+        id: data.role?.id,
+        name: data.role?.name,
+        description: data.role?.description,
+      },
       permissions,
     }
   }
