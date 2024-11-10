@@ -14,6 +14,7 @@ import AttendanceRoutes from './modules/hris/attendance/router'
 import OvertimeRoutes from './modules/hris/overtime/router'
 import CashAdvanceRoutes from './modules/hris/cash-advance/router'
 import CompetencyRoutes from './modules/hris/competency/router'
+import RecapRoutes from './modules/hris/recap/router'
 
 // PROJECT
 import ProjectRoutes from './modules/project/index/router'
@@ -64,6 +65,7 @@ export function setupRoutes(
     { path: '/hris/cash-advance', router: new CashAdvanceRoutes().router, auth: true, },
     { path: '/hris/competency', router: new CompetencyRoutes().router, auth: true, },
     { path: '/hris/overtime', router: new OvertimeRoutes().router, auth: true },
+    { path: '/hris/recap', router: new RecapRoutes().router, auth: true },
 
     // PROJECT
     { path: '/project/index', router: new ProjectRoutes().router, auth: true },

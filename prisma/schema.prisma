@@ -534,3 +534,10 @@ model SupplierToTag {
   supplier   Supplier    @relation(fields: [supplierId], references: [id])
   tag        SupplierTag @relation(fields: [tagId], references: [id])
 }
+
+model Recap {
+  id         Int      @id @default(autoincrement())
+  name       String
+  start_date DateTime @db.Date()
+  end_date   DateTime @db.Date()
+}
