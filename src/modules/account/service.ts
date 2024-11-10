@@ -92,24 +92,25 @@ export default class AccountService {
   }
   updateAccount = async (
     id: number,
-    payload: Prisma.UserUpdateInput & { newPhoto?: string }
+    payload: Omit<Prisma.UserUpdateInput, 'photo'> & { newPhoto?: string }
   ) => {
     let newData: Prisma.UserUpdateInput = {}
 
-    if (payload.newPhoto || payload.photo === null) {
-      const data = await this.repository.getAccountById(id)
-      if (data?.photo) {
-        deleteFile(data.photo)
+    if ('newPhoto' in payload) {
+      const currentUser = await this.repository.getAccountById(id)
+      if (currentUser?.photo) {
+        deleteFile(currentUser.photo)
       }
-      newData.photo = null
-    }
-    if (payload.newPhoto) {
-      newData.photo = payload.newPhoto
+
+      newData.photo = payload.newPhoto || null
+
+      const { newPhoto, ...restPayload } = payload
+      newData = { ...restPayload, ...newData }
+    } else {
+      newData = payload
     }
 
-    newData = { ...payload, ...newData }
-
-    await this.repository.updateAccountById(id, newData)
+    return await this.repository.updateAccountById(id, newData)
   }
   deleteAccount = async (id: number) => {
     const isAccountExist = await this.repository.getAccountById(id)
