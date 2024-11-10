@@ -37,12 +37,13 @@ export default class ProjectController extends BaseController {
   }
   handleRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id, search, labelId, clientId } = req.query
+      const { id, search, labelId, clientId, isArchive} = req.query
       const data = await this.repository.read(
         Number(id),
         search?.toString(),
         Number(labelId),
-        Number(clientId)
+        Number(clientId),
+        isArchive ? isArchive === 'true' : false
       )
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
@@ -55,7 +56,7 @@ export default class ProjectController extends BaseController {
     next: NextFunction
   ) => {
     try {
-      const { search, labelId, clientId, page, limit } = req.query
+      const { search, labelId, clientId, page, limit, isArchive } = req.query
       const data = await this.repository.readByPagination(
         page ? Number(page) : undefined,
         limit ? Number(limit) : undefined,
@@ -63,6 +64,7 @@ export default class ProjectController extends BaseController {
           search: search ? String(search) : undefined,
           clientId: clientId ? Number(clientId) : undefined,
           labelId: labelId ? Number(labelId) : undefined,
+          isArchive: isArchive ? isArchive === 'true' : false
         }
       )
       return this.response.success(res, this.message.successRead(), data)

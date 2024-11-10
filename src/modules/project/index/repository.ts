@@ -7,6 +7,7 @@ interface ProjectFilter {
   search?: string
   labelId?: number
   clientId?: number
+  isArchive?: boolean
 }
 
 export default class ProjectRepository {
@@ -143,6 +144,7 @@ export default class ProjectRepository {
       payload.clientId ||
       payload.progress ||
       payload.isArchive ||
+      !payload.isArchive ||
       payload.isDeleted ||
       payload.date_ended
     ) {
@@ -185,7 +187,7 @@ export default class ProjectRepository {
     search?: string,
     labelId?: number,
     clientId?: number,
-    isArchive?: boolean
+    isArchive: boolean = false
   ) => {
     if (!!id) {
       return db.project.findUnique({
@@ -271,6 +273,13 @@ export default class ProjectRepository {
           { name: { contains: search.toUpperCase() } },
           { name: { contains: search } },
         ],
+      }
+    }
+
+    if (isArchive) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        isArchive: true,
       }
     }
 
@@ -387,6 +396,13 @@ export default class ProjectRepository {
             labelId: filter.labelId,
           },
         },
+      }
+    }
+
+    if (filter?.isArchive) {
+      baseQuery.where = {
+        ...baseQuery.where,
+        isArchive: true,
       }
     }
 
