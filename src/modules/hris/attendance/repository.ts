@@ -11,7 +11,7 @@ export default class AttendanceRepository {
   private message: Message = new Message('Kehadiran')
   create = async (payload: CreateAttendance) => {
     await db.attendance.create({
-      data: { ...payload, date: parse(payload.date, 'dd-MM-yyyy', new Date()) },
+      data: { ...payload, date: new Date(payload.date) },
     })
   }
   update = async (id: number, payload: UpdateAttendance) => {
@@ -19,9 +19,7 @@ export default class AttendanceRepository {
     await db.attendance.update({
       data: {
         ...payload,
-        ...(payload.date
-          ? { date: parse(payload.date, 'dd-MM-yyyy', new Date()) }
-          : undefined),
+        ...(payload.date ? { date: new Date(payload.date) } : undefined),
       },
       where: { id },
     })
@@ -30,38 +28,42 @@ export default class AttendanceRepository {
     await this.isExist(id)
     await db.attendance.delete({ where: { id } })
   }
-  read = async (startDate: string, { search }: { search?: string }) => {
-    const parsedDate = new Date(startDate)
-    const dayStart = new Date(parsedDate.setHours(0, 0, 0, 0))
-    const dayEnd = new Date(parsedDate.setHours(23, 59, 59, 999))
-
-    const baseQuery = {
-      include: {
+  read = async (
+    startDate: Date,
+    { search, positionId }: { search?: string; positionId?: number }
+  ) => {
+    const positions = await db.position.findMany({
+      where: positionId ? { id: positionId } : undefined,
+      select: {
+        name: true,
         employees: {
-          where: search
-            ? {
-                OR: [
-                  { fullname: { contains: search.toLowerCase() } },
-                  { fullname: { contains: search.toUpperCase() } },
-                  { fullname: { contains: search } },
-                ],
-              }
-            : undefined,
-          include: {
+          where: {
+            AND: [
+              { pay_type: 'daily' },
+              search
+                ? {
+                    OR: [
+                      { fullname: { contains: search.toLowerCase() } },
+                      { fullname: { contains: search.toUpperCase() } },
+                      { fullname: { contains: search } },
+                    ],
+                  }
+                : {},
+            ],
+          },
+          select: {
+            id: true,
+            fullname: true,
+            photo: true,
             attendances: {
               where: {
-                date: {
-                  gte: dayStart,
-                  lt: dayEnd,
-                },
+                date: startDate,
               },
             },
           },
         },
       },
-    }
-
-    const positions = await db.position.findMany(baseQuery)
+    })
 
     const data = positions
       .filter((position) => position.employees.length > 0)
