@@ -9,6 +9,7 @@ export const goodsSchema = z.object({
   measurementId: z.string().optional(),
   categoryId: z.string().optional(),
   brandId: z.string().optional(),
+  description: z.string().optional().nullable(),
 })
 export const updateGoodsSchema = goodsSchema.partial()
 export type Goods = z.infer<typeof goodsSchema>

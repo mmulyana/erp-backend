@@ -14,11 +14,12 @@ interface FilterGoods {
 
 export default class GoodsRepository {
   create = async (payload: Goods & { photoUrl?: string }) => {
-    const data: any = {
+    const data: Prisma.GoodsCreateInput = {
       name: payload.name,
       qty: Number(payload.qty) || 0,
       available: Number(payload.qty) || 0,
       minimum: Number(payload.minimum) || 1,
+      description: payload.description || null,
     }
 
     if (payload.photoUrl) {
@@ -69,6 +70,10 @@ export default class GoodsRepository {
 
     if (payload.name) {
       updateData.name = payload.name
+    }
+
+    if (payload.description) {
+      updateData.description = payload.description
     }
 
     const qty = toNumber(payload.qty)

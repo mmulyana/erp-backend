@@ -163,6 +163,7 @@ export default class ProjectRepository {
             containerId: true,
           },
         },
+        id: true
       },
     })
 
@@ -181,6 +182,8 @@ export default class ProjectRepository {
       },
       where: { id: data?.boardItems.id },
     })
+
+    return {id: data?.id}
   }
   read = async (
     id?: number,
@@ -213,6 +216,7 @@ export default class ProjectRepository {
                 select: {
                   color: true,
                   name: true,
+                  id: true
                 },
               },
             },
@@ -432,6 +436,7 @@ export default class ProjectRepository {
               select: {
                 color: true,
                 name: true,
+                id: true
               },
             },
           },
