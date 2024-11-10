@@ -406,6 +406,7 @@ model Goods {
   qty           Int
   available     Int
   minimum       Int      @default(1)
+  description   String?
   photoUrl      String?
   locationId    Int?
   measurementId Int?
