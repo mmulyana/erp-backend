@@ -7,7 +7,7 @@ const Gender = z.enum(['male', 'female'])
 const MaritalStatus = z.enum(['single', 'married', 'divorced'])
 
 export const employeeSchema = z.object({
-  fullname: z.string(),
+  fullname: z.string().min(1, "Nama tidak boleh kosong"),
   status: z.boolean().default(true),
   joined_at: z.string().optional().nullable(),
   joined_type: JoinedType.default('date').optional().nullable(),
