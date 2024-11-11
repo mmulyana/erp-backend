@@ -23,7 +23,6 @@ export default class EmployeeRouter extends RouterWithFile {
   private positionSchema: Validation = new Validation(positionSchema)
   private addressSchema: Validation = new Validation(addressSchema)
   private contactSchema: Validation = new Validation(contactSchema)
-  private certifSchema: Validation = new Validation(certifchema)
   private uploadDoc: Multer
 
   constructor(multerConfig: MulterConfig) {
@@ -34,17 +33,18 @@ export default class EmployeeRouter extends RouterWithFile {
   }
 
   protected register() {
+    this.router.get('/list/pagination', this.controller.readByPaginationHandler)
+    this.router.get('/:id', this.controller.readHandler)
+    this.router.get('/', this.controller.readAllHandler)
+
     this.router.patch('/:id', this.updateEmployeeSchema.validate, this.controller.updateHandler)
+    this.router.patch('/soft-delete/:id', this.controller.softDeleteHandler)
+    
     this.router.post('/', this.employeeSchema.validate, this.controller.createHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
-    this.router.patch('/soft-delete/:id', this.controller.softDeleteHandler)
-    this.router.get('/pagination', this.controller.readByPaginationHandler)
-    this.router.get('/', this.controller.readAllHandler)
-    this.router.get('/:id', this.controller.readHandler)
-    this.router.patch('/update-photo/:id', 
-      this.upload.single('photo'),
-      this.compressImage,
-      this.controller.uploadPhotoHandler)
+    
+
+    this.router.patch('/update-photo/:id', this.upload.single('photo'), this.compressImage, this.controller.uploadPhotoHandler)
     this.router.patch('/delete-photo/:id', this.controller.deletePhotoHandler)
 
     this.router.patch('/update-competencies', this.controller.updateCompetenciesHandler)

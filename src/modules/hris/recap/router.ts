@@ -21,6 +21,8 @@ export default class EmployeeSupplierRouter {
 
     this.router.get('/list/pagination', this.controller.readByPaginationHandler)
     this.router.get('/:id', this.controller.readOneHandler)
+    this.router.get('/:id/report', this.controller.readReportHandler)
     this.router.get('/', this.controller.readAllHandler)
+    this.router.get('/:id/report/export', this.controller.exportHandler)
   }
 }
