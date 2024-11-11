@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import ApiResponse from '../../../helper/api-response'
-import AttendanceRepository from './repository'
-import { convertDateString } from '../../../utils/convert-date'
 import BaseController from '../../../helper/base-controller'
+import AttendanceRepository from './repository'
+import { endOfDay } from 'date-fns'
 
 export default class AttendanceController extends BaseController {
   private repository: AttendanceRepository = new AttendanceRepository()
@@ -40,12 +40,13 @@ export default class AttendanceController extends BaseController {
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { date, name, positionId } = req.query
+      const localDate = endOfDay(new Date())
 
       const data = await this.repository.read(
-        date ? new Date(date as string) : new Date(),
+        date ? new Date(date as string) : new Date(localDate),
         {
           search: name ? String(name) : undefined,
-          positionId: positionId ? Number(positionId) : undefined
+          positionId: positionId ? Number(positionId) : undefined,
         }
       )
       return this.response.success(res, this.message.successRead(), data)
