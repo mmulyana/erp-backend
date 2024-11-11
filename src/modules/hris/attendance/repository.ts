@@ -1,7 +1,6 @@
 import { createAttendanceSchema, updateAttendanceSchema } from './schema'
 import Message from '../../../utils/constant/message'
 import db from '../../../lib/db'
-import { parse } from 'date-fns'
 import { z } from 'zod'
 
 type CreateAttendance = z.infer<typeof createAttendanceSchema>
@@ -10,7 +9,18 @@ type UpdateAttendance = z.infer<typeof updateAttendanceSchema>
 export default class AttendanceRepository {
   private message: Message = new Message('Kehadiran')
   create = async (payload: CreateAttendance) => {
-    await db.attendance.create({
+    const existing = await db.attendance.findMany({
+      where: {
+        employeeId: payload.employeeId,
+        date: new Date(payload.date),
+      },
+    })
+    if (existing.length > 0) {
+      throw new Error(
+        `Data presensi untuk tanggal ${payload.date} sudah tercatat sebelumnya`
+      )
+    }
+    return await db.attendance.create({
       data: { ...payload, date: new Date(payload.date) },
     })
   }
@@ -56,6 +66,12 @@ export default class AttendanceRepository {
             fullname: true,
             photo: true,
             attendances: {
+              select: {
+                date: true,
+                id: true,
+                total_hour: true,
+                type: true,
+              },
               where: {
                 date: startDate,
               },
@@ -75,7 +91,6 @@ export default class AttendanceRepository {
             employee.attendances.length > 0 ? employee.attendances : null,
         })),
       }))
-
     return data
   }
 
