@@ -1,8 +1,7 @@
-import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import OvertimeRepository from './repository'
-import { convertDateString } from '../../../utils/convert-date'
 import BaseController from '../../../helper/base-controller'
+import { NextFunction, Request, Response } from 'express'
+import OvertimeRepository from './repository'
+import { endOfDay } from 'date-fns'
 
 export default class OvertimeController extends BaseController {
   private repository: OvertimeRepository = new OvertimeRepository()
@@ -37,18 +36,46 @@ export default class OvertimeController extends BaseController {
       next(error)
     }
   }
-  readHandler = async (req: Request, res: Response, next: NextFunction) => {
+  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { date, name } = req.query
-      const searchName = name ? String(name) : undefined
-      let startDate = new Date().toISOString()
-      if (date) {
-        startDate = convertDateString(date as string)
-      }
+      const { date, name, positionId } = req.query
 
-      const data = await this.repository.read(startDate, {
-        search: searchName,
+      const data = await this.repository.read({
+        startDate: date ? new Date(date as string) : endOfDay(new Date()),
+        search: name ? String(name) : undefined,
+        positionId: positionId ? Number(positionId) : undefined,
       })
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readPaginationHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { date, fullname, positionId, page, limit } = req.query
+
+      const data = await this.repository.readByPagination(
+        page ? Number(page) : undefined,
+        limit ? Number(limit) : undefined,
+        {
+          positionId: positionId ? Number(positionId) : undefined,
+          fullname: fullname ? String(fullname) : undefined,
+          startDate: date ? new Date(date as string) : endOfDay(new Date()),
+        }
+      )
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.readOne(Number(id))
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
