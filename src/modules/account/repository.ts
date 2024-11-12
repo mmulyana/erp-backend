@@ -1,6 +1,7 @@
-import { CreateAccountDto, FilterUser } from './service'
+import { FilterUser } from './service'
 import { Prisma } from '@prisma/client'
 import db from '../../lib/db'
+import { CreateAccountSchema } from './schema'
 
 export default class AccountRepository {
   findByPagination = async (
@@ -102,47 +103,18 @@ export default class AccountRepository {
     return await db.user.delete({ where: { id } })
   }
 
-  createAccount = async (data: CreateAccountDto) => {
-    const roleId = data.roleId ? Number(data.roleId) : undefined
-
+  createAccount = async (data: Prisma.UserCreateManyInput) => {
     return await db.user.create({
-      data: {
-        email: data.email,
-        name: data.name,
-        password: data.password,
-        phoneNumber: data.phoneNumber,
-        employeeId: data.employeeId,
-        photo: data.photo,
-        roleId: roleId,
-      },
-      include: {
-        employee: true,
-        role: true,
-        UserPermission: {
-          include: {
-            permission: true,
-          },
-        },
-      },
+      data,
     })
   }
 
   updateRoleAccount = async (id: number, roleId: number) => {
-    return await db.$transaction(async (tx) => {
-      return await tx.user.update({
-        where: { id },
-        data: {
-          roleId: roleId,
-        },
-        include: {
-          role: true,
-          UserPermission: {
-            include: {
-              permission: true,
-            },
-          },
-        },
-      })
+    return await db.user.update({
+      where: { id },
+      data: {
+        roleId: roleId,
+      },
     })
   }
 

@@ -11,16 +11,10 @@ export interface LoginDTO {
   password: string
 }
 
-export interface UserPayload {
-  name: string
-  email: string
-  token: string
-}
-
 export class AuthService {
   private repository: AuthRepository = new AuthRepository()
 
-  async login(credentials: LoginDTO): Promise<UserPayload> {
+  async login(credentials: LoginDTO) {
     const { email, name, password, phoneNumber } = credentials
 
     let user
@@ -37,14 +31,13 @@ export class AuthService {
     }
 
     const token = jwt.sign(
-      { id: user.id, name: user.name, email: user.email },
+      { id: user.id, name: user.name },
       process.env.SECRET as string,
       { expiresIn: '2d' }
     )
 
     return {
       name: user.name,
-      email: user.email,
       token,
     }
   }

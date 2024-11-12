@@ -1,18 +1,8 @@
 import { deleteFile } from '../../utils/file'
+import { CreateAccountSchema, UpdatePasswordDto } from './schema'
 import AccountRepository from './repository'
 import { compare, hash } from 'bcryptjs'
 import { Prisma } from '@prisma/client'
-import { UpdatePasswordDto } from './schema'
-
-export type CreateAccountDto = {
-  email: string
-  name: string
-  password: string
-  phoneNumber: string
-  employeeId?: number
-  roleId?: number
-  photo?: string
-}
 
 interface Account {
   id: number
@@ -36,7 +26,7 @@ export interface FilterUser {
 export default class AccountService {
   private repository: AccountRepository = new AccountRepository()
 
-  getAccount = async (id: number): Promise<Account> => {
+  getAccount = async (id: number) => {
     const data = await this.repository.getAccountById(id)
     if (!data) {
       throw new Error('akun tidak ditemukan')
@@ -57,6 +47,7 @@ export default class AccountService {
       photo: data.photo,
       roleId: data.roleId,
       employeeId: data.employeeId,
+      created_at: data.created_at,
       employee: data.employee,
       role: {
         id: data.role?.id,
@@ -80,6 +71,7 @@ export default class AccountService {
         phoneNumber: item.phoneNumber,
         photo: item.photo,
         roleId: item.roleId,
+        created_at: item.created_at,
         role: {
           id: item.role?.id,
           name: item.role?.name,
@@ -119,21 +111,16 @@ export default class AccountService {
     }
     await this.repository.deleteAccountById(id)
   }
-  createAccount = async (data: CreateAccountDto) => {
-    if (!data.email || !data.name || !data.phoneNumber) {
-      throw new Error('Missing required fields')
-    }
-
-    const hashedPassword = await hash(data.password || 'password', 10)
+  createAccount = async (data: CreateAccountSchema) => {
+    const hashedPassword = await hash('password', 10)
 
     const account = await this.repository.createAccount({
       email: data.email,
       name: data.name,
       password: hashedPassword,
       phoneNumber: data.phoneNumber,
-      employeeId: data.employeeId,
-      photo: data.photo,
-      roleId: data.roleId,
+      // employeeId: data.employeeId,
+      // roleId: data.roleId,
     })
 
     return account

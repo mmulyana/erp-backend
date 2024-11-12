@@ -11,9 +11,10 @@ datasource db {
 model User {
   id                Int                 @id @default(autoincrement())
   name              String              @unique
-  email             String              @unique
-  phoneNumber       String              @unique
+  email             String?             @unique
+  phoneNumber       String?             @unique
   photo             String?
+  active            Boolean             @default(true)
   password          String
   created_at        DateTime            @default(now()) @db.Date()
   updated_at        DateTime            @updatedAt

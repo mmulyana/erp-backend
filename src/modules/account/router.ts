@@ -21,7 +21,7 @@ export default class AccountRouter extends RouterWithFile {
   }
 
   protected register() {    
-    this.router.post('/', this.upload.single('photo'), this.compressImage, this.createSchema.validate, this.controller.createAccountHandler)
+    this.router.post('/', this.createSchema.validate, this.controller.createAccountHandler)
     
     this.router.delete('/:id', this.controller.deleteAccountHandler)
     
