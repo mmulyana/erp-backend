@@ -14,21 +14,16 @@ const passwordLength = 8
 
 export const createAccountSchema = z.object({
   name: z.string().min(1, 'Nama harus lebih dari 1 huruf'),
-  email: z
-    .string()
-    .refine((val) => {
-      if (val === '') return true
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
-    }, 'Format email salah')
-    .nullable(),
+  email: z.string().email('Format email salah').optional().nullable(),
   phoneNumber: z
     .string()
     .refine((val) => {
       if (val === '') return true
       return phoneNumberRegex.test(val)
     }, 'Format nomor telepon salah')
+    .optional()
     .nullable(),
-  // roleId: z.number().optional(),
+  roleId: z.number().optional().nullable(),
 })
 
 export const updateAccountSchema = z

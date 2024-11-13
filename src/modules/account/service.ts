@@ -1,5 +1,9 @@
 import { deleteFile } from '../../utils/file'
-import { CreateAccountSchema, UpdatePasswordDto } from './schema'
+import {
+  CreateAccountSchema,
+  UpdateAccountSchema,
+  UpdatePasswordDto,
+} from './schema'
 import AccountRepository from './repository'
 import { compare, hash } from 'bcryptjs'
 import { Prisma } from '@prisma/client'
@@ -83,8 +87,29 @@ export default class AccountService {
   }
   updateAccount = async (
     id: number,
-    payload: Omit<Prisma.UserUpdateInput, 'photo'> & { newPhoto?: string }
+    payload: Omit<UpdateAccountSchema, 'photo'> & { newPhoto?: string }
   ) => {
+    const data = await this.repository.getAccountById(id)
+
+    if (!!payload.email && payload.email !== data?.email) {
+      const data = await this.repository.findByEmail(payload?.email)
+      if (data.exist) {
+        throw new Error('Email ini sudah digunakan')
+      }
+    }
+    if (!!payload.phoneNumber && payload.phoneNumber !== data?.phoneNumber) {
+      const data = await this.repository.findByPhone(payload?.phoneNumber)
+      if (data.exist) {
+        throw new Error('Nomor telp ini sudah digunakan')
+      }
+    }
+    if (!!payload.name && payload.name !== data?.name) {
+      const data = await this.repository.findByName(payload?.name)
+      if (data.exist) {
+        throw new Error('Nama ini sudah digunakan, silahkan pakai nama lain')
+      }
+    }
+
     let newData: Prisma.UserUpdateInput = {}
 
     if ('newPhoto' in payload) {
@@ -110,16 +135,31 @@ export default class AccountService {
     }
     await this.repository.deleteAccountById(id)
   }
-  createAccount = async (data: CreateAccountSchema) => {
+  createAccount = async (payload: CreateAccountSchema) => {
+    if (!!payload.email) {
+      const data = await this.repository.findByEmail(payload.email)
+      if (data.exist) {
+        throw new Error('Email ini sudah digunakan')
+      }
+    }
+    if (!!payload.phoneNumber) {
+      const data = await this.repository.findByPhone(payload?.phoneNumber)
+      if (data.exist) {
+        throw new Error('Nomor telp ini sudah digunakan')
+      }
+    }
+    if (!!payload.name) {
+      const data = await this.repository.findByName(payload?.name)
+      if (data.exist) {
+        throw new Error('Nama ini sudah digunakan, silahkan pakai nama lain')
+      }
+    }
+
     const hashedPassword = await hash('password', 10)
 
     const account = await this.repository.createAccount({
-      email: data.email,
-      name: data.name,
+      ...payload,
       password: hashedPassword,
-      phoneNumber: data.phoneNumber,
-      // employeeId: data.employeeId,
-      // roleId: data.roleId,
     })
 
     return account
@@ -135,7 +175,13 @@ export default class AccountService {
       throw new Error('Role tidak ada')
     }
 
-    await this.repository.updateRoleAccount(id, roleId)
+    await this.repository.updateAccountById(id, {
+      role: {
+        connect: {
+          id: roleId,
+        },
+      },
+    })
   }
   updatePassword = async (userId: number, data: UpdatePasswordDto) => {
     const user = await this.repository.getAccountById(userId)

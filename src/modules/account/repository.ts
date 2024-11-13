@@ -104,15 +104,6 @@ export default class AccountRepository {
     })
   }
 
-  updateRoleAccount = async (id: number, roleId: number) => {
-    return await db.user.update({
-      where: { id },
-      data: {
-        roleId: roleId,
-      },
-    })
-  }
-
   getRoleById = async (id: number) => {
     return await db.role.findUnique({
       where: { id },
@@ -126,22 +117,22 @@ export default class AccountRepository {
   findByPhone = async (phoneNumber: string) => {
     const data = await db.user.findUnique({ where: { phoneNumber } })
     if (data) {
-      return { result: false }
+      return { exist: true }
     }
-    return { result: true }
+    return { exist: false }
   }
   findByName = async (name: string) => {
     const data = await db.user.findUnique({ where: { name } })
     if (data) {
-      return { result: false }
+      return { exist: true }
     }
-    return { result: true }
+    return { exist: false }
   }
   findByEmail = async (email: string) => {
     const data = await db.user.findUnique({ where: { email } })
     if (data) {
-      return { result: false }
+      return { exist: true }
     }
-    return { result: true }
+    return { exist: false }
   }
 }
