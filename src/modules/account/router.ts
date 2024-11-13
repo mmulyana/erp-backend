@@ -30,6 +30,9 @@ export default class AccountRouter extends RouterWithFile {
     this.router.patch('/:id/password/update', this.updatePassword.validate, this.controller.updatePasswordHandler)
     this.router.patch('/:id/password/reset', this.controller.resetPasswordHandler)
 
+    this.router.patch('/:id/activate', this.controller.activateHandler)
+    this.router.patch('/:id/deactivate', this.controller.deactivateHandler)
+
     this.router.get('/:id', this.controller.getAccountHandler)
     this.router.get('/', this.controller.getAllAccountHandler)
   }

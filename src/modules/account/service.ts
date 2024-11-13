@@ -32,11 +32,10 @@ export default class AccountService {
       throw new Error('akun tidak ditemukan')
     }
 
-
     const rolePermissions =
       data.role?.RolePermission?.map((rp) => rp.permission.key) || []
 
-    const permissions = [...new Set([ ...rolePermissions])]
+    const permissions = [...new Set([...rolePermissions])]
 
     return {
       id: data.id,
@@ -71,6 +70,7 @@ export default class AccountService {
         photo: item.photo,
         roleId: item.roleId,
         created_at: item.created_at,
+        active: item.active,
         role: {
           id: item.role?.id,
           name: item.role?.name,
@@ -169,5 +169,11 @@ export default class AccountService {
     await this.repository.updateAccountById(userId, {
       password: hashedPassword,
     })
+  }
+  activate = async (id: number) => {
+    await this.repository.updateAccountById(id, { active: true })
+  }
+  deactivate = async (id: number) => {
+    await this.repository.updateAccountById(id, { active: false })
   }
 }

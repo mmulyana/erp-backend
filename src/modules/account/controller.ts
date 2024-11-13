@@ -132,9 +132,30 @@ export default class AccountController extends BaseController {
   ) => {
     try {
       const { id } = req.params
-      const { message } = req.body
-      await this.service.resetPassword(Number(id), message ?? 'password')
+      await this.service.resetPassword(Number(id), 'password')
       return this.response.success(res, 'Password berhasil direset')
+    } catch (error) {
+      next(error)
+    }
+  }
+  activateHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      await this.service.activate(Number(id))
+      return this.response.success(res, 'Akun ini berhasil diaktifkan')
+    } catch (error) {
+      next(error)
+    }
+  }
+  deactivateHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      await this.service.deactivate(Number(id))
+      return this.response.success(res, 'Akun ini berhasil dinonaktifkan')
     } catch (error) {
       next(error)
     }
