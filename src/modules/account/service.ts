@@ -32,12 +32,11 @@ export default class AccountService {
       throw new Error('akun tidak ditemukan')
     }
 
-    const userPermissions = data.UserPermission.map((up) => up.permission.name)
 
     const rolePermissions =
-      data.role?.rolePermissions?.map((rp) => rp.permission.name) || []
+      data.role?.RolePermission?.map((rp) => rp.permission.key) || []
 
-    const permissions = [...new Set([...userPermissions, ...rolePermissions])]
+    const permissions = [...new Set([ ...rolePermissions])]
 
     return {
       id: data.id,
@@ -137,32 +136,6 @@ export default class AccountService {
     }
 
     await this.repository.updateRoleAccount(id, roleId)
-  }
-  createPermissionAccount = async (userId: number, permissionId: number) => {
-    const account = await this.repository.getAccountById(userId)
-    if (!account) {
-      throw new Error('Akun tidak ada')
-    }
-
-    const permission = await this.repository.getPermissionById(permissionId)
-    if (!permission) {
-      throw new Error('Hak istimewa tidak ada')
-    }
-
-    await this.repository.createUserPermission({ userId, permissionId })
-  }
-  deletePermissionAccount = async (userId: number, permissionId: number) => {
-    const account = await this.repository.getAccountById(userId)
-    if (!account) {
-      throw new Error('Akun tidak ada')
-    }
-
-    const permission = await this.repository.getPermissionById(permissionId)
-    if (!permission) {
-      throw new Error('Hak istimewa tidak ada')
-    }
-
-    await this.repository.deleteUserPermission({ userId, permissionId })
   }
   updatePassword = async (userId: number, data: UpdatePasswordDto) => {
     const user = await this.repository.getAccountById(userId)

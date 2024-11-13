@@ -5,7 +5,7 @@ export default class RoleRepository {
   getAll = async () => {
     return await db.role.findMany({
       include: {
-        rolePermissions: {
+        RolePermission: {
           include: {
             permission: true,
           },
@@ -22,7 +22,7 @@ export default class RoleRepository {
     return await db.role.findUnique({
       where: { id },
       include: {
-        rolePermissions: {
+        RolePermission: {
           include: {
             permission: true,
           },
@@ -53,13 +53,10 @@ export default class RoleRepository {
   }) => {
     return await db.rolePermission.create({ data })
   }
-  deletePermissionRole = async (data: {
-    roleId: number
-    permissionId: number
-  }) => {
+  deletePermissionRole = async (id: number) => {
     return await db.rolePermission.delete({
       where: {
-        roleId_permissionId: data,
+        id,
       },
     })
   }

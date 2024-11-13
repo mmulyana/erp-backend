@@ -12,7 +12,7 @@ export default class PermissionController extends BaseController {
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name } = req.body
-      const permission = await this.repository.findByName(name)
+      const permission = await this.repository.findByKey(name)
       if (permission) {
         throw new Error('Hak istimewa ini sudah ada')
       }
@@ -36,7 +36,7 @@ export default class PermissionController extends BaseController {
       }
 
       if (req.body.name && req.body.name !== permission.name) {
-        const existingPermission = await this.repository.findByName(
+        const existingPermission = await this.repository.findByKey(
           req.body.name
         )
         if (existingPermission) {

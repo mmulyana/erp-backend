@@ -112,47 +112,6 @@ export default class AccountController extends BaseController {
       next(error)
     }
   }
-  createPermissionHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id, permissionId } = req.query
-      const data = await this.service.createPermissionAccount(
-        Number(id),
-        Number(permissionId)
-      )
-      return this.response.success(
-        res,
-        this.message.successCreateField('Hak istimewa'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  deletePermissionHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id, permissionId } = req.query
-      const data = await this.service.deletePermissionAccount(
-        Number(id),
-        Number(permissionId)
-      )
-      return this.response.success(
-        res,
-        this.message.successDeleteField('Hak istimewa'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-
   updatePasswordHandler = async (
     req: Request,
     res: Response,

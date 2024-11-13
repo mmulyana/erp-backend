@@ -26,6 +26,10 @@ export class AuthService {
       user = await this.repository.findByPhone(phoneNumber)
     }
 
+    if (!user?.active) {
+      throw new Error('Akun tidak ada')
+    }
+
     if (!user || !(await compare(password, user.password))) {
       throw new Error('Kredensial salah')
     }

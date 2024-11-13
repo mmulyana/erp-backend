@@ -35,9 +35,9 @@ export class PermissionRepository {
     })
   }
 
-  async findByName(name: string) {
+  async findByKey(key: string) {
     return db.permission.findUnique({
-      where: { name },
+      where: { key },
       include: {
         group: true,
       },

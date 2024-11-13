@@ -38,15 +38,7 @@ export default class RoleService {
     await this.repository.createPermissionRole({ roleId, permissionId })
     return { id: data.id }
   }
-  removePermissionRole = async (roleId: number, permissionId: number) => {
-    const data = await this.getRoleBydId(roleId)
-
-    const permission = await this.repository.getPermissionById(permissionId)
-    if (!permission) {
-      throw new Error('Hak istimewa tidak ditemukan')
-    }
-
-    await this.repository.deletePermissionRole({ roleId, permissionId })
-    return { id: data.id }
+  removePermissionRole = async (id: number) => {
+    await this.repository.deletePermissionRole(id)
   }
 }

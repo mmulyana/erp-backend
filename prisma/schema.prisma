@@ -9,50 +9,34 @@ datasource db {
 
 // Authorization
 model User {
-  id                Int                 @id @default(autoincrement())
-  name              String              @unique
-  email             String?             @unique
-  phoneNumber       String?             @unique
-  photo             String?
-  active            Boolean             @default(true)
-  password          String
-  created_at        DateTime            @default(now()) @db.Date()
-  updated_at        DateTime            @updatedAt
-  roleId            Int?
-  employeeId        Int?                @unique
-  ProjectAttachment ProjectAttachment[]
-  TransactionGoods  TransactionGoods[]
-  UserPermission    UserPermission[]
-  ActivityLike      ActivityLike[]
-  log               ActivityLog[]
-  activities        Activity[]
-  employee          Employee?           @relation(fields: [employeeId], references: [id])
-  role              Role?               @relation(fields: [roleId], references: [id])
+  id           Int                 @id @default(autoincrement())
+  name         String              @unique
+  email        String?             @unique
+  phoneNumber  String?             @unique
+  photo        String?
+  active       Boolean             @default(true)
+  password     String
+  created_at   DateTime            @default(now()) @db.Date()
+  updated_at   DateTime            @updatedAt
+  roleId       Int?
+  employeeId   Int?                @unique
+  attachments  ProjectAttachment[]
+  transactions TransactionGoods[]
+  likes        ActivityLike[]
+  logs         ActivityLog[]
+  activities   Activity[]
+  employee     Employee?           @relation(fields: [employeeId], references: [id])
+  role         Role?               @relation(fields: [roleId], references: [id])
 }
 
 model Role {
-  id              Int              @id @default(autoincrement())
-  name            String           @unique
-  description     String?
-  users           User[]
-  rolePermissions RolePermission[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-}
-
-model Permission {
-  id              Int              @id @default(autoincrement())
-  name            String           @unique
-  groupId         Int?
-  rolePermissions RolePermission[]
-  userPermissions UserPermission[]
-  group           PermissionGroup? @relation(fields: [groupId], references: [id])
-}
-
-model PermissionGroup {
-  id          Int          @id @default(autoincrement())
-  name        String
-  permissions Permission[]
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  description    String?
+  users          User[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  RolePermission RolePermission[]
 }
 
 model RolePermission {
@@ -61,19 +45,23 @@ model RolePermission {
   permissionId Int
   role         Role       @relation(fields: [roleId], references: [id])
   permission   Permission @relation(fields: [permissionId], references: [id])
-  createdAt    DateTime   @default(now())
-
-  @@unique([roleId, permissionId])
 }
 
-model UserPermission {
-  id           Int        @id @default(autoincrement())
-  userId       Int
-  permissionId Int
-  user         User       @relation(fields: [userId], references: [id])
-  permission   Permission @relation(fields: [permissionId], references: [id])
+model Permission {
+  id             Int              @id @default(autoincrement())
+  key            String           @unique
+  name           String
+  description    String?
+  groupId        Int?
+  group          PermissionGroup? @relation(fields: [groupId], references: [id])
+  RolePermission RolePermission[]
+}
 
-  @@unique([userId, permissionId])
+model PermissionGroup {
+  id          Int          @id @default(autoincrement())
+  name        String
+  created_at  DateTime     @default(now())
+  permissions Permission[]
 }
 
 // HRIS Module

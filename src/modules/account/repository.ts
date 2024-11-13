@@ -79,16 +79,11 @@ export default class AccountRepository {
         employee: true,
         role: {
           include: {
-            rolePermissions: {
+            RolePermission: {
               include: {
                 permission: true,
               },
             },
-          },
-        },
-        UserPermission: {
-          include: {
-            permission: true,
           },
         },
       },
@@ -118,41 +113,9 @@ export default class AccountRepository {
     })
   }
 
-  createUserPermission = async (data: {
-    userId: number
-    permissionId: number
-  }) => {
-    return await db.userPermission.create({ data })
-  }
-
-  deleteUserPermission = async (data: {
-    userId: number
-    permissionId: number
-  }) => {
-    return await db.userPermission.delete({
-      where: {
-        userId_permissionId: {
-          userId: data.userId,
-          permissionId: data.permissionId,
-        },
-      },
-    })
-  }
-
   getRoleById = async (id: number) => {
     return await db.role.findUnique({
       where: { id },
-      include: {
-        rolePermissions: {
-          include: {
-            permission: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      },
     })
   }
 

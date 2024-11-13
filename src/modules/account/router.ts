@@ -27,8 +27,6 @@ export default class AccountRouter extends RouterWithFile {
     
     this.router.patch('/:id', this.upload.single('photo'), this.compressImage, this.updateSchema.validate, this.controller.updateAccountHandler)
     this.router.patch('/:id/role/add/:roleId', this.controller.updateRoleAccountHandler)
-    this.router.patch('/:id/permission/add/:permissionId', this.controller.createPermissionHandler)
-    this.router.patch('/:id/permission/remove/:permissionId', this.controller.createPermissionHandler)
     this.router.patch('/:id/password/update', this.updatePassword.validate, this.controller.updatePasswordHandler)
     this.router.patch('/:id/password/reset', this.controller.resetPasswordHandler)
 
