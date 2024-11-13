@@ -53,10 +53,13 @@ export default class RoleRepository {
   }) => {
     return await db.rolePermission.create({ data })
   }
-  deletePermissionRole = async (id: number) => {
+  deletePermissionRole = async (roleId: number, permissionId: number) => {
     return await db.rolePermission.delete({
       where: {
-        id,
+        roleId_permissionId: {
+          roleId,
+          permissionId
+        }
       },
     })
   }

@@ -17,24 +17,13 @@ export default class RoleRouter {
   protected register() {
     this.router.get('/', this.controller.getRolesHandler)
     this.router.get('/:id', this.controller.getRoleByIdHandler)
-    this.router.post(
-      '/',
-      this.create.validate,
-      this.controller.createRoleHandler
-    )
-    this.router.patch(
-      '/:id',
-      this.update.validate,
-      this.controller.updateRoleHandler
-    )
-    this.router.get('/:id', this.controller.deleteRoleHandler)
-    this.router.get(
-      '/:id/permission/add/:permissionId',
-      this.controller.addPermissionRoleHandler
-    )
-    this.router.get(
-      '/:id/permission/remove/:permissionId',
-      this.controller.deletePermissionRoleHandler
-    )
+    
+    this.router.post('/', this.create.validate, this.controller.createRoleHandler)
+    this.router.post('/:id/permission/add/:permissionId', this.controller.addPermissionRoleHandler)
+    
+    this.router.delete('/:id', this.controller.deleteRoleHandler)
+    this.router.delete('/:id/permission/remove/:permissionId', this.controller.deletePermissionRoleHandler)
+    
+    this.router.patch('/:id', this.update.validate, this.controller.updateRoleHandler)
   }
 }

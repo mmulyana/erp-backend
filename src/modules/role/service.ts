@@ -12,7 +12,10 @@ export default class RoleService {
     if (!data) {
       throw new Error('Role tidak ditemukan')
     }
-    return data
+    return {
+      ...data,
+      permissions: data.RolePermission.map((item) => item.permission.key),
+    }
   }
   getRoles = async () => {
     return this.repository.getAll()
@@ -23,12 +26,21 @@ export default class RoleService {
     await this.repository.updateById(id, data)
   }
   deleteRole = async (id: number) => {
-    await this.getRoleBydId(id)
+    const data = await this.getRoleBydId(id)
+    if (!data) {
+      throw new Error('Peran tidak ada')
+    }
+    if (data.name === 'Superadmin') {
+      throw new Error('Peran ini tidak boleh dihapus')
+    }
 
     await this.repository.deleteById(id)
   }
   addPermissionRole = async (roleId: number, permissionId: number) => {
     const data = await this.getRoleBydId(roleId)
+    if (!data) {
+      throw new Error('Peran tidak ditemukan')
+    }
 
     const permission = await this.repository.getPermissionById(permissionId)
     if (!permission) {
@@ -36,9 +48,13 @@ export default class RoleService {
     }
 
     await this.repository.createPermissionRole({ roleId, permissionId })
-    return { id: data.id }
+    return { roleId }
   }
-  removePermissionRole = async (id: number) => {
-    await this.repository.deletePermissionRole(id)
+  removePermissionRole = async (roleId: number, permissionId: number) => {
+    const data = await this.repository.deletePermissionRole(
+      roleId,
+      permissionId
+    )
+    return { roleId: data.roleId }
   }
 }

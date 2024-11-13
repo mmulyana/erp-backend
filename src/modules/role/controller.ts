@@ -74,9 +74,9 @@ export default class RoleController extends BaseController {
     next: NextFunction
   ) => {
     try {
-      const { roleId, permissionId } = req.query
+      const { id, permissionId } = req.params
       const data = await this.service.addPermissionRole(
-        Number(roleId),
+        Number(id),
         Number(permissionId)
       )
       return this.response.success(
@@ -94,8 +94,11 @@ export default class RoleController extends BaseController {
     next: NextFunction
   ) => {
     try {
-      const { id } = req.params
-      const data = await this.service.removePermissionRole(Number(id))
+      const { id, permissionId } = req.params
+      const data = await this.service.removePermissionRole(
+        Number(id),
+        Number(permissionId)
+      )
       return this.response.success(
         res,
         this.message.successDeleteField('hak istimewa'),
