@@ -106,7 +106,7 @@ export default class ProjectRepository {
 
       await db.boardItems.update({
         data: {
-          position: boardItem[0].position + 1,
+          position: !!boardItem.length ? boardItem[0].position + 1 : 0,
           containerId: lastContainer[0].id,
         },
         where: { id },
@@ -163,7 +163,7 @@ export default class ProjectRepository {
             containerId: true,
           },
         },
-        id: true
+        id: true,
       },
     })
 
@@ -177,13 +177,13 @@ export default class ProjectRepository {
 
     await db.boardItems.update({
       data: {
-        position: boardItem[0].position + 1,
+        position: !!boardItem.length ? boardItem[0].position + 1 : 0,
         containerId: containerId,
       },
       where: { id: data?.boardItems.id },
     })
 
-    return {id: data?.id}
+    return { id: data?.id }
   }
   read = async (
     id?: number,
@@ -216,7 +216,7 @@ export default class ProjectRepository {
                 select: {
                   color: true,
                   name: true,
-                  id: true
+                  id: true,
                 },
               },
             },
@@ -436,7 +436,7 @@ export default class ProjectRepository {
               select: {
                 color: true,
                 name: true,
-                id: true
+                id: true,
               },
             },
           },

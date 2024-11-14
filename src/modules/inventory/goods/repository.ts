@@ -219,6 +219,7 @@ export default class GoodsRepository {
         location: true,
         measurement: true,
       },
+      take: filter?.name ? undefined : 20,
     })
   }
   readOne = async (id: number) => {

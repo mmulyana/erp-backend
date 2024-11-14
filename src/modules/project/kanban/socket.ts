@@ -1,17 +1,20 @@
 import { Socket } from 'socket.io'
 import KanbanRepository from './repository'
-import { Container, Items, OrderItems } from './schema'
+import { boardItems, Container, Items, OrderItems } from './schema'
 import {
   CREATE_BOARD,
   CREATE_PROJECT,
   DELETE_PROJECT,
+  ERROR_CREATE_PROJECT,
   EVENT_INITIAL_DATA,
   EVENT_UPDATED_DATA,
   REQUEST_BOARD,
+  SUCCESS_CREATE_PROJECT,
   UPDATE_ORDER_ITEMS,
   UPDATE_PROJECT,
 } from '../../../utils/constant/socket'
 import { Server } from 'socket.io'
+import { ZodError } from 'zod'
 
 export default class KanbanSocket {
   public socket: Socket
@@ -44,8 +47,25 @@ export default class KanbanSocket {
   }
 
   handleCreateProject = async (data: Items) => {
-    await this.repository.createItem(data)
-    await this.handleUpdatedData()
+    try {
+      boardItems.parse(data)
+      await this.repository.createItem(data)
+      this.io.emit(SUCCESS_CREATE_PROJECT, {
+        message: 'Proyek berhasil ditambah',
+      })
+      await this.handleUpdatedData()
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const formattedErrors = error.errors.reduce((acc, err) => {
+          const path = err.path.join('.')
+          acc[path] = { message: err.message }
+          return acc
+        }, {} as Record<string, { message: string }>)
+
+        return this.io.emit(ERROR_CREATE_PROJECT, { errors: formattedErrors })
+      }
+      return this.io.emit(ERROR_CREATE_PROJECT, { message: 'Silahkan ulangi' })
+    }
   }
 
   handleUpdateProjet = async (

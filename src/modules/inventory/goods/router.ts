@@ -31,8 +31,9 @@ export default class GoodsRouter extends RouterWithFile {
     )
     this.router.patch('/:id/soft-delete', this.controller.deleteHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
-    this.router.get('/', this.controller.readPaginationHandler)
-    this.router.get('/data/all', this.controller.readAllHandler)
+
+    this.router.get('/list/pagination', this.controller.readPaginationHandler)
+    this.router.get('/', this.controller.readAllHandler)
     this.router.get('/:id', this.controller.readOneHandler)
     this.router.get('/data/low-stock', this.controller.readLowStockHandler)
     this.router.get('/data/out-of-stock', this.controller.readOutOfStockHandler)
