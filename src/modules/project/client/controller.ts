@@ -57,7 +57,6 @@ export default class ClientController extends BaseController {
           name: name ? String(name) : undefined,
         }
       )
-      console.log('req', req.query)
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)

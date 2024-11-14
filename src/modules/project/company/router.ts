@@ -18,7 +18,9 @@ export default class CompanyRouter extends RouterWithFile {
     this.router.post('/', this.upload.single('photo'), this.compressImage, this.companySchema.validate, this.controller.handleCreate)
     this.router.patch('/:id', this.upload.single('photo'), this.compressImage, this.companySchema.validate, this.controller.handleUpdate)
     this.router.delete('/:id', this.controller.handleDelete)
-    this.router.get('/', this.controller.handleRead)
+    
+    this.router.get('/list/pagination', this.controller.handleReadByPagination)
     this.router.get('/:id', this.controller.handleReadOne)
+    this.router.get('/', this.controller.handleRead)
   }
 }
