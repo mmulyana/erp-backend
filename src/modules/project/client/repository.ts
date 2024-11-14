@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import db from '../../../lib/db'
 import { Client } from './schema'
 
@@ -12,6 +13,11 @@ type ChartConfig = {
     label: string
     color: string
   }
+}
+
+type FilterClient = {
+  name?: string
+  companyId?: number
 }
 
 export default class ClientRepository {
@@ -30,12 +36,75 @@ export default class ClientRepository {
   delete = async (id: number) => {
     await db.client.delete({ where: { id } })
   }
-  read = async () => {
+  read = async (filter?: FilterClient) => {
+    let where: Prisma.ClientWhereInput = {}
+
+    if (filter) {
+      if (filter.name) {
+        where = {
+          OR: [
+            { name: { contains: filter.name.toLowerCase() } },
+            { name: { contains: filter.name.toUpperCase() } },
+            { name: { contains: filter.name } },
+          ],
+        }
+      }
+
+      if (filter.companyId && !isNaN(filter.companyId)) {
+        where.companyId = filter.companyId
+      }
+    }
+
     return await db.client.findMany({
+      where,
       include: {
         company: true,
       },
     })
+  }
+  readByPagination = async (
+    page: number = 1,
+    limit: number = 10,
+    filter?: FilterClient
+  ) => {
+    const skip = (page - 1) * limit
+    let where: Prisma.ClientWhereInput = {}
+
+    if (filter) {
+      if (filter.name) {
+        where = {
+          OR: [
+            { name: { contains: filter.name.toLowerCase() } },
+            { name: { contains: filter.name.toUpperCase() } },
+            { name: { contains: filter.name } },
+          ],
+        }
+      }
+
+      if (filter.companyId && !isNaN(filter.companyId)) {
+        where.companyId = filter.companyId
+      }
+    }
+
+    const data = await db.client.findMany({
+      skip,
+      take: limit,
+      where,
+      include: {
+        company: true,
+      },
+    })
+
+    const total = await db.client.count({ where })
+    const total_pages = Math.ceil(total / limit)
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      total_pages,
+    }
   }
   readOne = async (id: number) => {
     return await db.client.findUnique({

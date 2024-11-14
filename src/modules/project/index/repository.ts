@@ -196,18 +196,6 @@ export default class ProjectRepository {
       return db.project.findUnique({
         where: { id },
         include: {
-          _count: {
-            select: {
-              attachments: true,
-              employees: true,
-            },
-          },
-          activities: {
-            include: {
-              attachments: true,
-              user: true,
-            },
-          },
           attachments: true,
           ProjectEstimate: true,
           boardItems: {
@@ -328,16 +316,6 @@ export default class ProjectRepository {
         labels: {
           select: {
             label: true,
-          },
-        },
-        employees: {
-          select: {
-            employee: {
-              select: {
-                fullname: true,
-                photo: true,
-              },
-            },
           },
         },
         client: {

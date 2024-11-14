@@ -146,30 +146,6 @@ export default class KanbanRepository {
       throw error
     }
   }
-  deleteItem = async (id: string) => {
-    try {
-      const items = await db.boardItems.findFirst({
-        where: { id },
-        include: { project: { select: { id: true } } },
-      })
-      await db.project.delete({ where: { id: items?.project?.id } })
-      await db.boardItems.delete({ where: { id } })
-    } catch (error) {
-      throw error
-    }
-  }
-
-  updateProject = async (
-    id: number,
-    payload: Omit<Items, 'position' | 'employees' | 'labels'>
-  ) => {
-    try {
-      await db.project.update({ data: payload, where: { id } })
-    } catch (error) {
-      throw error
-    }
-  }
-
   updateOrderItems = async (payload: OrderItems) => {
     try {
       await db.$transaction(async (prismaClient) => {

@@ -1,19 +1,16 @@
-import { Socket } from 'socket.io'
 import KanbanRepository from './repository'
 import { boardItems, Container, Items, OrderItems } from './schema'
 import {
   CREATE_BOARD,
   CREATE_PROJECT,
-  DELETE_PROJECT,
   ERROR_CREATE_PROJECT,
   EVENT_INITIAL_DATA,
   EVENT_UPDATED_DATA,
   REQUEST_BOARD,
   SUCCESS_CREATE_PROJECT,
   UPDATE_ORDER_ITEMS,
-  UPDATE_PROJECT,
 } from '../../../utils/constant/socket'
-import { Server } from 'socket.io'
+import { Server, Socket } from 'socket.io'
 import { ZodError } from 'zod'
 
 export default class KanbanSocket {
@@ -31,9 +28,7 @@ export default class KanbanSocket {
     this.socket.on(REQUEST_BOARD, this.handleReadBoards)
     this.socket.on(CREATE_BOARD, this.handleCreateBoard)
     this.socket.on(CREATE_PROJECT, this.handleCreateProject)
-    this.socket.on(UPDATE_PROJECT, this.handleUpdateProjet)
     this.socket.on(UPDATE_ORDER_ITEMS, this.handleOrderItem)
-    this.socket.on(DELETE_PROJECT, this.handleDeleteProject)
   }
 
   handleReadBoards = async () => {
@@ -68,21 +63,8 @@ export default class KanbanSocket {
     }
   }
 
-  handleUpdateProjet = async (
-    id: number,
-    payload: Omit<Items, 'position' | 'employees' | 'labels'>
-  ) => {
-    await this.repository.updateProject(id, payload)
-    await this.handleUpdatedData()
-  }
-
   handleOrderItem = async (payload: OrderItems) => {
     await this.repository.updateOrderItems(payload)
-    await this.handleUpdatedData()
-  }
-
-  handleDeleteProject = async (id: string) => {
-    await this.repository.deleteItem(id)
     await this.handleUpdatedData()
   }
 

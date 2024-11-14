@@ -43,6 +43,26 @@ export default class ClientController extends BaseController {
       next(error)
     }
   }
+  handleReadByPagination = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { page, limit, name } = req.query
+      const data = await this.repository.readByPagination(
+        page ? Number(page) : undefined,
+        limit ? Number(limit) : undefined,
+        {
+          name: name ? String(name) : undefined,
+        }
+      )
+      console.log('req', req.query)
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
   handleReadOne = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
