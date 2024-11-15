@@ -51,74 +51,48 @@ export default class ActivityRepository {
       },
     })
   }
-  read = async (projectId: number, id?: number) => {
-    const baseInclude = {
-      attachments: true,
-      user: true,
-      likes: true,
-      replies: true,
-    }
-
-    if (id) {
-      return await db.activity.findUnique({
-        where: { id },
-        include: {
-          ...baseInclude,
-          replies: {
-            include: {
-              user: true,
-              likes: true,
-              attachments: true,
-            },
-            orderBy: [{ updated_at: 'desc' }, { created_at: 'desc' }],
+  findByProject = async (projectId: number) => {
+    return await db.activity.findMany({
+      where: {
+        projectId,
+        replyId: null,
+      },
+      include: {
+        attachments: true,
+        user: true,
+        _count: {
+          select: {
+            replies: true,
+            likes: true,
           },
         },
-      })
-    }
-
-    return await db.activity.findMany({
-      where: {
-        projectId,
-        replyId: null,
       },
-      include: baseInclude,
-      orderBy: [{ updated_at: 'desc' }, { created_at: 'desc' }],
-    })
-  }
-  findByProject = async (projectId: number) => {
-    const include = {
-      attachments: true,
-      user: true,
-      likes: true,
-      replies: true,
-    }
-
-    return await db.activity.findMany({
-      where: {
-        projectId,
-        replyId: null,
-      },
-      include,
       orderBy: [{ id: 'desc' }],
     })
   }
   findByParent = async (id: number) => {
-    const include = {
-      attachments: true,
-      user: true,
-      likes: true,
-      replies: true,
-    }
-
     return await db.activity.findUnique({
       where: { id },
       include: {
-        ...include,
+        attachments: true,
+        user: true,
+        likes: true,
+        _count: {
+          select: {
+            replies: true,
+            likes: true,
+          },
+        },
         replies: {
           include: {
             user: true,
             likes: true,
             attachments: true,
+            _count: {
+              select: {
+                likes: true
+              }
+            }
           },
           orderBy: [{ id: 'desc' }],
         },

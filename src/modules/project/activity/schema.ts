@@ -17,6 +17,7 @@ export type Activity = z.infer<typeof activitySchema>
 
 export const toggleLikeSchema = z.object({
   id: z.number(),
+  replyId: z.number(),
   userId: z.number(),
   projectId: z.number().optional(),
   type: z.string().optional(),

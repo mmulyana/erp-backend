@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from 'express'
-import Message from '../../../utils/constant/message'
-import ApiResponse from '../../../helper/api-response'
-import Repository from './repository'
 import { Server } from 'socket.io'
+
 import {
   MESSAGES_BY_PARENT,
   MESSAGES_BY_PROJECT,
 } from '../../../utils/constant/socket'
+import ApiResponse from '../../../helper/api-response'
+import Message from '../../../utils/constant/message'
 import AccountService from '../../account/service'
+import Repository from './repository'
 
 export default class ActivityController {
   private AccountService: AccountService = new AccountService()
@@ -75,10 +76,13 @@ export default class ActivityController {
         await this.repository.removeAttachment({ ids })
       }
 
+      console.log('update query', req.query.type)
+      console.log(data)
+
       this.updateMessageIO({
         type: String(req.query.type) || 'project',
         projectId: data.projectId,
-        replyId: String(req.query.type) !== 'project' ? data.id : null,
+        replyId: data.replyId,
       })
 
       return this.response.success(res, this.message.successUpdate(), data)
@@ -91,22 +95,16 @@ export default class ActivityController {
       const { id } = req.params
       const data = await this.repository.delete(Number(id))
 
+      console.log('delete query', req.query.type)
+      console.log(data)
+
       this.updateMessageIO({
         type: String(req.query.type) || 'project',
         projectId: data.projectId,
-        replyId: data.id,
+        replyId: data.replyId,
       })
 
       return this.response.success(res, this.message.successDelete(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  handleRead = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id, projectId } = req.query
-      const data = await this.repository.read(Number(projectId), Number(id))
-      return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
     }
@@ -122,50 +120,12 @@ export default class ActivityController {
       this.updateMessageIO({
         type: String(req.body.type) || 'project',
         projectId: Number(req.body.projectId),
-        replyId: Number(req.body.id),
+        replyId: Number(req.body.replyId),
       })
 
       return this.response.success(
         res,
         this.message.successCreateField('likes'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  handleUploadAttachments = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const files = req.files as Express.Multer.File[]
-      const { id } = req.params
-
-      if (!files || files.length === 0) {
-        return this.response.error(res, 'No files uploaded', 400)
-      }
-      const data = await this.repository.uploadAttachments(files, Number(id))
-      return this.response.success(
-        res,
-        this.message.successCreateField('attachments'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  handleRemoveAttachments = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const data = await this.repository.removeAttachment(req.body)
-      return this.response.success(
-        res,
-        this.message.customMessage('berhasil merubah photo'),
         data
       )
     } catch (error) {
@@ -185,7 +145,6 @@ export default class ActivityController {
       const room = `detail-${replyId}`
       const data = await this.repository.findByParent(replyId)
       this.io.to(room).emit(MESSAGES_BY_PARENT, data)
-      return
     }
 
     const room = `project-${projectId}`

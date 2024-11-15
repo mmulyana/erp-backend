@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io'
-import ActivityRepository from './repository'
+
 import {
   MESSAGES_BY_PROJECT,
   MESSAGES_BY_PARENT,
@@ -8,6 +8,7 @@ import {
   ERROR_JOIN,
   LEAVE_ROOM,
 } from '../../../utils/constant/socket'
+import ActivityRepository from './repository'
 
 export default class ActivitySocket {
   public socket: Socket
