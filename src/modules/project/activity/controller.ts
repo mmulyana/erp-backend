@@ -76,9 +76,6 @@ export default class ActivityController {
         await this.repository.removeAttachment({ ids })
       }
 
-      console.log('update query', req.query.type)
-      console.log(data)
-
       this.updateMessageIO({
         type: String(req.query.type) || 'project',
         projectId: data.projectId,
@@ -94,9 +91,6 @@ export default class ActivityController {
     try {
       const { id } = req.params
       const data = await this.repository.delete(Number(id))
-
-      console.log('delete query', req.query.type)
-      console.log(data)
 
       this.updateMessageIO({
         type: String(req.query.type) || 'project',
