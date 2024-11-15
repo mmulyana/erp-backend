@@ -1,14 +1,12 @@
 import { Server, Socket } from 'socket.io'
 import ActivityRepository from './repository'
 import {
-  JOIN_BY_PROJECT,
   MESSAGES_BY_PROJECT,
-  ERROR_JOIN,
   MESSAGES_BY_PARENT,
+  JOIN_BY_PROJECT,
   JOIN_BY_PARENT,
-  DATA_ROOMS,
-  ERROR_ROOM,
-  REQUEST_ROOMS,
+  ERROR_JOIN,
+  LEAVE_ROOM,
 } from '../../../utils/constant/socket'
 
 export default class ActivitySocket {
@@ -25,7 +23,7 @@ export default class ActivitySocket {
   public setupListener = () => {
     this.socket.on(JOIN_BY_PROJECT, this.handleJoinChatByProject)
     this.socket.on(JOIN_BY_PARENT, this.handleJoinChatById)
-    this.socket.on(REQUEST_ROOMS, this.handleReadAllRoom)
+    this.socket.on(LEAVE_ROOM, this.handleLeaveRoom)
   }
 
   handleJoinChatByProject = async ({ id }: { id: number }) => {
@@ -84,12 +82,7 @@ export default class ActivitySocket {
     }
   }
 
-  handleReadAllRoom = async () => {
-    try {
-      const rooms = this.io.sockets.adapter.rooms
-      this.socket.emit(DATA_ROOMS, { rooms })
-    } catch (error) {
-      this.socket.emit(ERROR_ROOM, { error })
-    }
+  handleLeaveRoom = async ({ room }: { room: string }) => {
+    await this.socket.leave(room)
   }
 }

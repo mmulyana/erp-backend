@@ -2,12 +2,12 @@ import RouterWithFile from '../../../helper/router-with-file'
 import { MulterConfig } from '../../../utils/multer-config'
 import Validation from '../../../helper/validation'
 import ActivityController from './controller'
+import { Server } from 'socket.io'
 import {
   activitySchema,
   removeAttachmentSchema,
   updateActivitySchema,
 } from './schema'
-import { Server } from 'socket.io'
 
 export default class ActivityRouter extends RouterWithFile {
   private controller: ActivityController
@@ -25,7 +25,7 @@ export default class ActivityRouter extends RouterWithFile {
 
   protected register(): void {
     this.router.post('/', this.upload.array('photos', 5), this.handleMultipleImage, this.commentSchema.validate, this.controller.handleCreate)
-    this.router.patch( '/:id', this.updateSchema.validate, this.controller.handleUpdate)
+    this.router.patch( '/:id', this.upload.array('photos', 5), this.handleMultipleImage, this.updateSchema.validate, this.controller.handleUpdate)
     this.router.delete('/:id', this.controller.handleDelete)
     this.router.get('/', this.controller.handleRead)
     

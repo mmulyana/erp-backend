@@ -1,7 +1,7 @@
-import { Prisma } from '@prisma/client'
-import db from '../../../lib/db'
 import { deleteFile } from '../../../utils/file'
+import { Prisma } from '@prisma/client'
 import { ToggleLike } from './schema'
+import db from '../../../lib/db'
 
 export default class ActivityRepository {
   create = async (data: Prisma.ActivityCreateManyInput) => {
@@ -22,11 +22,32 @@ export default class ActivityRepository {
     })
   }
   delete = async (id: number) => {
+    const attachments = await db.activityAttachment.findMany({
+      where: {
+        activityId: id,
+      },
+    })
+
+    await Promise.all(
+      attachments
+        .filter((item) => item.attachment)
+        .map((item) => deleteFile(item.attachment))
+    )
+
+    await db.activityAttachment.deleteMany({
+      where: {
+        id: {
+          in: attachments.map((item) => item.id),
+        },
+      },
+    })
+
     return await db.activity.delete({
       where: { id },
       select: {
         projectId: true,
         replyId: true,
+        id: true,
       },
     })
   }
@@ -78,7 +99,7 @@ export default class ActivityRepository {
         replyId: null,
       },
       include,
-      orderBy: [{ updated_at: 'desc' }, { created_at: 'desc' }],
+      orderBy: [{ id: 'desc' }],
     })
   }
   findByParent = async (id: number) => {
@@ -99,7 +120,7 @@ export default class ActivityRepository {
             likes: true,
             attachments: true,
           },
-          orderBy: [{ updated_at: 'desc' }, { created_at: 'desc' }],
+          orderBy: [{ id: 'desc' }],
         },
       },
     })
@@ -108,7 +129,7 @@ export default class ActivityRepository {
     const existing = await db.activityLike.findUnique({
       where: {
         activityId_userId: {
-          activityId: payload.activityId,
+          activityId: payload.id,
           userId: payload.userId,
         },
       },
@@ -118,7 +139,7 @@ export default class ActivityRepository {
       return await db.activityLike.delete({
         where: {
           activityId_userId: {
-            activityId: payload.activityId,
+            activityId: payload.id,
             userId: payload.userId,
           },
         },
@@ -134,7 +155,7 @@ export default class ActivityRepository {
     } else {
       return await db.activityLike.create({
         data: {
-          activityId: payload.activityId,
+          activityId: payload.id,
           userId: payload.userId,
         },
         select: {
@@ -213,27 +234,6 @@ export default class ActivityRepository {
       },
     })
 
-    return activity
-  }
-  changeAttachment = async (id: number, file: Express.Multer.File) => {
-    const data = await db.activityAttachment.findUnique({ where: { id } })
-
-    if (data?.attachment) {
-      deleteFile(data.attachment)
-    }
-    const activity = await db.activity.findUnique({
-      where: { id: data?.activityId },
-      select: {
-        id: true,
-        projectId: true,
-      },
-    })
-    await db.activityAttachment.update({
-      where: { id },
-      data: {
-        attachment: file.filename,
-      },
-    })
     return activity
   }
 }

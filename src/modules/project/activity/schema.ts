@@ -10,12 +10,16 @@ export const activitySchema = z.object({
     .max(5, 'Maksimal 5 foto yang diperbolehkan')
     .optional(),
 })
-export const updateActivitySchema = activitySchema.partial()
+export const updateActivitySchema = activitySchema.partial().extend({
+  deletedPhoto: z.string().optional(),
+})
 export type Activity = z.infer<typeof activitySchema>
 
 export const toggleLikeSchema = z.object({
-  activityId: z.number(),
+  id: z.number(),
   userId: z.number(),
+  projectId: z.number().optional(),
+  type: z.string().optional(),
 })
 export type ToggleLike = z.infer<typeof toggleLikeSchema>
 

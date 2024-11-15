@@ -1,18 +1,19 @@
 import { NextFunction, Request, Response } from 'express'
-import BaseController from '../../../helper/base-controller'
-import Repository from './repository'
-import { Server } from 'socket.io'
 import Message from '../../../utils/constant/message'
 import ApiResponse from '../../../helper/api-response'
+import Repository from './repository'
+import { Server } from 'socket.io'
 import {
   MESSAGES_BY_PARENT,
   MESSAGES_BY_PROJECT,
 } from '../../../utils/constant/socket'
+import AccountService from '../../account/service'
 
 export default class ActivityController {
-  protected message: Message
-  protected response: ApiResponse = new ApiResponse()
+  private AccountService: AccountService = new AccountService()
+  private response: ApiResponse = new ApiResponse()
   private repository: Repository = new Repository()
+  private message: Message
   private io: Server
 
   constructor(io: Server) {
@@ -22,8 +23,10 @@ export default class ActivityController {
 
   handleCreate = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { userId, comment, projectId, replyId, photo } = req.body
+      const { userId, comment, projectId, replyId } = req.body
       const files = req.files as Express.Multer.File[]
+
+      const user = await this.AccountService.getAccount(Number(userId))
 
       // create comment
       const data = await this.repository.create({
@@ -31,6 +34,8 @@ export default class ActivityController {
         userId: Number(userId),
         projectId: Number(projectId),
         replyId: replyId ? Number(replyId) : null,
+        updated_at: new Date(),
+        name: user.name,
       })
 
       await this.repository.uploadAttachments(files, data.id)
@@ -49,7 +54,33 @@ export default class ActivityController {
   handleUpdate = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      const data = await this.repository.update(Number(id), req.body)
+      const files = req.files as Express.Multer.File[]
+
+      const data = await this.repository.update(Number(id), {
+        comment: req.body.comment,
+        updated_at: new Date(),
+      })
+
+      // handle lampiran baru
+      if (!!files.length) {
+        await this.repository.uploadAttachments(files, data.id)
+      }
+
+      // handle lampiran dihapus
+      const deleted = req.body.deletedPhoto
+        ? req.body.deletedPhoto.split(',')
+        : []
+      if (!!deleted.length) {
+        const ids = deleted.map((item: string) => Number(item))
+        await this.repository.removeAttachment({ ids })
+      }
+
+      this.updateMessageIO({
+        type: String(req.query.type) || 'project',
+        projectId: data.projectId,
+        replyId: String(req.query.type) !== 'project' ? data.id : null,
+      })
+
       return this.response.success(res, this.message.successUpdate(), data)
     } catch (error) {
       next(error)
@@ -59,6 +90,13 @@ export default class ActivityController {
     try {
       const { id } = req.params
       const data = await this.repository.delete(Number(id))
+
+      this.updateMessageIO({
+        type: String(req.query.type) || 'project',
+        projectId: data.projectId,
+        replyId: data.id,
+      })
+
       return this.response.success(res, this.message.successDelete(), data)
     } catch (error) {
       next(error)
@@ -80,6 +118,13 @@ export default class ActivityController {
   ) => {
     try {
       const data = await this.repository.toggleLike(req.body)
+
+      this.updateMessageIO({
+        type: String(req.body.type) || 'project',
+        projectId: Number(req.body.projectId),
+        replyId: Number(req.body.id),
+      })
+
       return this.response.success(
         res,
         this.message.successCreateField('likes'),
@@ -127,33 +172,6 @@ export default class ActivityController {
       next(error)
     }
   }
-  handleChangeAttachment = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { attachmentId } = req.params
-      const file = req.file as Express.Multer.File
-
-      if (!file) {
-        return this.response.error(res, 'No files uploaded', 400)
-      }
-
-      const data = await this.repository.changeAttachment(
-        Number(attachmentId),
-        file
-      )
-      return this.response.success(
-        res,
-        this.message.successUpdateField('photo'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-
   updateMessageIO = async ({
     type,
     replyId,
@@ -161,7 +179,7 @@ export default class ActivityController {
   }: {
     type: string
     projectId: number
-    replyId?: number
+    replyId?: number | null
   }) => {
     if (type === 'detail' && replyId) {
       const room = `detail-${replyId}`
