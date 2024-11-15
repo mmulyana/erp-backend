@@ -1,17 +1,46 @@
 import { NextFunction, Request, Response } from 'express'
 import BaseController from '../../../helper/base-controller'
 import Repository from './repository'
+import { Server } from 'socket.io'
+import Message from '../../../utils/constant/message'
+import ApiResponse from '../../../helper/api-response'
+import {
+  MESSAGES_BY_PARENT,
+  MESSAGES_BY_PROJECT,
+} from '../../../utils/constant/socket'
 
-export default class ActivityController extends BaseController {
+export default class ActivityController {
+  protected message: Message
+  protected response: ApiResponse = new ApiResponse()
   private repository: Repository = new Repository()
+  private io: Server
 
-  constructor() {
-    super('Aktivitas')
+  constructor(io: Server) {
+    this.message = new Message('Aktivitas ')
+    this.io = io
   }
 
   handleCreate = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await this.repository.create(req.body)
+      const { userId, comment, projectId, replyId, photo } = req.body
+      const files = req.files as Express.Multer.File[]
+
+      // create comment
+      const data = await this.repository.create({
+        comment: comment,
+        userId: Number(userId),
+        projectId: Number(projectId),
+        replyId: replyId ? Number(replyId) : null,
+      })
+
+      await this.repository.uploadAttachments(files, data.id)
+
+      this.updateMessageIO({
+        type: String(req.query.type) || 'project',
+        projectId: Number(req.body.projectId),
+        replyId: Number(req.body.replyId),
+      })
+
       return this.response.success(res, this.message.successCreate(), data)
     } catch (error) {
       next(error)
@@ -123,5 +152,26 @@ export default class ActivityController extends BaseController {
     } catch (error) {
       next(error)
     }
+  }
+
+  updateMessageIO = async ({
+    type,
+    replyId,
+    projectId,
+  }: {
+    type: string
+    projectId: number
+    replyId?: number
+  }) => {
+    if (type === 'detail' && replyId) {
+      const room = `detail-${replyId}`
+      const data = await this.repository.findByParent(replyId)
+      this.io.to(room).emit(MESSAGES_BY_PARENT, data)
+      return
+    }
+
+    const room = `project-${projectId}`
+    const data = await this.repository.findByProject(projectId)
+    this.io.to(room).emit(MESSAGES_BY_PROJECT, data)
   }
 }

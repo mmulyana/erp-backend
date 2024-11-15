@@ -1,15 +1,16 @@
+import { Prisma } from '@prisma/client'
 import db from '../../../lib/db'
-import { deleteFile, PATHS } from '../../../utils/file'
-import { Activity, ToggleLike } from './schema'
+import { deleteFile } from '../../../utils/file'
+import { ToggleLike } from './schema'
 
 export default class ActivityRepository {
-  create = async (data: Activity) => {
+  create = async (data: Prisma.ActivityCreateManyInput) => {
     return await db.activity.create({
       data,
       select: { projectId: true, replyId: true, id: true },
     })
   }
-  update = async (id: number, data: Partial<Activity>) => {
+  update = async (id: number, data: Prisma.ActivityUpdateInput) => {
     return await db.activity.update({
       data,
       where: { id },
@@ -61,6 +62,46 @@ export default class ActivityRepository {
       },
       include: baseInclude,
       orderBy: [{ updated_at: 'desc' }, { created_at: 'desc' }],
+    })
+  }
+  findByProject = async (projectId: number) => {
+    const include = {
+      attachments: true,
+      user: true,
+      likes: true,
+      replies: true,
+    }
+
+    return await db.activity.findMany({
+      where: {
+        projectId,
+        replyId: null,
+      },
+      include,
+      orderBy: [{ updated_at: 'desc' }, { created_at: 'desc' }],
+    })
+  }
+  findByParent = async (id: number) => {
+    const include = {
+      attachments: true,
+      user: true,
+      likes: true,
+      replies: true,
+    }
+
+    return await db.activity.findUnique({
+      where: { id },
+      include: {
+        ...include,
+        replies: {
+          include: {
+            user: true,
+            likes: true,
+            attachments: true,
+          },
+          orderBy: [{ updated_at: 'desc' }, { created_at: 'desc' }],
+        },
+      },
     })
   }
   toggleLike = async (payload: ToggleLike) => {
@@ -126,7 +167,7 @@ export default class ActivityRepository {
       },
     })
   }
-  removeAttachment = async (payload: {ids: number[]}) => {
+  removeAttachment = async (payload: { ids: number[] }) => {
     const attachments = await db.activityAttachment.findMany({
       where: {
         id: {

@@ -1,33 +1,41 @@
+// index.ts
 import express, { Express } from 'express'
 import { ErrorHandler } from './helper/error-handler'
 import { AuthMiddleware } from './middleware/auth-middleware'
-import { setupRoutes } from './routes'
-import cors from 'cors'
-import { Server } from 'socket.io'
-import http from 'http'
-import KanbanSocket from './modules/project/kanban/socket'
 import { createMulter, MulterConfig } from './utils/multer-config'
+import { setupRoutes } from './routes'
+import { Server } from 'socket.io'
+import cors from 'cors'
+import http from 'http'
+
+import KanbanSocket from './modules/project/kanban/socket'
+import ActivitySocket from './modules/project/activity/socket'
 
 class Application {
   private app: Express
-  private HttpServer: http.Server
+  private httpServer: http.Server
   private PORT: number
-  private WS_PORT: number
   private HOST: string
   private authMiddleware: AuthMiddleware = new AuthMiddleware()
   private multerConfig: MulterConfig
+  private io: Server
 
   constructor() {
     this.app = express()
-    this.HttpServer = http.createServer(this.app)
+    this.httpServer = http.createServer(this.app)
     this.PORT = Number(process.env.REST_PORT) || 5000
-    this.WS_PORT = Number(process.env.WS_PORT) || 5001
     this.HOST = process.env.HOST || 'localhost'
 
     this.multerConfig = createMulter()
+    this.io = new Server(this.httpServer, {
+      cors: {
+        origin: '*',
+      },
+    })
+    
     this.plugin()
-    this.setupRoutes()
     this.setupSocket()
+    this.setupRoutes()
     this.start()
   }
 
@@ -45,7 +53,11 @@ class Application {
 
     const v1Router = express.Router()
 
-    setupRoutes(v1Router, this.authMiddleware, true, this.multerConfig)
+    setupRoutes(v1Router, this.authMiddleware, {
+      multerConfig: this.multerConfig,
+      withoutAuth: true,
+      io: this.io,
+    })
 
     this.app.use('/api/v1', v1Router)
 
@@ -58,36 +70,21 @@ class Application {
     this.app.use(ErrorHandler)
   }
 
-  private setupSocket(): Server {
-    const io = new Server(this.HttpServer, {
-      cors: {
-        origin: '*',
-      },
-    })
-
-    io.on('connection', (socket) => {
+  private setupSocket(): void {
+    this.io.on('connection', (socket) => {
       console.log('New client connected')
-      new KanbanSocket(socket, io).socket
-    })
+      new KanbanSocket(socket, this.io).socket
+      new ActivitySocket(socket, this.io).socket
 
-    io.on('disconnect', () => {
-      console.log('User disconnected')
+      socket.on('disconnect', () => {
+        console.log('User disconnected')
+      })
     })
-
-    return io
   }
 
   private start(): void {
-    // API server
-    this.app.listen(this.PORT, this.HOST, () => {
-      console.log(`API server is running at http://${this.HOST}:${this.PORT}`)
-    })
-
-    // WebSocket server
-    this.HttpServer.listen(this.WS_PORT, () => {
-      console.log(
-        `WebSocket server is running at ws://${this.HOST}:${this.WS_PORT}`
-      )
+    this.httpServer.listen(this.PORT, this.HOST, () => {
+      console.log(`Server is running at http://${this.HOST}:${this.PORT}`)
     })
   }
 }

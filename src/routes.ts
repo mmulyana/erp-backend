@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { AuthMiddleware } from './middleware/auth-middleware'
+import { MulterConfig } from './utils/multer-config'
+import { Server } from 'socket.io'
 
 import AuthRoutes from './modules/auth/router'
 import AccountRouter from './modules/account/router'
@@ -36,7 +38,6 @@ import MeasurementRoutes from './modules/inventory/measurement/router'
 import TagRoutes from './modules/inventory/tags/router'
 import GoodsRoutes from './modules/inventory/goods/router'
 import TransactionRoutes from './modules/inventory/transaction/router'
-import { MulterConfig } from './utils/multer-config'
 
 interface RouteConfig {
   path: string
@@ -44,11 +45,16 @@ interface RouteConfig {
   auth?: boolean
 }
 
+type Params = {
+  withoutAuth?: boolean
+  multerConfig: MulterConfig,
+  io: Server
+}
+
 export function setupRoutes(
   app: Router,
   authMiddleware: AuthMiddleware,
-  withoutAuth: boolean = false,
-  multerConfig: MulterConfig
+  { multerConfig, withoutAuth, io }: Params
 ): void {
   const routes: RouteConfig[] = [
     // COMMON
@@ -73,7 +79,7 @@ export function setupRoutes(
     { path: '/project/label', router: new LabelRoutes().router, auth: true },
     { path: '/project/client-company', router: new CompanyRoutes(multerConfig).router, auth: true, },
     { path: '/project/board', router: new BoardRoutes().router, auth: true },
-    { path: '/project/activity', router: new ActivityRoutes(multerConfig).router, auth: true, },
+    { path: '/project/activity', router: new ActivityRoutes(multerConfig, io).router, auth: true, },
     { path: '/project/attachment', router: new AttachmentRoutes(multerConfig).router, auth: true, },
     { path: '/project/estimate', router: new EstimateRoutes().router, auth: true, },
 
