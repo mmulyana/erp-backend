@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon ./src/index.ts",
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "start": "node ./dist/src/index.js"
   },
   "author": "mmulyana",
   "license": "ISC",
