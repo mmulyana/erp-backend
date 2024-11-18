@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { cashAdvanceSchema } from './schema'
 import db from '../../../lib/db'
 import Message from '../../../utils/constant/message'
+import { Prisma } from '@prisma/client'
 
 type cashAdvance = z.infer<typeof cashAdvanceSchema>
 
@@ -15,6 +16,12 @@ type ChartConfig = {
     label: string
     color: string
   }
+}
+
+export type FilterCash = {
+  fullname?: string
+  startDate?: Date
+  endDate?: Date
 }
 export default class CashAdvanceRepository {
   private messagge: Message = new Message('Kasbon')
@@ -83,6 +90,71 @@ export default class CashAdvanceRepository {
       where: { id },
     })
     return data
+  }
+  readByPagination = async (
+    page: number = 1,
+    limit: number = 10,
+    filter?: FilterCash
+  ) => {
+    const skip = (page - 1) * limit
+    let where: Prisma.CashAdvanceWhereInput = {}
+
+    if (filter) {
+      if (filter.fullname) {
+        where = {
+          employee: {
+            OR: [
+              { fullname: { contains: filter.fullname.toLowerCase() } },
+              { fullname: { contains: filter.fullname.toUpperCase() } },
+              { fullname: { contains: filter.fullname } },
+            ],
+          },
+        }
+      }
+
+      if (filter.startDate && filter.endDate) {
+        where = {
+          ...where,
+          requestDate: {
+            gte: filter.startDate,
+            lte: filter.endDate,
+          },
+        }
+      }
+    }
+
+    const data = await db.cashAdvance.findMany({
+      skip,
+      take: limit,
+      where,
+      orderBy: {
+        id: 'desc',
+      },
+      select: {
+        employee: {
+          select: {
+            id: true,
+            fullname: true,
+          },
+        },
+        amount: true,
+        id: true,
+        requestDate: true,
+        description: true,
+        employeeId: true,
+      },
+    })
+
+    const total = await db.cashAdvance.count({ where })
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages,
+    }
   }
   readTotal = async () => {
     const now = new Date()

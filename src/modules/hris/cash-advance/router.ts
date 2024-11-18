@@ -17,6 +17,8 @@ export default class CashAdvanceRouter {
     this.router.post('/', this.cashAdvanceSchema.validate, this.controller.createHandler)
     this.router.patch('/:id', this.cashAdvanceSchema.validate, this.controller.updateHandler)
     this.router.delete('/:id', this.controller.deleteHandler)
+
+    this.router.get('/list/pagination', this.controller.ReadByPagination)
     this.router.get('/:id', this.controller.readByIdHandler)
     this.router.get('/', this.controller.readAllHandler)
 

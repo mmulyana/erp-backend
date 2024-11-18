@@ -1,6 +1,6 @@
 import BaseController from '../../../helper/base-controller'
 import { NextFunction, Request, Response } from 'express'
-import CashAdvanceRepository from './repository'
+import CashAdvanceRepository, { FilterCash } from './repository'
 
 export default class CashAdvanceController extends BaseController {
   private repository: CashAdvanceRepository = new CashAdvanceRepository()
@@ -47,6 +47,29 @@ export default class CashAdvanceController extends BaseController {
     try {
       const { id } = req.params
       const data = await this.repository.readById(Number(id))
+      return this.response.success(res, this.message.successRead(), data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  ReadByPagination = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { page, limit, name, startDate, endDate } = req.query
+
+      const data = await this.repository.readByPagination(
+        page ? Number(page) : undefined,
+        limit ? Number(limit) : undefined,
+        {
+          endDate: endDate ? new Date(String(endDate)) : undefined,
+          startDate: startDate ? new Date(String(startDate)) : undefined,
+          fullname: name ? String(name) : undefined,
+        }
+      )
+
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)

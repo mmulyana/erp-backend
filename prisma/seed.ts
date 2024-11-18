@@ -32,11 +32,6 @@ const GROUP_PERMISSION = [
         description: 'Kemampuan untuk menghapus jabatan',
       },
       {
-        key: 'position:detail',
-        name: 'Detail Jabatan',
-        description: 'Kemampuan untuk melihat detail jabatan',
-      },
-      {
         key: 'position:read',
         name: 'Daftar Jabatan',
         description: 'Kemampuan untuk melihat daftar jabatan',
@@ -67,6 +62,21 @@ const GROUP_PERMISSION = [
         description: 'Kemampuan untuk melihat daftar karyawan',
       },
       {
+        key: 'employee:activate',
+        name: 'Mengaktifkan Karyawan',
+        description: 'Kemampuan untuk mengaktifkan karyawan',
+      },
+      {
+        key: 'employee:deactivate',
+        name: 'Menonaktifkan Karyawan',
+        description: 'Kemampuan untuk menonaktifkan karyawan',
+      },
+      {
+        key: 'employee:read-salary',
+        name: 'Melihat gaji karyawan',
+        description: 'Kemampuan untuk melihat gaji karyawan',
+      },
+      {
         key: 'cash-advance:create',
         name: 'Buat Kasbon',
         description: 'Kemampuan untuk membuat permintaan kasbon',
@@ -80,11 +90,6 @@ const GROUP_PERMISSION = [
         key: 'cash-advance:delete',
         name: 'Hapus Kasbon',
         description: 'Kemampuan untuk menghapus permintaan kasbon',
-      },
-      {
-        key: 'cash-advance:detail',
-        name: 'Detail Kasbon',
-        description: 'Kemampuan untuk melihat detail kasbon',
       },
       {
         key: 'cash-advance:read',
@@ -110,16 +115,6 @@ const GROUP_PERMISSION = [
         key: 'attendance:update',
         name: 'Ubah Kehadiran',
         description: 'Kemampuan untuk mengubah catatan kehadiran',
-      },
-      {
-        key: 'attendance:delete',
-        name: 'Hapus Kehadiran',
-        description: 'Kemampuan untuk menghapus catatan kehadiran',
-      },
-      {
-        key: 'attendance:detail',
-        name: 'Detail Kehadiran',
-        description: 'Kemampuan untuk melihat detail kehadiran',
       },
       {
         key: 'attendance:read',
