@@ -517,4 +517,23 @@ export default class ProjectRepository {
 
     return { active, done }
   }
+
+  findEmployeeByProjectId = async (id: number) => {
+    return await db.employeeAssigned.findMany({
+      where: {
+        projectId: id,
+        employee: {
+          pay_type: 'daily',
+        },
+      },
+      select: {
+        employee: {
+          select: {
+            fullname: true,
+            basic_salary: true,
+          },
+        },
+      },
+    })
+  }
 }

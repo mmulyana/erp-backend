@@ -122,7 +122,11 @@ export default class ClientRepository {
         position: true,
         _count: {
           select: {
-            Project: true,
+            Project: {
+              where: {
+                isDeleted: false,
+              },
+            },
           },
         },
       },
@@ -134,11 +138,13 @@ export default class ClientRepository {
       take: 5,
     })
 
-    const clients = data.map((item) => ({
-      clientId: item.id,
-      clientName: item.name,
-      count: item._count.Project,
-    }))
+    const clients = data
+      .filter((item) => !!item._count.Project)
+      .map((item) => ({
+        clientId: item.id,
+        clientName: item.name,
+        count: item._count.Project,
+      }))
 
     const colors = ['#2A9D90', '#3B82F6', '#10B981', '#F59E0B', '#EF4444']
 

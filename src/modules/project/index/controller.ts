@@ -37,7 +37,7 @@ export default class ProjectController extends BaseController {
   }
   handleRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id, search, labelId, clientId, isArchive} = req.query
+      const { id, search, labelId, clientId, isArchive } = req.query
       const data = await this.repository.read(
         Number(id),
         search?.toString(),
@@ -64,7 +64,7 @@ export default class ProjectController extends BaseController {
           search: search ? String(search) : undefined,
           clientId: clientId ? Number(clientId) : undefined,
           labelId: labelId ? Number(labelId) : undefined,
-          isArchive: isArchive ? isArchive === 'true' : false
+          isArchive: isArchive ? isArchive === 'true' : false,
         }
       )
       return this.response.success(res, this.message.successRead(), data)
@@ -174,6 +174,23 @@ export default class ProjectController extends BaseController {
       return this.response.success(
         res,
         this.message.successUpdateField('status'),
+        data
+      )
+    } catch (error) {
+      next(error)
+    }
+  }
+  handleFindEmployeeByProjectId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params
+      const data = await this.repository.findEmployeeByProjectId(Number(id))
+      return this.response.success(
+        res,
+        this.message.successUpdateField('pegawai untuk'),
         data
       )
     } catch (error) {

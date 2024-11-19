@@ -46,7 +46,7 @@ export default class SupplierRepository {
       data.photoUrl = null
     }
     if (payload.newPhotoUrl) {
-      data.photoUrl == payload.newPhotoUrl
+      data.photoUrl = payload.newPhotoUrl
     }
     if (payload.name) {
       data.name = payload.name
@@ -64,9 +64,6 @@ export default class SupplierRepository {
     return await db.supplier.update({
       data,
       where: { id },
-      select: {
-        id: true,
-      },
     })
   }
   updateTag = async (id: number, payload: { tagIds: number[] }) => {

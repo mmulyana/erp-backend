@@ -30,7 +30,9 @@ export default class SupplierController extends BaseController {
       const { id } = req.params
       const data = await this.repository.update(Number(id), {
         ...req.body,
-        newPhotoUrl: req.file?.filename,
+        ...(req.file?.filename
+          ? { newPhotoUrl: req.file?.filename }
+          : undefined),
       })
       return this.response.success(res, this.message.successUpdate(), data)
     } catch (error) {

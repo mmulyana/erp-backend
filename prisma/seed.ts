@@ -146,6 +146,7 @@ const GROUP_PERMISSION = [
         name: 'Daftar Lembur',
         description: 'Kemampuan untuk melihat daftar lembur',
       },
+
       {
         key: 'recap:create',
         name: 'Buat Rekap',
@@ -172,11 +173,6 @@ const GROUP_PERMISSION = [
         description: 'Kemampuan untuk melihat daftar rekap',
       },
       {
-        key: 'report:export',
-        name: 'Ekspor Laporan',
-        description: 'Kemampuan untuk mengekspor laporan',
-      },
-      {
         key: 'competency:create',
         name: 'Buat kompetensi',
         description: 'Kemampuan untuk membuat kompetensi',
@@ -190,16 +186,6 @@ const GROUP_PERMISSION = [
         key: 'competency:delete',
         name: 'Hapus kompetensi',
         description: 'Kemampuan untuk menghapus kompetensi',
-      },
-      {
-        key: 'competency:detail',
-        name: 'Detail kompetensi',
-        description: 'Kemampuan untuk melihat kompetensi',
-      },
-      {
-        key: 'competency:read',
-        name: 'Daftar kompetensi',
-        description: 'Kemampuan untuk melihat kompetensi',
       },
     ],
   },
@@ -227,10 +213,52 @@ const GROUP_PERMISSION = [
         description: 'Kemampuan untuk melihat detail proyek',
       },
       {
-        key: 'project:read',
-        name: 'Daftar Proyek',
-        description: 'Kemampuan untuk melihat daftar proyek',
+        key: 'project:archive',
+        name: 'Arsip Proyek',
+        description: 'Kemampuan untuk mengarsip proyek',
       },
+      {
+        key: 'project:read-value',
+        name: 'Melihat nilai proyek',
+        description: 'Kemampuan untuk membaca nilai proyek',
+      },
+      {
+        key: 'project:upload-attachment',
+        name: 'Upload lampiran proyek',
+        description: 'Kemampuan untuk mengupload proyek',
+      },
+      {
+        key: 'project:read-secret-attachment',
+        name: 'Melihat lampiran rahasia',
+        description: 'Kemampuan untuk melihat lampiran rahasia proyek',
+      },
+      {
+        key: 'project:delete-attachment',
+        name: 'Hapus lampiran',
+        description: 'Kemampuan untuk menghapus lampiran proyek',
+      },
+      {
+        key: 'project:borrow-goods',
+        name: 'Pinjam barang',
+        description: 'Kemampuan untuk meminjam alat untuk proyek',
+      },
+
+      {
+        key: 'label:create',
+        name: 'Buat Label',
+        description: 'Kemampuan untuk membuat label baru',
+      },
+      {
+        key: 'label:update',
+        name: 'Ubah Label',
+        description: 'Kemampuan untuk mengubah label',
+      },
+      {
+        key: 'label:delete',
+        name: 'Hapus Label',
+        description: 'Kemampuan untuk menghapus label',
+      },
+
       {
         key: 'client:create',
         name: 'Buat Klien',
@@ -247,70 +275,11 @@ const GROUP_PERMISSION = [
         description: 'Kemampuan untuk menghapus klien',
       },
       {
-        key: 'client:detail',
-        name: 'Detail Klien',
-        description: 'Kemampuan untuk melihat detail klien',
-      },
-      {
         key: 'client:read',
         name: 'Daftar Klien',
         description: 'Kemampuan untuk melihat daftar klien',
       },
-      {
-        key: 'kanban:create',
-        name: 'Buat Kanban',
-        description: 'Kemampuan untuk membuat papan kanban baru',
-      },
-      {
-        key: 'kanban:update',
-        name: 'Ubah Kanban',
-        description: 'Kemampuan untuk mengubah papan kanban',
-      },
-      {
-        key: 'kanban:delete',
-        name: 'Hapus Kanban',
-        description: 'Kemampuan untuk menghapus papan kanban',
-      },
-      {
-        key: 'kanban:detail',
-        name: 'Detail Kanban',
-        description: 'Kemampuan untuk melihat detail papan kanban',
-      },
-      {
-        key: 'kanban:read',
-        name: 'Daftar Kanban',
-        description: 'Kemampuan untuk melihat daftar papan kanban',
-      },
-      {
-        key: 'kanban:move',
-        name: 'Pindah Task Kanban',
-        description: 'Kemampuan untuk memindahkan task antar kolom kanban',
-      },
-      {
-        key: 'label:create',
-        name: 'Buat Label',
-        description: 'Kemampuan untuk membuat label baru',
-      },
-      {
-        key: 'label:update',
-        name: 'Ubah Label',
-        description: 'Kemampuan untuk mengubah label',
-      },
-      {
-        key: 'label:delete',
-        name: 'Hapus Label',
-        description: 'Kemampuan untuk menghapus label',
-      },
-      {
-        key: 'label:detail',
-        name: 'Detail Label',
-        description: 'Kemampuan untuk melihat detail label',
-      },
-      {
-        key: 'label:read',
-        name: 'Daftar Label',
-        description: 'Kemampuan untuk melihat daftar label',
-      },
+
       {
         key: 'company:create',
         name: 'Buat Perusahaan',
@@ -325,16 +294,6 @@ const GROUP_PERMISSION = [
         key: 'company:delete',
         name: 'Hapus Perusahaan',
         description: 'Kemampuan untuk menghapus perusahaan klien',
-      },
-      {
-        key: 'company:detail',
-        name: 'Detail Perusahaan',
-        description: 'Kemampuan untuk melihat detail perusahaan klien',
-      },
-      {
-        key: 'company:read',
-        name: 'Daftar Perusahaan',
-        description: 'Kemampuan untuk melihat daftar perusahaan klien',
       },
     ],
   },
@@ -361,117 +320,28 @@ const GROUP_PERMISSION = [
         name: 'Detail Barang',
         description: 'Kemampuan untuk melihat detail barang',
       },
+
       {
-        key: 'item:read',
-        name: 'Daftar Barang',
-        description: 'Kemampuan untuk melihat daftar barang',
+        key: 'transaction:create',
+        name: 'Buat transaksi barang',
+        description: 'Kemampuan untuk mencatat transaksi',
       },
       {
-        key: 'transaction-in:create',
-        name: 'Buat Barang Masuk',
-        description: 'Kemampuan untuk mencatat transaksi barang masuk',
+        key: 'transaction:update',
+        name: 'Ubah transaksi barang',
+        description: 'Kemampuan untuk mengubah transaksi',
       },
       {
-        key: 'transaction-in:update',
-        name: 'Ubah Barang Masuk',
-        description: 'Kemampuan untuk mengubah transaksi barang masuk',
+        key: 'transaction:delete',
+        name: 'Hapus transaksi barang',
+        description: 'Kemampuan untuk menghapus transaksi',
       },
       {
-        key: 'transaction-in:delete',
-        name: 'Hapus Barang Masuk',
-        description: 'Kemampuan untuk menghapus transaksi barang masuk',
-      },
-      {
-        key: 'transaction-in:detail',
-        name: 'Detail Barang Masuk',
-        description: 'Kemampuan untuk melihat detail transaksi barang masuk',
-      },
-      {
-        key: 'transaction-in:read',
+        key: 'transaction:returned',
         name: 'Daftar Barang Masuk',
-        description: 'Kemampuan untuk melihat daftar transaksi barang masuk',
+        description: 'Kemampuan mengembalikan barang',
       },
-      {
-        key: 'transaction-out:create',
-        name: 'Buat Barang Keluar',
-        description: 'Kemampuan untuk mencatat transaksi barang keluar',
-      },
-      {
-        key: 'transaction-out:update',
-        name: 'Ubah Barang Keluar',
-        description: 'Kemampuan untuk mengubah transaksi barang keluar',
-      },
-      {
-        key: 'transaction-out:delete',
-        name: 'Hapus Barang Keluar',
-        description: 'Kemampuan untuk menghapus transaksi barang keluar',
-      },
-      {
-        key: 'transaction-out:detail',
-        name: 'Detail Barang Keluar',
-        description: 'Kemampuan untuk melihat detail transaksi barang keluar',
-      },
-      {
-        key: 'transaction-out:read',
-        name: 'Daftar Barang Keluar',
-        description: 'Kemampuan untuk melihat daftar transaksi barang keluar',
-      },
-      {
-        key: 'stock-opname:create',
-        name: 'Buat Stock Opname',
-        description: 'Kemampuan untuk membuat stock opname baru',
-      },
-      {
-        key: 'stock-opname:update',
-        name: 'Ubah Stock Opname',
-        description: 'Kemampuan untuk mengubah stock opname',
-      },
-      {
-        key: 'stock-opname:delete',
-        name: 'Hapus Stock Opname',
-        description: 'Kemampuan untuk menghapus stock opname',
-      },
-      {
-        key: 'stock-opname:detail',
-        name: 'Detail Stock Opname',
-        description: 'Kemampuan untuk melihat detail stock opname',
-      },
-      {
-        key: 'stock-opname:read',
-        name: 'Daftar Stock Opname',
-        description: 'Kemampuan untuk melihat daftar stock opname',
-      },
-      {
-        key: 'borrow:create',
-        name: 'Buat Peminjaman',
-        description: 'Kemampuan untuk membuat peminjaman barang untuk proyek',
-      },
-      {
-        key: 'borrow:update',
-        name: 'Ubah Peminjaman',
-        description: 'Kemampuan untuk mengubah peminjaman barang',
-      },
-      {
-        key: 'borrow:delete',
-        name: 'Hapus Peminjaman',
-        description: 'Kemampuan untuk menghapus peminjaman barang',
-      },
-      {
-        key: 'borrow:detail',
-        name: 'Detail Peminjaman',
-        description: 'Kemampuan untuk melihat detail peminjaman barang',
-      },
-      {
-        key: 'borrow:read',
-        name: 'Daftar Peminjaman',
-        description: 'Kemampuan untuk melihat daftar peminjaman barang',
-      },
-      {
-        key: 'borrow:return',
-        name: 'Pengembalian Barang',
-        description:
-          'Kemampuan untuk mencatat pengembalian barang yang dipinjam',
-      },
+
       {
         key: 'supplier:create',
         name: 'Buat Supplier',
@@ -491,11 +361,6 @@ const GROUP_PERMISSION = [
         key: 'supplier:detail',
         name: 'Detail Supplier',
         description: 'Kemampuan untuk melihat detail supplier',
-      },
-      {
-        key: 'supplier:read',
-        name: 'Daftar Supplier',
-        description: 'Kemampuan untuk melihat daftar supplier',
       },
     ],
   },

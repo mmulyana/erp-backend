@@ -13,7 +13,7 @@ export default class AttachmentRepository {
         type: payload.type,
         uploaded_by: Number(payload.uploaded_by),
         projectId: Number(payload.projectId),
-        isSecret: payload.isSecret,
+        isSecret: payload.isSecret === 'true',
         file: payload.file?.filename as string,
         uploaded_at: new Date(),
       },
@@ -52,12 +52,10 @@ export default class AttachmentRepository {
     })
   }
 
-  updateAttachment = async (id: number, payload: Partial<Attachment>) => {
-    // const existing = await db.projectAttachment.findUnique({ where: { id } })
-    // if (payload.newFile !== '' && existing?.file) {
-    //   deleteFile(existing.file, PATHS.FILES)
-    // }
-
+  updateAttachment = async (
+    id: number,
+    payload: Partial<Omit<Attachment, 'isSecret'>> & { isSecret?: boolean }
+  ) => {
     return await db.projectAttachment.update({
       where: { id },
       data: {
