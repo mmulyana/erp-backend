@@ -54,12 +54,12 @@ export default class AttachmentRepository {
 
   updateAttachment = async (
     id: number,
-    payload: Partial<Omit<Attachment, 'isSecret'>> & { isSecret?: boolean }
+    payload: Partial<Attachment>
   ) => {
     return await db.projectAttachment.update({
       where: { id },
       data: {
-        isSecret: payload.isSecret,
+        isSecret: payload.isSecret === 'true',
       },
     })
   }
