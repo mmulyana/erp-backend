@@ -75,6 +75,9 @@ export class PermissionRepository {
       include: {
         permissions: true,
       },
+      orderBy: {
+        id: 'asc',
+      },
     })
   }
 

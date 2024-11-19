@@ -357,10 +357,21 @@ const GROUP_PERMISSION = [
         name: 'Hapus Supplier',
         description: 'Kemampuan untuk menghapus supplier',
       },
+
       {
-        key: 'supplier:detail',
-        name: 'Detail Supplier',
-        description: 'Kemampuan untuk melihat detail supplier',
+        key: 'supplier-employee:create',
+        name: 'Buat Pegawai Supplier',
+        description: 'Kemampuan untuk menambahkan pegawai supplier baru',
+      },
+      {
+        key: 'supplier-employee:update',
+        name: 'Ubah Pegawai Supplier',
+        description: 'Kemampuan untuk mengubah informasi pegawai supplier',
+      },
+      {
+        key: 'supplier-employee:delete',
+        name: 'Hapus Pegawai Supplier',
+        description: 'Kemampuan untuk menghapus pegawai supplier',
       },
     ],
   },
@@ -383,14 +394,14 @@ const GROUP_PERMISSION = [
         description: 'Kemampuan untuk menghapus user dari sistem',
       },
       {
-        key: 'user:detail',
-        name: 'Detail User',
-        description: 'Kemampuan untuk melihat detail informasi user',
-      },
-      {
         key: 'user:read',
         name: 'Daftar User',
         description: 'Kemampuan untuk melihat daftar user',
+      },
+      {
+        key: 'user:reset-password',
+        name: 'Reset Password',
+        description: 'Kemampuan untuk mereset password yang dimiliki user',
       },
       {
         key: 'user:change-role',
@@ -402,11 +413,7 @@ const GROUP_PERMISSION = [
         name: 'Aktivasi User',
         description: 'Kemampuan untuk mengaktifkan user yang nonaktif',
       },
-      {
-        key: 'user:deactivate',
-        name: 'Deaktivasi User',
-        description: 'Kemampuan untuk menonaktifkan user yang aktif',
-      },
+
       {
         key: 'role:create',
         name: 'Buat Role',
@@ -423,11 +430,6 @@ const GROUP_PERMISSION = [
         description: 'Kemampuan untuk menghapus role',
       },
       {
-        key: 'role:detail',
-        name: 'Detail Role',
-        description: 'Kemampuan untuk melihat detail role',
-      },
-      {
         key: 'role:read',
         name: 'Daftar Role',
         description: 'Kemampuan untuk melihat daftar role',
@@ -442,79 +444,109 @@ const GROUP_PERMISSION = [
 ]
 
 async function main() {
-  // Create board containers
-  for (let i = 0; i < 4; i++) {
-    let id = `container-${generateUUID()}`
-    await prisma.boardContainer.create({
-      data: {
-        id,
-        name: BOARD_NAMES[i],
-        color: BOARD_COLORS[i],
-        position: i,
-      },
-    })
-  }
+  const existingBoards = await prisma.boardContainer.findFirst()
+  const existingLabels = await prisma.projectLabel.findFirst()
+  const existingGroups = await prisma.permissionGroup.findFirst()
+  const existingSuperadmin = await prisma.role.findFirst({
+    where: { name: 'Superadmin' },
+  })
+  const existingUser = await prisma.user.findUnique({
+    where: { email: process.env.EMAIL },
+  })
 
-  for (let i = 0; i < 2; i++) {
-    await prisma.projectLabel.create({
-      data: {
-        name: LABELS_NAMES[i],
-        color: LABELS_COLORS[i],
-      },
-    })
-  }
-
-  // create group permission
-  const groups = GROUP_PERMISSION.map((group) => ({
-    name: group.name,
-  }))
-
-  const createdGroups = await Promise.all(
-    groups.map((group) =>
-      prisma.permissionGroup.create({
-        data: group,
+  if (!existingBoards) {
+    const boardPromises = BOARD_NAMES.map((name, i) =>
+      prisma.boardContainer.create({
+        data: {
+          id: `container-${generateUUID()}`,
+          name: name,
+          color: BOARD_COLORS[i],
+          position: i,
+        },
       })
     )
-  )
+    await Promise.all(boardPromises)
+  }
 
-  const groupIdMap = createdGroups.reduce((acc, group) => {
-    acc[group.name] = group.id
-    return acc
-  }, {} as Record<string, number>)
+  if (!existingLabels) {
+    const labelPromises = LABELS_NAMES.map((name, i) =>
+      prisma.projectLabel.create({
+        data: {
+          name: name,
+          color: LABELS_COLORS[i],
+        },
+      })
+    )
+    await Promise.all(labelPromises)
+  }
 
-  const permissions = GROUP_PERMISSION.flatMap((group) =>
-    group.permissions.map((permission) => ({
-      key: permission.key,
-      name: permission.name,
-      description: permission.description,
-      groupId: groupIdMap[group.name],
-    }))
-  )
+  if (!existingGroups) {
+    // Create permission groups
+    const createdGroups = await Promise.all(
+      GROUP_PERMISSION.map((group) =>
+        prisma.permissionGroup.create({
+          data: { name: group.name },
+        })
+      )
+    )
 
-  // create permissions
-  await prisma.permission.createMany({
-    data: permissions,
-  })
+    const groupIdMap = createdGroups.reduce((acc, group) => {
+      acc[group.name] = group.id
+      return acc
+    }, {} as Record<string, number>)
 
-  // Create Superadmin role with all permissions
-  const superadminRole = await prisma.role.create({
-    data: {
-      name: 'Superadmin',
-      description: 'Super Administrator with full access',
-    },
-  })
+    // Create permissions with groups
+    await Promise.all(
+      GROUP_PERMISSION.flatMap((group) =>
+        group.permissions.map((permission) =>
+          prisma.permission.create({
+            data: {
+              key: permission.key,
+              name: permission.name,
+              description: permission.description,
+              groupId: groupIdMap[group.name],
+            },
+          })
+        )
+      )
+    )
+  }
 
-  const hashedPassword = await hash('password', 10)
+  if (!existingSuperadmin) {
+    // Create Superadmin role
+    const superadminRole = await prisma.role.create({
+      data: {
+        name: 'Superadmin',
+        description: 'Akses semua fitur',
+      },
+    })
 
-  await prisma.user.create({
-    data: {
-      name: process.env.NAME as string,
-      email: process.env.EMAIL as string,
-      phoneNumber: process.env.PHONE as string,
-      password: hashedPassword,
-      roleId: superadminRole.id,
-    },
-  })
+    // Assign all permissions to Superadmin
+    const allPermissions = await prisma.permission.findMany()
+    await Promise.all(
+      allPermissions.map((permission) =>
+        prisma.rolePermission.create({
+          data: {
+            roleId: superadminRole.id,
+            permissionId: permission.id,
+          },
+        })
+      )
+    )
+
+    if (!existingUser) {
+      // Create superadmin user
+      await prisma.user.create({
+        data: {
+          name: process.env.NAME as string,
+          email: process.env.EMAIL as string,
+          phoneNumber: process.env.PHONE as string,
+          password: await hash('password', 10),
+          roleId: superadminRole.id,
+        },
+      })
+    }
+  }
 
   console.log('Seeding completed')
 }
