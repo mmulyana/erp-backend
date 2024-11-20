@@ -4,7 +4,7 @@ export const loginSchema = z
   .object({
     name: z.string().optional(),
     email: z.string().email().optional(),
-    phone: z
+    phoneNumber: z
       .string()
       .regex(
         /^(\+62|62|0)[\s-]?8[1-9]{1}[\s-]?\d{3,4}[\s-]?\d{4,6}$/,
@@ -24,7 +24,7 @@ export const loginSchema = z
   })
   .refine(
     (data) => {
-      return Boolean(data.name || data.email || data.phone)
+      return Boolean(data.name || data.email || data.phoneNumber)
     },
     {
       message: 'Minimal isi salah satu: nama, email, atau nomor telepon',
