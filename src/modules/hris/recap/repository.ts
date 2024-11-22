@@ -123,7 +123,7 @@ export default class RecapRepository {
           (prev, curr) => prev + curr.total_hour,
           0
         )
-        const overtimeTotal = attendance.reduce(
+        const overtimeTotal = overtime.reduce(
           (prev, curr) => prev + curr.total_hour,
           0
         )

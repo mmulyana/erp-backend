@@ -7,8 +7,8 @@ export const loginSchema = z
     phoneNumber: z
       .string()
       .regex(
-        /^(\+62|62|0)[\s-]?8[1-9]{1}[\s-]?\d{3,4}[\s-]?\d{4,6}$/,
-        'Nomor telepon tidak valid. Gunakan format: +628xxx, 08xxx, atau 628xxx'
+        /^(62|0)[\s-]?8[1-9]{1}[\s-]?\d{3,4}[\s-]?\d{4,6}$/,
+        'Nomor telepon tidak valid. Gunakan format: 08xxx, atau 628xxx'
       )
       .transform((val) => {
         let standardized = val.replace(/[-\s]/g, '')
