@@ -18,7 +18,8 @@ export default class RoleService {
     }
   }
   getRoles = async () => {
-    return this.repository.getAll()
+    const data = await this.repository.getAll()
+    return data.filter((item) => item.id !== 1)
   }
   updateRole = async (id: number, data: updateRoleDTO) => {
     await this.getRoleBydId(id)
