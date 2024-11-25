@@ -1,7 +1,9 @@
+import { z } from 'zod'
+
 import { createAttendanceSchema, updateAttendanceSchema } from './schema'
+import { convertToWIB, generateDateRange } from '../../../utils/generate-date-range'
 import Message from '../../../utils/constant/message'
 import db from '../../../lib/db'
-import { z } from 'zod'
 
 type CreateAttendance = z.infer<typeof createAttendanceSchema>
 type UpdateAttendance = z.infer<typeof updateAttendanceSchema>
@@ -38,10 +40,17 @@ export default class AttendanceRepository {
     await this.isExist(id)
     await db.attendance.delete({ where: { id } })
   }
-  read = async (
-    startDate: Date,
-    { search, positionId }: { search?: string; positionId?: number }
-  ) => {
+  read = async ({
+    search,
+    positionId,
+    startDate,
+    endDate,
+  }: {
+    search?: string
+    positionId?: number
+    startDate: Date
+    endDate?: Date
+  }) => {
     const positions = await db.position.findMany({
       where: positionId ? { id: positionId } : undefined,
       select: {
@@ -72,9 +81,16 @@ export default class AttendanceRepository {
                 total_hour: true,
                 type: true,
               },
-              where: {
-                date: startDate,
-              },
+              where: endDate
+                ? {
+                    AND: [
+                      { date: { gte: startDate } },
+                      { date: { lte: endDate } },
+                    ],
+                  }
+                : {
+                    date: startDate,
+                  },
             },
           },
         },
@@ -87,8 +103,19 @@ export default class AttendanceRepository {
         ...position,
         employees: position.employees.map((employee) => ({
           ...employee,
-          attendances:
-            employee.attendances.length > 0 ? employee.attendances : null,
+          attendances: !endDate
+            ? employee.attendances.length > 0
+              ? employee.attendances
+              : null
+            : generateDateRange(startDate, endDate).map((date) => {
+                const attendanceMap = new Map(
+                  employee.attendances.map((a) => {
+                    const wibDate = convertToWIB(a.date)
+                    return [wibDate.toISOString(), { ...a, date: wibDate }]
+                  })
+                )
+                return attendanceMap.get(date) || null
+              }),
         })),
       }))
     return data

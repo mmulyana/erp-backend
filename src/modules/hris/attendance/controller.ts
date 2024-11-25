@@ -39,16 +39,15 @@ export default class AttendanceController extends BaseController {
   }
   readHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { date, name, positionId } = req.query
+      const { date, name, positionId, endDate } = req.query
       const localDate = endOfDay(new Date())
 
-      const data = await this.repository.read(
-        date ? new Date(date as string) : new Date(localDate),
-        {
-          search: name ? String(name) : undefined,
-          positionId: positionId ? Number(positionId) : undefined,
-        }
-      )
+      const data = await this.repository.read({
+        search: name ? String(name) : undefined,
+        positionId: positionId ? Number(positionId) : undefined,
+        startDate: date ? new Date(String(date)) : new Date(localDate),
+        endDate: endDate ? new Date(String(endDate)) : undefined
+      })
       return this.response.success(res, this.message.successRead(), data)
     } catch (error) {
       next(error)
