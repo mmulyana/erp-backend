@@ -22,6 +22,7 @@ export default class AccountRouter extends RouterWithFile {
 
   protected register() {    
     this.router.post('/', this.createSchema.validate, this.controller.createAccountHandler)
+    this.router.post('/:id/tour', this.controller.createTourHandler)
     
     this.router.delete('/:id', this.controller.deleteAccountHandler)
     

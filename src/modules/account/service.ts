@@ -7,20 +7,6 @@ import {
 import AccountRepository from './repository'
 import { compare, hash } from 'bcryptjs'
 import { Prisma } from '@prisma/client'
-
-interface Account {
-  id: number
-  email: string
-  name: string
-  phoneNumber: string
-  photo?: string | null
-  roleId?: number | null
-  employeeId?: number | null
-  employee?: any
-  role?: any
-  permissions: string[]
-}
-
 export interface FilterUser {
   name?: string
   email?: string
@@ -38,8 +24,9 @@ export default class AccountService {
 
     const rolePermissions =
       data.role?.RolePermission?.map((rp) => rp.permission.key) || []
-
     const permissions = [...new Set([...rolePermissions])]
+
+    const dataTour = await this.repository.findAllToursByUserId(data.id)
 
     return {
       id: data.id,
@@ -57,6 +44,7 @@ export default class AccountService {
         description: data.role?.description,
       },
       permissions,
+      tours: dataTour.map((item) => item.name),
     }
   }
   getAllAccount = async (
@@ -221,5 +209,13 @@ export default class AccountService {
   }
   deactivate = async (id: number) => {
     await this.repository.updateAccountById(id, { active: false })
+  }
+  createTourAccount = async (id: number, name: string) => {
+    const isExist = await this.repository.findTourByUserIdAndName(id, name)
+    if (isExist) {
+      throw new Error('Tour sudah ada')
+    }
+
+    await this.repository.createTour(id, name)
   }
 }

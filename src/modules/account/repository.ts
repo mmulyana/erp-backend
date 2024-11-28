@@ -1,7 +1,6 @@
 import { FilterUser } from './service'
 import { Prisma } from '@prisma/client'
 import db from '../../lib/db'
-import { CreateAccountSchema } from './schema'
 
 export default class AccountRepository {
   findByPagination = async (
@@ -134,5 +133,26 @@ export default class AccountRepository {
       return { exist: true }
     }
     return { exist: false }
+  }
+
+  findAllToursByUserId = async (userId: number) => {
+    return await db.tour.findMany({ where: { userId } })
+  }
+
+  findTourByUserIdAndName = async (userId: number, name: string) => {
+    return await db.tour.findFirst({
+      where: {
+        userId,
+        name,
+      },
+    })
+  }
+  createTour = async (userId: number, name: string) => {
+    return await db.tour.create({
+      data: {
+        userId,
+        name,
+      },
+    })
   }
 }

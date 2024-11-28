@@ -160,4 +160,13 @@ export default class AccountController extends BaseController {
       next(error)
     }
   }
+  createTourHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      await this.service.createTourAccount(Number(id), req.body.name)
+      return this.response.success(res, 'Tour berhasil ditambahkan')
+    } catch (error) {
+      next(error)
+    }
+  }
 }

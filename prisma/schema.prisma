@@ -27,6 +27,8 @@ model User {
   activities   Activity[]
   employee     Employee?           @relation(fields: [employeeId], references: [id])
   role         Role?               @relation(fields: [roleId], references: [id])
+  tours        Tour[]
+  helpdesk     Helpdesk[]
 }
 
 model Role {
@@ -531,4 +533,24 @@ model Recap {
   name       String
   start_date DateTime @db.Date()
   end_date   DateTime @db.Date()
+}
+
+model Tour {
+  id     Int    @id @default(autoincrement())
+  name   String
+  userId Int
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Helpdesk {
+  id      Int          @id @default(autoincrement())
+  message String
+  userId  Int
+  type    HelpdeskType
+  user    User         @relation(fields: [userId], references: [id])
+}
+
+enum HelpdeskType {
+  feature
+  bug
 }
