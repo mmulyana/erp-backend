@@ -17,7 +17,7 @@ export default class HelpdeskController extends BaseController {
   createHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await this.repository.create(req.body)
-      const user = await this.accountRepository.getAccountById(data.id)
+      const user = await this.accountRepository.getAccountById(req.body.userId)
 
       await this.telegram.send(`${data.message} dari ${user?.name}`, data.type)
       return this.response.success(res, 'Berhasil dikirim')
