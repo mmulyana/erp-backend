@@ -7,6 +7,7 @@ import {
 import AccountRepository from './repository'
 import { compare, hash } from 'bcryptjs'
 import { Prisma } from '@prisma/client'
+
 export interface FilterUser {
   name?: string
   email?: string

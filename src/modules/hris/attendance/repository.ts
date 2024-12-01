@@ -1,7 +1,10 @@
 import { z } from 'zod'
 
 import { createAttendanceSchema, updateAttendanceSchema } from './schema'
-import { convertToWIB, generateDateRange } from '../../../utils/generate-date-range'
+import {
+  convertToWIB,
+  generateDateRange,
+} from '../../../utils/generate-date-range'
 import Message from '../../../utils/constant/message'
 import db from '../../../lib/db'
 
@@ -58,7 +61,7 @@ export default class AttendanceRepository {
         employees: {
           where: {
             AND: [
-              { pay_type: 'daily' },
+              { pay_type: 'daily', status: true, isHidden: false },
               search
                 ? {
                     OR: [

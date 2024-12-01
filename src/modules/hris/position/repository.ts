@@ -32,6 +32,14 @@ export default class PositionRepository {
   }
   delete = async (id: number) => {
     await this.isExist(id)
+    const hasEmployee = await db.employee.findMany({
+      where: { positionId: id, isHidden: false, status: true },
+    })
+    if (hasEmployee) {
+      throw Error(
+        'Jabatan tidak bisa dihapus, karena masih ada pegawai dengan jabatan ini. Silahkan ganti jabatan pegawai atau hapus'
+      )
+    }
     await db.position.delete({ where: { id } })
   }
   read = async (id: number) => {

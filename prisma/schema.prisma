@@ -546,6 +546,7 @@ model Helpdesk {
   id      Int          @id @default(autoincrement())
   message String
   userId  Int
+  resolve Boolean      @default(false)
   type    HelpdeskType
   user    User         @relation(fields: [userId], references: [id])
 }

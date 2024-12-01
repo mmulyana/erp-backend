@@ -32,7 +32,7 @@ class Application {
         origin: '*',
       },
     })
-    
+
     this.plugin()
     this.setupSocket()
     this.setupRoutes()
@@ -55,7 +55,7 @@ class Application {
 
     setupRoutes(v1Router, this.authMiddleware, {
       multerConfig: this.multerConfig,
-      withoutAuth: true,
+      withoutAuth: false,
       io: this.io,
     })
 

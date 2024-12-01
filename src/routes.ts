@@ -8,6 +8,7 @@ import AccountRouter from './modules/account/router'
 import DashboardRouter from './modules/dashboard/router'
 import RoleRouter from './modules/role/router'
 import PermissionRouter from './modules/permission/router'
+import HelpdeskRouter from './modules/helpdesk/router'
 
 // HRIS
 import PositionRoutes from './modules/hris/position/router'
@@ -39,6 +40,7 @@ import TagRoutes from './modules/inventory/tags/router'
 import GoodsRoutes from './modules/inventory/goods/router'
 import TransactionRoutes from './modules/inventory/transaction/router'
 
+
 interface RouteConfig {
   path: string
   router: Router
@@ -63,6 +65,7 @@ export function setupRoutes(
     { path: '/dashboard', router: new DashboardRouter().router, auth: true },
     { path: '/role', router: new RoleRouter().router, auth: true },
     { path: '/permission', router: new PermissionRouter().router, auth: true },
+    { path: '/helpdesk', router: new HelpdeskRouter().router, auth: true },
 
     // HRIS
     { path: '/hris/position', router: new PositionRoutes().router, auth: true },

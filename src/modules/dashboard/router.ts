@@ -1,7 +1,7 @@
 import DashboardController from './controller'
 import { Router } from 'express'
 
-export default class AttendanceRouter {
+export default class DashboardRouter {
   private controller: DashboardController = new DashboardController()
   public router: Router
 

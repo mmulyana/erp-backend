@@ -1,34 +1,16 @@
 import { Prisma } from '@prisma/client'
-import db from '../../../lib/db'
 import { Recap } from './schema'
+import db from '../../../lib/db'
+import {
+  convertToWIB,
+  generateDateRange,
+} from '../../../utils/generate-date-range'
 
 interface FilterRecap {
   name?: string
   start_date?: Date
   end_date?: Date
   year?: number
-}
-
-export const generateDateRange = (startDate: Date, endDate: Date): string[] => {
-  const dates: string[] = []
-  const currentDate = new Date(startDate)
-  const lastDate = new Date(endDate)
-
-  currentDate.setHours(17, 0, 0, 0)
-  lastDate.setHours(17, 0, 0, 0)
-
-  while (currentDate <= lastDate) {
-    dates.push(currentDate.toISOString())
-    currentDate.setDate(currentDate.getDate() + 1)
-  }
-
-  return dates
-}
-
-export const convertToWIB = (date: Date): Date => {
-  const newDate = new Date(date)
-  newDate.setHours(17, 0, 0, 0)
-  return newDate
 }
 
 export default class RecapRepository {
@@ -39,21 +21,56 @@ export default class RecapRepository {
     limit: number = 40
   ) => {
     const skip = (page - 1) * limit
-
     const wibStartDate = convertToWIB(start_date)
     const wibEndDate = convertToWIB(end_date)
-
     const dates = generateDateRange(wibStartDate, wibEndDate)
 
-    const totalEmployees = await db.employee.count()
-
-    const employees = await db.employee.findMany({
-      skip,
-      take: limit,
+    // Get employees with data in the date range using subqueries
+    const employeesWithData = await db.employee.findMany({
       where: {
-        isHidden: false,
-        status: true,
         pay_type: 'daily',
+        OR: [
+          {
+            // Active and not hidden
+            AND: {
+              status: true,
+              isHidden: false,
+            },
+          },
+          {
+            // Has attendance
+            attendances: {
+              some: {
+                date: {
+                  gte: wibStartDate,
+                  lte: wibEndDate,
+                },
+              },
+            },
+          },
+          {
+            // Has overtime
+            overtime: {
+              some: {
+                date: {
+                  gte: wibStartDate,
+                  lte: wibEndDate,
+                },
+              },
+            },
+          },
+          {
+            // Has cash advance
+            cashAdvances: {
+              some: {
+                requestDate: {
+                  gte: wibStartDate,
+                  lte: wibEndDate,
+                },
+              },
+            },
+          },
+        ],
       },
       select: {
         id: true,
@@ -66,13 +83,60 @@ export default class RecapRepository {
           },
         },
       },
+      skip,
+      take: limit,
       orderBy: {
         id: 'asc',
       },
     })
 
+    // Get total count with same conditions
+    const totalEmployees = await db.employee.count({
+      where: {
+        pay_type: 'daily',
+        OR: [
+          {
+            AND: {
+              status: true,
+              isHidden: false,
+            },
+          },
+          {
+            attendances: {
+              some: {
+                date: {
+                  gte: wibStartDate,
+                  lte: wibEndDate,
+                },
+              },
+            },
+          },
+          {
+            overtime: {
+              some: {
+                date: {
+                  gte: wibStartDate,
+                  lte: wibEndDate,
+                },
+              },
+            },
+          },
+          {
+            cashAdvances: {
+              some: {
+                requestDate: {
+                  gte: wibStartDate,
+                  lte: wibEndDate,
+                },
+              },
+            },
+          },
+        ],
+      },
+    })
+
     const employeeData = await Promise.all(
-      employees.map(async (employee) => {
+      employeesWithData.map(async (employee) => {
         const [attendance, overtime] = await Promise.all([
           db.attendance.findMany({
             where: {
@@ -147,13 +211,13 @@ export default class RecapRepository {
             amount: true,
           },
         })
-        const totalCashAdvace = Number(cashAdvances._sum.amount)
+        const totalCashAdvace = Number(cashAdvances._sum.amount) || 0
 
         const attendanceFee = employee.basic_salary
-          ? attendanceTotal * Number(employee?.basic_salary)
+          ? attendanceTotal * Number(employee.basic_salary)
           : 0
         const overtimeFee = employee.overtime_salary
-          ? overtimeTotal * Number(employee?.overtime_salary)
+          ? overtimeTotal * Number(employee.overtime_salary)
           : 0
 
         const total = attendanceFee + overtimeFee - totalCashAdvace
@@ -161,8 +225,8 @@ export default class RecapRepository {
         return {
           employeeId: employee.id,
           fullname: employee.fullname,
-          basic_salary: Number(employee.basic_salary),
-          overtime_salary: Number(employee.overtime_salary),
+          basic_salary: Number(employee.basic_salary) || 0,
+          overtime_salary: Number(employee.overtime_salary) || 0,
           position: employee.position?.name || null,
           attendance: dates.map((date) => attendanceMap.get(date) || null),
           overtime: dates.map((date) => overtimeMap.get(date) || null),
@@ -171,7 +235,7 @@ export default class RecapRepository {
           overtimeTotal,
           attendanceFee,
           overtimeFee,
-          total
+          total,
         }
       })
     )
@@ -185,6 +249,7 @@ export default class RecapRepository {
       total_pages: Math.ceil(totalEmployees / limit),
     }
   }
+
   findById = async (id: number) => {
     return await db.recap.findUnique({
       where: { id },

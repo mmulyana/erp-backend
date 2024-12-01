@@ -2,6 +2,7 @@ import AuthRepository from './repository'
 import { compare } from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
+import TelegramService from '../../helper/telegram'
 dotenv.config()
 
 export interface LoginDTO {
@@ -13,6 +14,7 @@ export interface LoginDTO {
 
 export class AuthService {
   private repository: AuthRepository = new AuthRepository()
+  private telegram: TelegramService = new TelegramService()
 
   async login(credentials: LoginDTO) {
     const { email, name, password, phoneNumber } = credentials
@@ -39,6 +41,8 @@ export class AuthService {
       process.env.SECRET as string,
       { expiresIn: '2d' }
     )
+
+    await this.telegram.send(`${user.name} sudah login`, 'log')
 
     return {
       name: user.name,
