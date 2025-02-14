@@ -9,201 +9,132 @@ datasource db {
 
 // Authorization
 model User {
-  id           Int                 @id @default(autoincrement())
-  name         String              @unique
-  email        String?             @unique
-  phoneNumber  String?             @unique
-  photo        String?
+  id           String              @id @default(uuid()) @db.Uuid()
+  roleId       String?             @db.Uuid()
+  username     String              @unique @db.VarChar(50)
+  phone        String?             @unique @db.VarChar(13)
+  email        String?             @unique @db.VarChar(255)
   active       Boolean             @default(true)
-  password     String
-  created_at   DateTime            @default(now()) @db.Date()
-  updated_at   DateTime            @updatedAt
-  roleId       Int?
-  employeeId   Int?                @unique
+  photoUrl     String?             @db.VarChar(100)
+  password     String              @db.VarChar(255)
   attachments  ProjectAttachment[]
   transactions TransactionGoods[]
   likes        ActivityLike[]
-  logs         ActivityLog[]
   activities   Activity[]
-  employee     Employee?           @relation(fields: [employeeId], references: [id])
-  role         Role?               @relation(fields: [roleId], references: [id])
   tours        Tour[]
   helpdesk     Helpdesk[]
+  createdAt    DateTime            @default(now()) @db.Date()
+  updatedAt    DateTime            @updatedAt
+  deletedAt    DateTime?
+  Project      Project[]
+  Attendance   Attendance[]
+  Overtime     Overtime[]
+
+  role        Role?         @relation(fields: [roleId], references: [id])
+  CashAdvance CashAdvance[]
 }
 
 model Role {
-  id             Int              @id @default(autoincrement())
+  id             String           @id @default(uuid()) @db.Uuid()
   name           String           @unique
   description    String?
-  users          User[]
-  createdAt      DateTime         @default(now())
+  createdAt      DateTime         @default(now()) @db.Date()
   updatedAt      DateTime         @updatedAt
-  RolePermission RolePermission[]
+  deletedAt      DateTime?
+  permissionRole PermissionRole[]
+  users          User[]
 }
 
-model RolePermission {
-  id           Int        @id @default(autoincrement())
-  roleId       Int
-  permissionId Int
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id])
+model PermissionRole {
+  id           String @id @default(uuid()) @db.Uuid()
+  roleId       String @db.Uuid()
+  permissionId String
 
-  @@unique([roleId, permissionId])
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [key])
 }
 
 model Permission {
-  id             Int              @id @default(autoincrement())
-  key            String           @unique
+  key            String           @id @unique
   name           String
   description    String?
   groupId        Int?
-  group          PermissionGroup? @relation(fields: [groupId], references: [id])
-  RolePermission RolePermission[]
+  permissionRole PermissionRole[]
+  createdAt      DateTime         @default(now()) @db.Date()
+  updatedAt      DateTime         @updatedAt
+
+  group PermissionGroup? @relation(fields: [groupId], references: [id])
 }
 
 model PermissionGroup {
   id          Int          @id @default(autoincrement())
   name        String
-  created_at  DateTime     @default(now())
+  createdAt   DateTime     @default(now()) @db.Date()
+  updatedAt   DateTime     @updatedAt
   permissions Permission[]
 }
 
-// HRIS Module
+// HRMS Module
 model Employee {
-  id                    Int                   @id @default(autoincrement())
-  fullname              String                @db.VarChar(50)
-  status                Boolean?              @default(true)
-  photo                 String?
-  joined_at             String?
-  joined_type           JoinedType?           @default(date)
-  basic_salary          Decimal?              @db.Decimal(10, 2)
-  overtime_salary       Decimal?              @db.Decimal(10, 2)
-  pay_type              PayType?              @default(daily)
-  employment_type       EmploymentType?       @default(permanent)
-  place_of_birth        String?
-  birth_date            String?
-  gender                Gender?
-  marital_status        MaritalStatus?
-  religion              String?
-  last_education        String?
-  email                 String?
-  isHidden              Boolean?              @default(false)
-  positionId            Int?
-  safety_induction_date DateTime?
-  position              Position?             @relation(fields: [positionId], references: [id])
-  attendances           Attendance[]
-  cashAdvances          CashAdvance[]
-  phoneNumbers          PhoneNumbers[]
-  addresses             Address[]
-  statusTracks          EmployeeStatusTrack[]
-  competencies          EmployeeCompetency[]
-  certifications        Certification[]
-  overtime              Overtime[]
-  EmployeeAssigned      EmployeeAssigned[]
-  Project               Project[]
-  user                  User?
-}
-
-enum JoinedType {
-  date
-  year
-}
-
-enum PayType {
-  daily
-  monthly
-}
-
-enum EmploymentType {
-  permanent
-  contract
-  partime
-}
-
-enum Gender {
-  male
-  female
-}
-
-enum MaritalStatus {
-  single
-  married
-  divorced
-}
-
-model EmployeeCompetency {
-  id           Int        @id @default(autoincrement())
-  employeeId   Int
-  competencyId Int
-  employee     Employee   @relation(fields: [employeeId], references: [id])
-  competency   Competency @relation(fields: [competencyId], references: [id])
-}
-
-model Competency {
-  id                 Int                  @id @default(autoincrement())
-  name               String               @db.VarChar(100)
-  color              String?
-  EmployeeCompetency EmployeeCompetency[]
-  Certification      Certification[]
-}
-
-model Certification {
-  id                   Int         @id @default(autoincrement())
-  certif_name          String
-  certif_file          String?
-  issuing_organization String?
-  issue_year           String?     @db.VarChar(10)
-  issue_month          String?     @db.VarChar(10)
-  expiry_year          String?     @db.VarChar(10)
-  expiry_month         String?     @db.VarChar(10)
-  expire_at            DateTime?
-  employeeId           Int
-  competencyId         Int?
-  competency           Competency? @relation(fields: [competencyId], references: [id])
-  employee             Employee    @relation(fields: [employeeId], references: [id])
-}
-
-model PhoneNumbers {
-  id         Int      @id @default(autoincrement())
-  value      String
-  employeeId Int
-  employee   Employee @relation(fields: [employeeId], references: [id])
-}
-
-model Address {
-  id         Int         @id @default(autoincrement())
-  type       AddressType @default(domicile)
-  value      String
-  employeeId Int
-  employee   Employee    @relation(fields: [employeeId], references: [id])
-}
-
-enum AddressType {
-  domicile
-  origin
-  alternative
-}
-
-enum Status {
-  active
-  inactive
+  id                  String                @id @default(uuid()) @db.Uuid()
+  positionId          String?               @db.Uuid()
+  fullname            String                @db.VarChar(50)
+  photoUrl            String?
+  birthDate           String?
+  joinedAt            String?
+  active              Boolean?              @default(true)
+  phone               String?
+  lastEducation       String?
+  salary              Int?
+  overtimeSalary      Int?
+  safetyInductionDate DateTime?
+  address             String?
+  createdAt           DateTime              @default(now()) @db.Date()
+  updatedAt           DateTime              @updatedAt
+  deletedAt           DateTime?
+  attendances         Attendance[]
+  cashAdvances        CashAdvance[]
+  statusTracks        EmployeeStatusTrack[]
+  competencies        EmployeeCompetency[]
+  certifications      Certification[]
+  overtimes           Overtime[]
+  employeeAssigned    EmployeeAssigned[]
+  projects            Project[]
+  position            Position?             @relation(fields: [positionId], references: [id])
 }
 
 model Position {
-  id          Int        @id @default(autoincrement())
-  name        String     @db.VarChar(100)
-  color       String?
-  description String?
+  id          String     @id @default(uuid()) @db.Uuid()
+  name        String     @db.VarChar(50)
+  color       String?    @db.VarChar(7)
+  description String?    @db.VarChar(255)
   employees   Employee[]
 }
 
+model Certification {
+  id          Int       @id @default(autoincrement())
+  employeeId  String    @db.Uuid()
+  name        String
+  fileUrl     String?
+  publisher   String?
+  issueMonth  String?   @db.VarChar(2)
+  expiryMonth String?   @db.VarChar(2)
+  issueYear   String?   @db.VarChar(4)
+  expiryYear  String?   @db.VarChar(4)
+  expireAt    DateTime?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
 model Attendance {
-  id         Int            @id @default(autoincrement())
-  employee   Employee       @relation(fields: [employeeId], references: [id])
-  employeeId Int
+  id         String         @id @default(uuid()) @db.Uuid()
+  employeeId String         @db.Uuid()
+  createdBy  String         @db.Uuid()
   date       DateTime       @db.Date
-  total_hour Int
   type       AttendanceType @default(presence)
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  user     User     @relation(fields: [createdBy], references: [id])
 }
 
 enum AttendanceType {
@@ -212,42 +143,57 @@ enum AttendanceType {
 }
 
 model Overtime {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  date        DateTime @db.Date
-  total_hour  Int
-  description String?
+  id         Int      @id @default(autoincrement())
+  employeeId String   @db.Uuid()
+  createdBy  String   @db.Uuid()
+  totalHour  Int
+  note       String?  @db.VarChar(255)
+  date       DateTime @db.Date
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  user     User     @relation(fields: [createdBy], references: [id])
 }
 
 model CashAdvance {
-  id          Int      @id @default(autoincrement())
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  employeeId  Int
-  amount      Decimal  @db.Decimal(10, 2)
-  requestDate DateTime @db.Date
-  description String?
+  id         Int      @id @default(autoincrement())
+  employeeId String   @db.Uuid()
+  createdBy  String   @db.Uuid()
+  amount     Int      @db.Integer()
+  date       DateTime @db.Date
+  note       String?  @db.VarChar(255)
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  user User @relation(fields: [createdBy], references: [id])
 }
 
-// Activity Features
-model ActivityLog {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  action      String
-  module      String
-  description String
-  timestamp   DateTime @default(now())
+model EmployeeCompetency {
+  id           Int    @id @default(autoincrement())
+  employeeId   String @db.Uuid()
+  competencyId String @db.Uuid()
+
+  employee   Employee   @relation(fields: [employeeId], references: [id])
+  competency Competency @relation(fields: [competencyId], references: [id])
+}
+
+model Competency {
+  id                 String               @id @default(uuid()) @db.Uuid()
+  name               String               @db.VarChar(50)
+  color              String?              @db.VarChar(7)
+  EmployeeCompetency EmployeeCompetency[]
 }
 
 model EmployeeStatusTrack {
-  id          Int      @id @default(autoincrement())
-  date        DateTime
-  status      Boolean
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  description String?
+  id         String   @id @default(uuid()) @db.Uuid()
+  date       DateTime @default(now())
+  status     Boolean
+  employeeId String   @db.Uuid()
+  note       String?  @db.VarChar(255)
+
+  employee Employee @relation(fields: [employeeId], references: [id])
 }
+
+// Activity Features
 
 model BoardContainer {
   id       String       @id
@@ -277,10 +223,10 @@ model Project {
   isArchive        Boolean?            @default(false)
   isDeleted        Boolean?            @default(false)
   net_value        Decimal?            @db.Decimal(10, 2)
-  leadId           Int?
+  leadId           String?             @db.Uuid()
   clientId         Int?
   boardItemsId     String              @unique
-  lead             Employee?           @relation(fields: [leadId], references: [id])
+  lead             User?               @relation(fields: [leadId], references: [id])
   client           Client?             @relation(fields: [clientId], references: [id])
   boardItems       BoardItems          @relation(fields: [boardItemsId], references: [id])
   employees        EmployeeAssigned[]
@@ -289,6 +235,8 @@ model Project {
   TransactionGoods TransactionGoods[]
   attachments      ProjectAttachment[]
   ProjectEstimate  ProjectEstimate[]
+  Employee         Employee?           @relation(fields: [employeeId], references: [id])
+  employeeId       String?             @db.Uuid()
 }
 
 model ProjectAttachment {
@@ -296,7 +244,7 @@ model ProjectAttachment {
   file        String
   name        String
   type        String?
-  uploaded_by Int?
+  uploaded_by String?   @db.Uuid()
   projectId   Int
   isSecret    Boolean?  @default(false)
   uploaded_at DateTime? @default(now())
@@ -315,7 +263,7 @@ model ProjectEstimate {
 
 model Activity {
   id             Int                  @id @default(autoincrement())
-  userId         Int?
+  userId         String?              @db.Uuid()
   user           User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
   name           String?
   comment        String
@@ -334,7 +282,7 @@ model ActivityLike {
   id         Int      @id @default(autoincrement())
   activityId Int
   activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  userId     Int
+  userId     String   @db.Uuid()
   user       User     @relation(fields: [userId], references: [id])
   created_at DateTime @default(now())
 
@@ -359,7 +307,7 @@ model ProjectHasLabel {
 model EmployeeAssigned {
   id         Int      @id @default(autoincrement())
   projectId  Int
-  employeeId Int
+  employeeId String   @db.Uuid()
   project    Project  @relation(fields: [projectId], references: [id])
   employee   Employee @relation(fields: [employeeId], references: [id])
 }
@@ -454,7 +402,7 @@ model TransactionGoods {
   supplier      Supplier?     @relation(fields: [supplierId], references: [id])
   stock_history StockHistory?
   User          User?         @relation(fields: [userId], references: [id])
-  userId        Int?
+  userId        String?       @db.Uuid()
 
   @@index([goodsId, date])
   @@index([supplierId])
@@ -538,14 +486,14 @@ model Recap {
 model Tour {
   id     Int    @id @default(autoincrement())
   name   String
-  userId Int
+  userId String @db.Uuid()
   user   User   @relation(fields: [userId], references: [id])
 }
 
 model Helpdesk {
   id      Int          @id @default(autoincrement())
   message String
-  userId  Int
+  userId  String       @db.Uuid()
   resolve Boolean      @default(false)
   type    HelpdeskType
   user    User         @relation(fields: [userId], references: [id])
