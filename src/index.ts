@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 
 import { errorHandler } from './utils/error-handler'
+import Routes from './modules'
 
 const PORT = Number(process.env.REST_PORT) || 5000
 const HOST = process.env.HOST || 'localhost'
@@ -13,7 +14,12 @@ app.use(express.static('public'))
 app.use(express.json())
 
 app.post('/', (req, res) => {
-  res.status(200).json({ message: 'ok' })
+  res.status(200).json({ message: 'Ok' })
+})
+
+const routes = Routes()
+routes.forEach(({ path, router }) => {
+  app.use(`/api/${path}`, router)
 })
 
 app.use(async (req, res, next) => {

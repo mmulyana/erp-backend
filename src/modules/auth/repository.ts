@@ -1,13 +1,11 @@
-import db from '../../lib/db'
+import db from '@/lib/db'
 
-export default class AuthRepository {
-  findByEmail = async (email: string) => {
-    return db.user.findUnique({ where: { email } })
-  }
-  findByName = async (name: string) => {
-    return db.user.findUnique({ where: { name } })
-  }
-  findByPhone = async (phoneNumber: string) => {
-    return db.user.findUnique({ where: { phoneNumber } })
-  }
+export const findByEmail = async (email: string) => {
+  return db.user.findUnique({ where: { email } })
+}
+export const findByUsername = async (name: string) => {
+  return db.user.findUnique({ where: { name } })
+}
+export const findByPhone = async (phoneNumber: string) => {
+  return db.user.findUnique({ where: { phoneNumber } })
 }
