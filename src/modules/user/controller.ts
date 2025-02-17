@@ -12,6 +12,7 @@ import {
   addRoleUserService,
   createUserService,
   deleteUserService,
+  findUserService,
   removePhotoUserService,
   removeRoleUserService,
   unactivateUserService,
@@ -126,4 +127,11 @@ export const removePhotoUser = async (req: Request, res: Response) => {
 
   const result = await removePhotoUserService(id)
   res.json(updateResponse(result, 'user'))
+}
+
+export const findUser = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+
+  const result = await findUserService(id)
+  res.json(successResponse(result, 'user'))
 }

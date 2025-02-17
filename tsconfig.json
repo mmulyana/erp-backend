@@ -23,6 +23,6 @@
     "src/modules/inventory",
     "src/modules/permission",
     "src/modules/project",
-    "src/modules/role"
+    // "src/modules/role"
   ]
 }

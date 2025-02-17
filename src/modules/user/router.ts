@@ -1,21 +1,23 @@
 import { Router } from 'express'
 import {
+  removePhotoUser,
+  removeRoleUser,
+  unactivateUser,
   activateUser,
   addPhotoUser,
   addRoleUser,
   createUser,
   deleteUser,
-  findUsers,
-  removePhotoUser,
-  removeRoleUser,
-  unactivateUser,
   updateUser,
+  findUsers,
+  findUser,
 } from './controller'
 import upload from '@/utils/upload'
 
 const router = Router()
 
 router.get('/', findUsers)
+router.get('/:id', findUser)
 router.post('/', createUser)
 router.patch('/:id', updateUser)
 router.delete('/:id', deleteUser)

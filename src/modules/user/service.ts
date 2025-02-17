@@ -15,6 +15,7 @@ import type { CreateAccount, UpdateAccount } from './schema'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
 import { deleteFile } from '@/utils/file'
+import { isValidUUID } from '@/utils/is-valid-uuid'
 
 const isExist = async (payload: CreateAccount | UpdateAccount) => {
   if (!!payload.email) {
@@ -171,5 +172,21 @@ export const removePhotoUserService = async (id: string) => {
     email: data.email,
     phone: data.phone,
     photoUrl: undefined,
+  }
+}
+
+export const findUserService = async (id: string) => {
+  if (!isValidUUID(id)) {
+    return throwError(Messages.InvalidUUID, HttpStatusCode.NotFound)
+  }
+
+  await isExistById(id)
+
+  const data = await findById(id)
+  return {
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    photoUrl: data.photoUrl,
   }
 }
