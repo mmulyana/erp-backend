@@ -17,7 +17,7 @@ import {
   unactivateUserService,
   updateUserService,
 } from './service'
-import { findAll, findRoleById, update } from './repository'
+import { findAll, findRoleById } from './repository'
 
 import {
   activateResponse,
@@ -25,10 +25,10 @@ import {
   successResponse,
   unactivateResponse,
   updateResponse,
-} from '../../utils/response'
-import { checkParamsId, getParams } from '../../utils/params'
-import { errorParse, throwError } from '../../utils/error-handler'
-import { Messages } from '../../utils/constant'
+} from '@/utils/response'
+import { errorParse, throwError } from '@/utils/error-handler'
+import { checkParamsId, getParams } from '@/utils/params'
+import { Messages } from '@/utils/constant'
 
 export const findUsers = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)

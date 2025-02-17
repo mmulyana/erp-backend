@@ -12,9 +12,9 @@ import {
 } from './repository'
 import type { CreateAccount, UpdateAccount } from './schema'
 
-import { throwError } from '../../utils/error-handler'
-import { Messages } from '../../utils/constant'
-import { deleteFile } from '../../utils/file'
+import { throwError } from '@/utils/error-handler'
+import { Messages } from '@/utils/constant'
+import { deleteFile } from '@/utils/file'
 
 const isExist = async (payload: CreateAccount | UpdateAccount) => {
   if (!!payload.email) {

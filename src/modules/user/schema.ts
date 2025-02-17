@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Messages } from '../../utils/constant'
+import { Messages } from '@/utils/constant'
 
 export const CreateAccountSchema = z.object({
   username: z.string().min(1, Messages.InvalidName),

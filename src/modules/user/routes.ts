@@ -11,7 +11,7 @@ import {
   unactivateUser,
   updateUser,
 } from './controller'
-import upload from '../../utils/upload'
+import upload from '@/utils/upload'
 
 const router = Router()
 

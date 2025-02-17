@@ -1,25 +1,11 @@
-import { readdirSync } from 'fs'
-import { join } from 'path'
+import { Router } from 'express'
 
-const Routes = () => {
-  const modulesDir = join(__dirname)
-  const routes: { path: string; router: any }[] = []
+import userRoutes from './user/routes'
+import authRoutes from './auth/routes'
 
-  readdirSync(modulesDir, { withFileTypes: true })
-    .filter((dir) => dir.isDirectory())
-    .forEach((dir) => {
-      const routePath = join(modulesDir, dir.name, 'routes.ts')
-      try {
-        const module = require(routePath)
-        if (module.default) {
-          routes.push({ path: dir.name, router: module.default })
-        }
-      } catch (error) {
-        console.warn(`⚠️  No routes found in ${dir.name}`)
-      }
-    })
+const route = Router()
 
-  return routes
-}
+route.use('/user', userRoutes)
+route.use('/auth', authRoutes)
 
-export default Routes
+export default route

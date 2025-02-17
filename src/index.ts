@@ -1,3 +1,4 @@
+import 'module-alias/register'
 import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
@@ -5,6 +6,7 @@ import cors from 'cors'
 import { errorHandler } from './utils/error-handler'
 import setupSwagger from './lib/swagger'
 import Routes from './modules'
+import route from './modules'
 
 dotenv.config()
 
@@ -21,11 +23,7 @@ app.post('/', (req, res) => {
   res.status(200).json({ message: 'Ok' })
 })
 
-const routes = Routes()
-routes.forEach(({ path, router }) => {
-  app.use(`/api/${path}`, router)
-})
-
+app.use('/api', route)
 setupSwagger(app)
 
 app.use(async (req, res, next) => {

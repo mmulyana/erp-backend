@@ -3,8 +3,8 @@ import { Request, Response } from 'express'
 import { LoginSchema } from './schema'
 import { login } from './service'
 
-import { successResponse } from '../../utils/response'
-import { errorParse } from '../../utils/error-handler'
+import { errorParse } from '@/utils/error-handler'
+import { successResponse } from '@/utils/response'
 
 export const loginController = async (req: Request, res: Response) => {
   const parsed = LoginSchema.safeParse(req.body)

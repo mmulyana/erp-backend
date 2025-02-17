@@ -1,13 +1,27 @@
-import { CreateAccount, UpdateAccount } from './schema'
-import { getPaginateParams } from '../../utils/params'
-import db from '../../lib/prisma'
-import { isValidUUID } from '../../utils/is-valid-uuid'
-import { throwError } from '../../utils/error-handler'
-import { Messages } from '../../utils/constant'
 import { HttpStatusCode } from 'axios'
 
+import db from '@/lib/prisma'
+
+import { isValidUUID } from '@/utils/is-valid-uuid'
+import { throwError } from '@/utils/error-handler'
+import { getPaginateParams } from '@/utils/params'
+import { Messages } from '@/utils/constant'
+
+import { CreateAccount, UpdateAccount } from './schema'
+
 export const create = async (data: CreateAccount & { password: string }) => {
-  return await db.user.create({ data })
+  return await db.user.create({
+    data: {
+      username: data.username,
+      email: data.email,
+      password: data.password,
+      role: {
+        connect: {
+          id: data.roleId,
+        },
+      },
+    },
+  })
 }
 
 export const update = async (

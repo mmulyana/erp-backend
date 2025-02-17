@@ -1,8 +1,7 @@
 import { NextFunction, Response } from 'express'
 import { verify } from 'jsonwebtoken'
 
-import { CustomError } from '@/utils/error-handler'
-import { CustomRequest } from '@/types'
+import { CustomError, CustomRequest } from '@/types'
 
 const isAuthenticated = (
   req: CustomRequest,
