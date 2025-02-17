@@ -1,33 +1,20 @@
 import { z } from 'zod'
 
-export const loginSchema = z
+export const LoginSchema = z
   .object({
-    name: z.string().optional(),
+    username: z.string().optional(),
     email: z.string().email().optional(),
-    phoneNumber: z
-      .string()
-      .regex(
-        /^(62|0)[\s-]?8[1-9]{1}[\s-]?\d{3,4}[\s-]?\d{4,6}$/,
-        'Nomor telepon tidak valid. Gunakan format: 08xxx, atau 628xxx'
-      )
-      .transform((val) => {
-        let standardized = val.replace(/[-\s]/g, '')
-        if (standardized.startsWith('0')) {
-          standardized = '+62' + standardized.slice(1)
-        } else if (standardized.startsWith('62')) {
-          standardized = '+' + standardized
-        }
-        return standardized
-      })
-      .optional(),
+    phone: z.string().min(10).optional(),
     password: z.string(),
   })
   .refine(
     (data) => {
-      return Boolean(data.name || data.email || data.phoneNumber)
+      return Boolean(data.username || data.email || data.phone)
     },
     {
       message: 'Minimal isi salah satu: nama, email, atau nomor telepon',
       path: ['name', 'email', 'phone'],
-    }
+    },
   )
+
+export type Login = z.infer<typeof LoginSchema>
