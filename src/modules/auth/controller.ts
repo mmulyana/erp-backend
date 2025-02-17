@@ -2,16 +2,14 @@ import { Request, Response } from 'express'
 
 import { LoginSchema } from './schema'
 import { login } from './service'
-import { CustomError } from '../../utils/error-handler'
-import { successResponse } from '../../utils/response'
 
+import { successResponse } from '../../utils/response'
+import { errorParse } from '../../utils/error-handler'
 
 export const loginController = async (req: Request, res: Response) => {
   const parsed = LoginSchema.safeParse(req.body)
   if (!parsed.success) {
-    const customError = new Error('Wrong input') as CustomError
-    customError.status = 400
-    throw customError
+    return errorParse(parsed.error)
   }
 
   const result = await login(parsed.data)

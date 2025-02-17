@@ -13,7 +13,7 @@ export const LoginSchema = z
     },
     {
       message: 'Minimal isi salah satu: nama, email, atau nomor telepon',
-      path: ['name', 'email', 'phone'],
+      path: ['username', 'email', 'phone'],
     },
   )
 

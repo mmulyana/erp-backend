@@ -1,11 +1,12 @@
 import express from 'express'
-import cors from 'cors'
 import dotenv from 'dotenv'
-dotenv.config()
+import cors from 'cors'
 
 import { errorHandler } from './utils/error-handler'
-import Routes from './modules'
 import setupSwagger from './lib/swagger'
+import Routes from './modules'
+
+dotenv.config()
 
 const PORT = Number(process.env.REST_PORT) || 5000
 const HOST = process.env.HOST || 'localhost'
