@@ -1,258 +1,175 @@
 import { HttpStatusCode } from 'axios'
 import { hash } from 'bcryptjs'
 
-import { create, findByEmail, findByPhone, findByUsername } from './repository'
-import type { CreateAccount } from './schema'
+import {
+  create,
+  findByEmail,
+  findById,
+  findByPhone,
+  findByUsername,
+  findRoleById,
+  update,
+} from './repository'
+import type { CreateAccount, UpdateAccount } from './schema'
 
 import { throwError } from '../../utils/error-handler'
 import { Messages } from '../../utils/constant'
+import { deleteFile } from '../../utils/file'
 
-export const createUserService = async (payload: CreateAccount) => {
+const isExist = async (payload: CreateAccount | UpdateAccount) => {
   if (!!payload.email) {
-    const data = await findByEmail(payload.email)
-    if (data) {
+    const user = await findByEmail(payload.email)
+    if (user) {
       return throwError(Messages.EmaildAlreadyUsed, HttpStatusCode.BadRequest)
     }
   }
 
   if (!!payload.phone) {
-    const data = await findByPhone(payload.phone)
-    if (data) {
+    const user = await findByPhone(payload.phone)
+    if (user) {
       return throwError(Messages.PhoneAlreadyUsed, HttpStatusCode.BadRequest)
     }
   }
-
-  const exists = await findByUsername(payload.username)
-  if (exists) {
-    return throwError(Messages.UsernameAlreadyUsed, HttpStatusCode.BadRequest)
+  if (!!payload.username) {
+    const user = await findByUsername(payload.username)
+    if (user) {
+      return throwError(Messages.UsernameAlreadyUsed, HttpStatusCode.BadRequest)
+    }
   }
+}
+
+const isExistById = async (id: string) => {
+  const data = await findById(id)
+  if (!data) {
+    return throwError(Messages.dataNotFound, HttpStatusCode.BadRequest)
+  }
+}
+
+export const createUserService = async (payload: CreateAccount) => {
+  await isExist(payload)
 
   const password = await hash(process.env.DEFAULT_PASSWORD as string, 10)
+
   const data = await create({
     ...payload,
-    password
+    password,
   })
-  return data
+  return {
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    photoUrl: data.photoUrl,
+  }
 }
-// import { deleteFile } from '../../utils/file'
-// import {
-//   CreateAccountSchema,
-//   UpdateAccountSchema,
-//   UpdatePasswordDto,
-// } from './schema'
-// import AccountRepository from './repository'
-// import { compare, hash } from 'bcryptjs'
-// import { Prisma } from '@prisma/client'
 
-// export interface FilterUser {
-//   name?: string
-//   email?: string
-//   phoneNumber?: string
-//   roleId?: number
-// }
-// export default class AccountService {
-//   private repository: AccountRepository = new AccountRepository()
+export const updateUserService = async (id: string, payload: UpdateAccount) => {
+  await isExist(payload)
+  await isExistById(id)
 
-//   getAccount = async (id: number) => {
-//     const data = await this.repository.getAccountById(id)
-//     if (!data) {
-//       throw new Error('akun tidak ditemukan')
-//     }
+  const data = await update(id, payload)
+  return {
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    photoUrl: data.photoUrl,
+  }
+}
 
-//     const rolePermissions =
-//       data.role?.RolePermission?.map((rp) => rp.permission.key) || []
-//     const permissions = [...new Set([...rolePermissions])]
+export const deleteUserService = async (id: string) => {
+  await isExistById(id)
 
-//     const dataTour = await this.repository.findAllToursByUserId(data.id)
+  await update(id, {
+    deletedAt: new Date().toISOString(),
+    active: false,
+  })
+}
 
-//     return {
-//       id: data.id,
-//       email: data.email,
-//       name: data.name,
-//       phoneNumber: data.phoneNumber,
-//       photo: data.photo,
-//       roleId: data.roleId,
-//       employeeId: data.employeeId,
-//       created_at: data.created_at,
-//       employee: data.employee,
-//       role: {
-//         id: data.role?.id,
-//         name: data.role?.name,
-//         description: data.role?.description,
-//       },
-//       permissions,
-//       tours: dataTour.map((item) => item.name),
-//     }
-//   }
-//   getAllAccount = async (
-//     page?: number,
-//     limit?: number,
-//     filter?: FilterUser
-//   ) => {
-//     const result = await this.repository.findByPagination(page, limit, filter)
-//     const data = result.data.map((item) => {
-//       return {
-//         id: item.id,
-//         email: item.email,
-//         name: item.name,
-//         phoneNumber: item.phoneNumber,
-//         photo: item.photo,
-//         roleId: item.roleId,
-//         created_at: item.created_at,
-//         active: item.active,
-//         role: {
-//           id: item.role?.id,
-//           name: item.role?.name,
-//           description: item.role?.description,
-//         },
-//       }
-//     })
+export const unactivateUserService = async (id: string) => {
+  await isExistById(id)
 
-//     return { ...result, data }
-//   }
-//   updateAccount = async (
-//     id: number,
-//     payload: Omit<UpdateAccountSchema, 'photo'> & { newPhoto?: string }
-//   ) => {
-//     const data = await this.repository.getAccountById(id)
+  await update(id, {
+    active: false,
+  })
+}
 
-//     if (!!payload.email && payload.email !== data?.email) {
-//       const data = await this.repository.findByEmail(payload?.email)
-//       if (data.exist) {
-//         throw new Error('Email ini sudah digunakan')
-//       }
-//     }
-//     if (!!payload.phoneNumber && payload.phoneNumber !== data?.phoneNumber) {
-//       const data = await this.repository.findByPhone(payload?.phoneNumber)
-//       if (data.exist) {
-//         throw new Error('Nomor telp ini sudah digunakan')
-//       }
-//     }
-//     if (!!payload.name && payload.name !== data?.name) {
-//       const data = await this.repository.findByName(payload?.name)
-//       if (data.exist) {
-//         throw new Error('Nama ini sudah digunakan, silahkan pakai nama lain')
-//       }
-//     }
+export const activateUserService = async (id: string) => {
+  await isExistById(id)
 
-//     let newData: Prisma.UserUpdateInput = {}
+  await update(id, {
+    active: true,
+  })
+}
 
-//     if ('newPhoto' in payload) {
-//       const currentUser = await this.repository.getAccountById(id)
-//       if (currentUser?.photo) {
-//         deleteFile(currentUser.photo)
-//       }
+export const addRoleUserService = async (id: string, roleId: string) => {
+  await isExistById(id)
+  const role = await findRoleById(roleId)
+  if (!role) {
+    return throwError(
+      `Role ini ${Messages.notFound}`,
+      HttpStatusCode.BadRequest,
+    )
+  }
 
-//       newData.photo = payload.newPhoto || null
+  const data = await update(id, {
+    roleId,
+  })
 
-//       const { newPhoto, ...restPayload } = payload
-//       newData = { ...restPayload, ...newData }
-//     } else {
-//       newData = payload
-//     }
+  return {
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    photoUrl: data.photoUrl,
+  }
+}
 
-//     return await this.repository.updateAccountById(id, newData)
-//   }
-//   deleteAccount = async (id: number) => {
-//     const isAccountExist = await this.repository.getAccountById(id)
-//     if (!isAccountExist) {
-//       throw Error('Akun tidak ada')
-//     }
-//     await this.repository.deleteAccountById(id)
-//   }
-//   createAccount = async (payload: CreateAccountSchema) => {
-//     if (!!payload.email) {
-//       const data = await this.repository.findByEmail(payload.email)
-//       if (data.exist) {
-//         throw new Error('Email ini sudah digunakan')
-//       }
-//     }
-//     if (!!payload.phoneNumber) {
-//       const data = await this.repository.findByPhone(payload?.phoneNumber)
-//       if (data.exist) {
-//         throw new Error('Nomor telp ini sudah digunakan')
-//       }
-//     }
-//     if (!!payload.name) {
-//       const data = await this.repository.findByName(payload?.name)
-//       if (data.exist) {
-//         throw new Error('Nama ini sudah digunakan, silahkan pakai nama lain')
-//       }
-//     }
+export const removeRoleUserService = async (id: string) => {
+  const data = await update(id, {
+    roleId: null,
+  })
 
-//     const hashedPassword = await hash('password', 10)
+  return {
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    photoUrl: data.photoUrl,
+  }
+}
 
-//     const account = await this.repository.createAccount({
-//       ...payload,
-//       password: hashedPassword,
-//     })
+export const addPhotoUserService = async (id: string, photoUrl: string) => {
+  await isExistById(id)
+  const exist = await findById(id)
+  if (exist && exist.photoUrl) {
+    await deleteFile(exist.photoUrl)
+  }
 
-//     return account
-//   }
-//   updateRoleAccount = async (id: number, roleId: number) => {
-//     const account = await this.repository.getAccountById(id)
-//     if (!account) {
-//       throw new Error('Akun tidak ada')
-//     }
+  const data = await update(id, {
+    photoUrl,
+  })
 
-//     const role = await this.repository.getRoleById(roleId)
-//     if (!role) {
-//       throw new Error('Role tidak ada')
-//     }
+  return {
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    photoUrl: data.photoUrl,
+  }
+}
 
-//     await this.repository.updateAccountById(id, {
-//       role: {
-//         connect: {
-//           id: roleId,
-//         },
-//       },
-//     })
-//   }
-//   updatePassword = async (userId: number, data: UpdatePasswordDto) => {
-//     const user = await this.repository.getAccountById(userId)
-//     if (!user) {
-//       throw new Error('User tidak ditemukan')
-//     }
+export const removePhotoUserService = async (id: string) => {
+  await isExistById(id)
 
-//     const isValidPassword = await compare(data.oldPassword, user.password)
-//     if (!isValidPassword) {
-//       throw new Error('Password lama tidak sama')
-//     }
+  const user = await findById(id)
+  if (user && user.photoUrl) {
+    await deleteFile(user?.photoUrl)
+  }
 
-//     if (data.oldPassword === data.newPassword) {
-//       throw new Error('Password baru tidak boleh sama')
-//     }
+  const data = await update(id, {
+    photoUrl: undefined,
+  })
 
-//     const hashedPassword = await hash(data.newPassword, 10)
-
-//     await this.repository.updateAccountById(userId, {
-//       password: hashedPassword,
-//     })
-//   }
-//   resetPassword = async (userId: number, newPassword: string) => {
-//     const user = await this.repository.getAccountById(userId)
-//     if (!user) {
-//       throw new Error('User tidak ditemukan')
-//     }
-
-//     const hashedPassword = await hash(newPassword, 10)
-
-//     await this.repository.updateAccountById(userId, {
-//       password: hashedPassword,
-//     })
-//   }
-//   activate = async (id: number) => {
-//     await this.repository.updateAccountById(id, { active: true })
-//   }
-//   deactivate = async (id: number) => {
-//     await this.repository.updateAccountById(id, { active: false })
-//   }
-//   createTourAccount = async (id: number, name: string) => {
-//     const isExist = await this.repository.findTourByUserIdAndName(id, name)
-//     if (isExist) {
-//       throw new Error('Tour sudah ada')
-//     }
-
-//     await this.repository.createTour(id, name)
-//   }
-// }
+  return {
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    photoUrl: undefined,
+  }
+}

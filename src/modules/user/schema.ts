@@ -1,9 +1,5 @@
 import { z } from 'zod'
-import {
-  ACCEPTED_IMAGE_TYPES,
-  MAX_FILE_SIZE,
-  Messages,
-} from '../../utils/constant'
+import { Messages } from '../../utils/constant'
 
 export const CreateAccountSchema = z.object({
   username: z.string().min(1, Messages.InvalidName),
@@ -20,6 +16,10 @@ export const UpdatePasswordSchema = z
     newPassword: z.string().min(8, Messages.InvalidPassword),
   })
   .strict()
+
+export const AddRoleSchema = z.object({
+  roleId: z.string(),
+})
 
 export type UpdatePassword = z.infer<typeof UpdatePasswordSchema>
 export type CreateAccount = z.infer<typeof CreateAccountSchema>

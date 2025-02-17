@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 
-export async function deleteFile(filename: string, path: string = PATHS.IMG) {
-  let filePath = path + filename
+export async function deleteFile(filename: string) {
+  let filePath = 'public/upload/' + filename
   try {
     await fs.unlink(filePath)
     console.log(`Successfully deleted file: ${filePath}`)
@@ -15,7 +15,7 @@ export async function deleteFile(filename: string, path: string = PATHS.IMG) {
         await fs.chmod(filePath, 0o666)
         await fs.unlink(filePath)
         console.log(
-          `Successfully deleted file after changing permissions: ${filePath}`
+          `Successfully deleted file after changing permissions: ${filePath}`,
         )
       } catch (chmodError) {
         console.error(`Failed to change file permissions: ${chmodError}`)
@@ -25,9 +25,4 @@ export async function deleteFile(filename: string, path: string = PATHS.IMG) {
       console.error(error)
     }
   }
-}
-
-export const PATHS = {
-  IMG: 'public/img/',
-  FILES: 'public/files/',
 }

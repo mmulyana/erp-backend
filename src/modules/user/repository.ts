@@ -1,12 +1,23 @@
 import { CreateAccount, UpdateAccount } from './schema'
 import { getPaginateParams } from '../../utils/params'
 import db from '../../lib/prisma'
+import { isValidUUID } from '../../utils/is-valid-uuid'
+import { throwError } from '../../utils/error-handler'
+import { Messages } from '../../utils/constant'
+import { HttpStatusCode } from 'axios'
 
 export const create = async (data: CreateAccount & { password: string }) => {
   return await db.user.create({ data })
 }
 
-export const update = async (id: string, data: UpdateAccount) => {
+export const update = async (
+  id: string,
+  data: UpdateAccount & {
+    deletedAt?: string
+    active?: boolean
+    photoUrl?: string
+  },
+) => {
   return await db.user.update({ data, where: { id } })
 }
 
@@ -30,44 +41,42 @@ export const findAll = async (
         : {},
       active !== undefined ? { active } : {},
       roleId ? { roleId } : {},
+      { deletedAt: null },
     ],
   }
 
-  if (page && limit) {
-    const { skip, take } = getPaginateParams(page, limit)
+  if (page === undefined || limit === undefined) {
+    const users = await db.user.findMany({
+      where,
+      orderBy: { username: 'asc' },
+      include: {
+        role: true,
+      },
+    })
 
-    const [users, total] = await Promise.all([
-      db.user.findMany({
-        skip,
-        take,
-        where,
-        include: {
-          role: true,
-        },
-      }),
-      db.user.count({ where }),
-    ])
-
-    return {
-      data: users,
-      total,
-      page,
-      limit,
-    }
+    return { users }
   }
 
-  const users = await db.user.findMany({
-    where,
-    include: {
-      role: true,
-    },
-  })
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [users, total] = await Promise.all([
+    db.user.findMany({
+      skip,
+      take,
+      where,
+      orderBy: { username: 'asc' },
+      include: {
+        role: true,
+      },
+    }),
+    db.user.count({ where }),
+  ])
 
   return {
-    data: users,
-    total: users.length,
-    page: 1,
-    limit: users.length,
+    users,
+    total,
+    page,
+    limit,
   }
 }
 
@@ -81,4 +90,15 @@ export const findByUsername = async (username: string) => {
 
 export const findByPhone = async (phone: string) => {
   return db.user.findUnique({ where: { phone } })
+}
+
+export const findById = async (id: string) => {
+  return db.user.findUnique({ where: { id } })
+}
+
+export const findRoleById = async (id: string) => {
+  if (!isValidUUID(id)) {
+    return throwError(Messages.InvalidUUID, HttpStatusCode.NotFound)
+  }
+  return db.role.findUnique({ where: { id } })
 }
