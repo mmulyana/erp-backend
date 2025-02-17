@@ -1,19 +1,19 @@
-import { NextFunction, Request, Response } from "express"
+import { NextFunction, Request, Response } from 'express'
 
-interface CustomError extends Error {
+export interface CustomError extends Error {
   status?: number
-  data?: any
+  errors?: any
 }
 
 export const errorHandler = (
   error: CustomError,
   req: Request,
   res: Response,
-  Next: NextFunction
+  next: NextFunction,
 ) => {
   const status = error.status || 500
   res.status(status).json({
-    error: error.message,
-    ...(error.data && { data: error.data }),
+    message: error.message,
+    ...(error.errors && { errors: error.errors }),
   })
 }

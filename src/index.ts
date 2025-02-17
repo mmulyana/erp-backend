@@ -1,8 +1,11 @@
 import express from 'express'
 import cors from 'cors'
+import dotenv from 'dotenv'
+dotenv.config()
 
 import { errorHandler } from './utils/error-handler'
 import Routes from './modules'
+import setupSwagger from './lib/swagger'
 
 const PORT = Number(process.env.REST_PORT) || 5000
 const HOST = process.env.HOST || 'localhost'
@@ -21,6 +24,8 @@ const routes = Routes()
 routes.forEach(({ path, router }) => {
   app.use(`/api/${path}`, router)
 })
+
+setupSwagger(app)
 
 app.use(async (req, res, next) => {
   res.status(404).json({ message: 'Not found!' })
