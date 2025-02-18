@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2016",
-    "module": "NodeNext",
+    "target": "ES2015",
+    "module": "commonjs",
     "outDir": "./dist",
-    "moduleResolution": "nodenext",
     "rootDir": "./src",
     "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
     "baseUrl": ".",
+    "esModuleInterop": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@errors/*": ["src/errors/*"]
     }
   },
   "include": ["src/**/*"],
@@ -21,10 +21,6 @@
     "src/modules/helpdesk",
     "src/modules/hris",
     "src/modules/inventory",
-    "src/modules/permission",
     "src/modules/project"
-  ],
-  "ts-node": {
-    "files": true
-  }
+  ]
 }

@@ -17,21 +17,22 @@ model User {
   active       Boolean             @default(true)
   photoUrl     String?             @db.VarChar(100)
   password     String              @db.VarChar(255)
+  createdAt    DateTime            @default(now()) @db.Date()
+  updatedAt    DateTime            @updatedAt
+  deletedAt    DateTime?
+
   attachments  ProjectAttachment[]
   transactions TransactionGoods[]
   likes        ActivityLike[]
   activities   Activity[]
   tours        Tour[]
   helpdesk     Helpdesk[]
-  createdAt    DateTime            @default(now()) @db.Date()
-  updatedAt    DateTime            @updatedAt
-  deletedAt    DateTime?
-  Project      Project[]
-  Attendance   Attendance[]
-  Overtime     Overtime[]
+  projects     Project[]
+  attendances  Attendance[]
+  overtimes    Overtime[]
+  cashAdvances CashAdvance[]
 
   role        Role?         @relation(fields: [roleId], references: [id], onDelete:SetNull)
-  CashAdvance CashAdvance[]
 }
 
 model Role {
@@ -63,12 +64,13 @@ model Permission {
   createdAt      DateTime         @default(now()) @db.Date()
   updatedAt      DateTime         @updatedAt
 
-  group PermissionGroup? @relation(fields: [groupId], references: [id])
+  group PermissionGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
 }
 
 model PermissionGroup {
   id          Int          @id @default(autoincrement())
   name        String
+  description String?
   createdAt   DateTime     @default(now()) @db.Date()
   updatedAt   DateTime     @updatedAt
   permissions Permission[]

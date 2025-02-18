@@ -1,284 +1,115 @@
-import { NextFunction, Request, Response } from 'express'
-import BaseController from '../../helper/base-controller'
-import { PermissionRepository } from './repository'
+import { Request, Response } from 'express'
+import { HttpStatusCode } from 'axios'
+import {
+  updatePermissionRepository,
+  updateGroupRepository,
+  findPermissionById,
+  destroyPermission,
+  createPermission,
+  findPermissions,
+  findGroupById,
+  destroyGroup,
+  createGroup,
+  findAll,
+} from './repository'
+import {
+  successResponse,
+  createResponse,
+  deleteResponse,
+  updateResponse,
+} from '@/utils/response'
+import {
+  CreatePermissionSchema,
+  UpdatePermissionSchema,
+  CreateGroupSchema,
+} from './schema'
+import { errorParse, throwError } from '@/utils/error-handler'
+import { checkParamsId, getParams } from '@/utils/params'
+import { isValidUUID } from '@/utils/is-valid-uuid'
+import { Messages } from '@/utils/constant'
 
-export default class PermissionController extends BaseController {
-  private repository: PermissionRepository = new PermissionRepository()
+export const getAllByGroup = async (req: Request, res: Response) => {
+  const { search } = getParams(req)
 
-  constructor() {
-    super('Hak istimewa')
+  const result = await findAll(search)
+  res.json(successResponse(result, 'permission'))
+}
+
+export const getAllPermission = async (req: Request, res: Response) => {
+  const { search } = getParams(req)
+  const groupId = req.query.groupId ? Number(req.query.groupId) : undefined
+
+  const result = await findPermissions(search, groupId)
+  res.json(successResponse(result, 'permission'))
+}
+
+export const savePermission = async (req: Request, res: Response) => {
+  const parsed = CreatePermissionSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  createHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { name } = req.body
-      const permission = await this.repository.findByKey(name)
-      if (permission) {
-        throw new Error('Hak istimewa ini sudah ada')
-      }
-      await this.repository.create(req.body)
-      return this.response.success(res, this.message.successCreate())
-    } catch (error: any) {
-      if (error.message.includes('sudah ada')) {
-        error.code = 401
-      }
-      next(error)
-    }
+  const result = await createPermission(parsed.data)
+  res.json(createResponse(result, 'permission'))
+}
+
+export const saveGroup = async (req: Request, res: Response) => {
+  const parsed = CreateGroupSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  updateHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const permission = await this.repository.findById(Number(id))
+  const result = await createGroup(parsed.data)
+  res.json(createResponse(result, 'group'))
+}
 
-      if (!permission) {
-        throw new Error('Hak istimewa tidak ditemukan')
-      }
-
-      if (req.body.name && req.body.name !== permission.name) {
-        const existingPermission = await this.repository.findByKey(
-          req.body.name
-        )
-        if (existingPermission) {
-          throw new Error('Nama hak istimewa sudah digunakan')
-        }
-      }
-
-      await this.repository.update(Number(id), req.body)
-      return this.response.success(res, this.message.successUpdate())
-    } catch (error: any) {
-      if (error.message.includes('tidak ditemukan')) {
-        error.code = 404
-      } else if (error.message.includes('sudah digunakan')) {
-        error.code = 401
-      }
-      next(error)
-    }
+export const updatePermission = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  if (!isValidUUID(id)) {
+    return throwError(Messages.BadRequest, HttpStatusCode.BadRequest)
   }
 
-  deleteHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const permission = await this.repository.findById(Number(id))
+  await findPermissionById(id)
 
-      if (!permission) {
-        throw new Error('Hak istimewa tidak ditemukan')
-      }
-
-      await this.repository.delete(Number(id))
-      return this.response.success(res, this.message.successDelete())
-    } catch (error: any) {
-      if (error.message.includes('tidak ditemukan')) {
-        error.code = 404
-      }
-      next(error)
-    }
+  const parsed = UpdatePermissionSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { name, groupId } = req.query
-      const where: { name?: string; groupId?: number } = {}
+  const result = await updatePermissionRepository(id, parsed.data)
+  res.json(updateResponse(result, 'permission'))
+}
 
-      if (name) {
-        where.name = String(name)
-      }
+export const updateGroup = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
 
-      if (groupId) {
-        where.groupId = Number(groupId)
-      }
+  await findPermissionById(id)
 
-      const permissions = await this.repository.findAll({
-        where: Object.keys(where).length > 0 ? where : undefined,
-      })
-
-      return this.response.success(res, this.message.successRead(), permissions)
-    } catch (error) {
-      next(error)
-    }
+  const parsed = UpdatePermissionSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  // New group handlers
-  createGroupHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { name } = req.body
-      const groups = await this.repository.findAllGroup({
-        where: { name },
-      })
+  const result = await updateGroupRepository(Number(id), parsed.data)
+  res.json(updateResponse(result, 'permission'))
+}
 
-      if (groups.length > 0) {
-        throw new Error('Grup hak istimewa ini sudah ada')
-      }
-
-      const group = await this.repository.createGroup(req.body)
-      return this.response.success(res, this.message.successCreate(), group)
-    } catch (error: any) {
-      if (error.message.includes('sudah ada')) {
-        error.code = 401
-      }
-      next(error)
-    }
+export const deletePermission = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  if (!isValidUUID(id)) {
+    return throwError(Messages.BadRequest, HttpStatusCode.BadRequest)
   }
 
-  updateGroupHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      const group = await this.repository.findByIdGroup(Number(id))
+  await findPermissionById(id)
 
-      if (!group) {
-        throw new Error('Grup hak istimewa tidak ditemukan')
-      }
+  await destroyPermission(id)
+  res.json(deleteResponse('permission'))
+}
 
-      if (req.body.name && req.body.name !== group.name) {
-        const groups = await this.repository.findAllGroup({
-          where: { name: req.body.name },
-        })
-        if (groups.length > 0) {
-          throw new Error('Nama grup hak istimewa sudah digunakan')
-        }
-      }
+export const deleteGroup = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await findGroupById(Number(id))
 
-      const updatedGroup = await this.repository.updateGroup(
-        Number(id),
-        req.body
-      )
-      return this.response.success(
-        res,
-        this.message.successUpdate(),
-        updatedGroup
-      )
-    } catch (error: any) {
-      if (error.message.includes('tidak ditemukan')) {
-        error.code = 404
-      } else if (error.message.includes('sudah digunakan')) {
-        error.code = 401
-      }
-      next(error)
-    }
-  }
-
-  deleteGroupHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      const group = await this.repository.findByIdGroup(Number(id))
-
-      if (!group) {
-        throw new Error('Grup hak istimewa tidak ditemukan')
-      }
-
-      await this.repository.deleteGroup(Number(id))
-      return this.response.success(res, this.message.successDelete())
-    } catch (error: any) {
-      if (error.message.includes('tidak ditemukan')) {
-        error.code = 404
-      }
-      next(error)
-    }
-  }
-
-  readAllGroupHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { name } = req.query
-      const where = name ? { name: String(name) } : undefined
-
-      const groups = await this.repository.findAllGroup({ where })
-      return this.response.success(res, this.message.successRead(), groups)
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  addPermissionsToGroupHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      const { permissionIds } = req.body
-
-      const group = await this.repository.findByIdGroup(Number(id))
-      if (!group) {
-        throw new Error('Grup hak istimewa tidak ditemukan')
-      }
-
-      // Validate all permission IDs exist
-      for (const permissionId of permissionIds) {
-        const permission = await this.repository.findById(permissionId)
-        if (!permission) {
-          throw new Error(
-            `Hak istimewa dengan ID ${permissionId} tidak ditemukan`
-          )
-        }
-      }
-
-      const updatedGroup = await this.repository.addPermissionsGroup(
-        Number(id),
-        {
-          permissionIds,
-        }
-      )
-
-      return this.response.success(
-        res,
-        'Berhasil menambahkan hak istimewa ke grup',
-        updatedGroup
-      )
-    } catch (error: any) {
-      if (error.message.includes('tidak ditemukan')) {
-        error.code = 404
-      }
-      next(error)
-    }
-  }
-
-  removePermissionsFromGroupHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      const { permissionIds } = req.body
-
-      const group = await this.repository.findByIdGroup(Number(id))
-      if (!group) {
-        throw new Error('Grup hak istimewa tidak ditemukan')
-      }
-
-      const updatedGroup = await this.repository.removePermissionsGroup(
-        Number(id),
-        {
-          permissionIds,
-        }
-      )
-
-      return this.response.success(
-        res,
-        'Berhasil menghapus hak istimewa dari grup',
-        updatedGroup
-      )
-    } catch (error: any) {
-      if (error.message.includes('tidak ditemukan')) {
-        error.code = 404
-      }
-      next(error)
-    }
-  }
+  await destroyGroup(Number(id))
+  res.json(deleteResponse('group'))
 }
