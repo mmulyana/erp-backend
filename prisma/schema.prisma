@@ -30,7 +30,7 @@ model User {
   Attendance   Attendance[]
   Overtime     Overtime[]
 
-  role        Role?         @relation(fields: [roleId], references: [id])
+  role        Role?         @relation(fields: [roleId], references: [id], onDelete:SetNull)
   CashAdvance CashAdvance[]
 }
 

@@ -5,7 +5,6 @@ import cors from 'cors'
 
 import { errorHandler } from './utils/error-handler'
 import setupSwagger from './lib/swagger'
-import Routes from './modules'
 import route from './modules'
 
 dotenv.config()

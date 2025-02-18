@@ -1,28 +1,30 @@
 {
   "compilerOptions": {
-    "target": "ES2015",
-    "module": "commonjs",
+    "target": "ES2016",
+    "module": "NodeNext",
     "outDir": "./dist",
+    "moduleResolution": "nodenext",
     "rootDir": "./src",
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
     "esModuleInterop": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@errors/*": ["src/errors/*"]
+      "@/*": ["src/*"]
     }
   },
   "include": ["src/**/*"],
   "exclude": [
     "node_modules",
     "dist",
-    "jest.config.ts",
+    "jest.config.mjs",
     "src/modules/dashboard",
     "src/modules/helpdesk",
     "src/modules/hris",
     "src/modules/inventory",
     "src/modules/permission",
-    "src/modules/project",
-    // "src/modules/role"
-  ]
+    "src/modules/project"
+  ],
+  "ts-node": {
+    "files": true
+  }
 }

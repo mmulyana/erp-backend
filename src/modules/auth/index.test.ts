@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { TEST_URL } from '../../utils/constant'
+import { TEST_URL } from '@/utils/constant'
 
 describe('Auth', () => {
   it('should return error if not send any', async () => {

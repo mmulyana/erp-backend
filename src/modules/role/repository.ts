@@ -1,7 +1,12 @@
-import db from '@/lib/prisma'
-import { getPaginateParams } from '@/utils/params'
 import { Prisma } from '@prisma/client'
-import { createRole } from './schema'
+import { HttpStatusCode } from 'axios'
+
+import { createRole, updateRole } from './schema'
+
+import { getPaginateParams } from '@/utils/params'
+import { throwError } from '@/utils/error-handler'
+import { Messages } from '@/utils/constant'
+import db from '@/lib/prisma'
 
 export const findAll = async (
   page?: number,
@@ -50,70 +55,89 @@ export const create = async (data: createRole) => {
   })
 }
 
+export const findById = async (id: string) => {
+  const role = await db.role.findUnique({ where: { id } })
+  if (!role) {
+    return throwError(Messages.notFound, HttpStatusCode.NotFound)
+  }
+}
 
-// import { Prisma } from '@prisma/client'
-// import db from '../../lib/db'
+export const findPermissionRoleById = async (id: string) => {
+  const permissionRole = await db.permissionRole.findUnique({ where: { id } })
+  if (!permissionRole) {
+    return throwError(Messages.notFound, HttpStatusCode.NotFound)
+  }
+}
 
-// export default class RoleRepository {
-//   getAll = async () => {
-//     return await db.role.findMany({
-//       include: {
-//         RolePermission: {
-//           include: {
-//             permission: true,
-//           },
-//         },
-//         _count: {
-//           select: {
-//             users: true,
-//           },
-//         },
-//       },
-//     })
-//   }
-//   getById = async (id: number) => {
-//     return await db.role.findUnique({
-//       where: { id },
-//       include: {
-//         RolePermission: {
-//           include: {
-//             permission: true,
-//           },
-//         },
-//         _count: {
-//           select: {
-//             users: true,
-//           },
-//         },
-//       },
-//     })
-//   }
-//   updateById = async (id: number, data: Prisma.RoleUpdateInput) => {
-//     return await db.role.update({ where: { id }, data })
-//   }
-//   create = async (data: Prisma.RoleCreateInput) => {
-//     return await db.role.create({ data })
-//   }
-//   deleteById = async (id: number) => {
-//     return await db.role.delete({ where: { id } })
-//   }
-//   getPermissionById = async (id: number) => {
-//     return await db.permission.findUnique({ where: { id } })
-//   }
-//   createPermissionRole = async (data: {
-//     roleId: number
-//     permissionId: number
-//   }) => {
-//     return await db.rolePermission.create({ data })
-//   }
-//   deletePermissionRole = async (roleId: number, permissionId: number) => {
-//     return await db.rolePermission.delete({
-//       where: {
-//         roleId_permissionId: {
-//           roleId,
-//           permissionId
-//         }
-//       },
-//     })
-//   }
-// }
+export const update = async (id: string, data: updateRole) => {
+  return await db.role.update({
+    where: { id },
+    data: {
+      name: data.name,
+      description: data.description,
+    },
+  })
+}
+
+export const destroy = async (id: string) => {
+  const permissionRole = await db.permissionRole.findMany({
+    where: {
+      roleId: id,
+    },
+  })
+  if (permissionRole.length > 0) {
+    await db.permissionRole.deleteMany({
+      where: {
+        roleId: id,
+      },
+    })
+  }
+
+  await db.role.delete({ where: { id } })
+}
+
+export const findOne = async (id: string) => {
+  return await db.role.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      _count: {
+        select: {
+          permissionRole: true,
+          users: true,
+        },
+      },
+      permissionRole: {
+        select: {
+          permissionId: true,
+        },
+      },
+      users: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          photoUrl: true,
+        },
+      },
+    },
+  })
+}
+
+export const addPermissionToRole = async (
+  roleId: string,
+  permissionId: string,
+) => {
+  return await db.permissionRole.create({
+    data: {
+      permissionId: permissionId,
+      roleId: roleId,
+    },
+  })
+}
+
+export const removePermissionToRole = async (id: string) => {
+  return await db.permissionRole.delete({ where: { id } })
+}
