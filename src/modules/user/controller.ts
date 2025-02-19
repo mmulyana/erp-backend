@@ -15,6 +15,7 @@ import {
   findUserService,
   removePhotoUserService,
   removeRoleUserService,
+  resetPasswordService,
   saveTourService,
   unactivateUserService,
   updateUserService,
@@ -32,6 +33,7 @@ import {
 import { errorParse, throwError } from '@/utils/error-handler'
 import { checkParamsId, getParams } from '@/utils/params'
 import { Messages } from '@/utils/constant'
+import { removeEmptyProperties } from '@/utils/remove-empty-object'
 
 export const findUsers = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
@@ -52,10 +54,13 @@ export const findUsers = async (req: Request, res: Response) => {
 }
 
 export const createUser = async (req: Request, res: Response) => {
-  const parsed = CreateAccountSchema.safeParse(req.body)
+  const body = removeEmptyProperties(req.body)
+
+  const parsed = CreateAccountSchema.safeParse(body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
+  console.log('parsed',parsed)
 
   const result = await createUserService(parsed.data)
   res.json(successResponse(result, 'user'))
@@ -64,7 +69,9 @@ export const createUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
 
-  const parsed = UpdateAccountSchema.safeParse(req.body)
+  const body = removeEmptyProperties(req.body)
+
+  const parsed = UpdateAccountSchema.safeParse(body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
@@ -143,4 +150,10 @@ export const createTourUser = async (req: Request, res: Response) => {
 
   await saveTourService(id, req.body.key)
   res.json(createResponse('Tur'))
+}
+
+export const resetPasswordUser = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await resetPasswordService(id)
+  res.json(updateResponse('password user'))
 }

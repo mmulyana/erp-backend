@@ -11,17 +11,22 @@ import { CreateAccount, UpdateAccount } from './schema'
 import { Prisma } from '@prisma/client'
 
 export const create = async (data: CreateAccount & { password: string }) => {
-  return await db.user.create({
-    data: {
-      username: data.username,
-      email: data.email,
-      password: data.password,
-      role: {
-        connect: {
-          id: data.roleId,
-        },
+  const userData: Prisma.UserCreateInput = {
+    username: data.username,
+    email: data.email,
+    password: data.password,
+  }
+
+  if (data.roleId) {
+    userData.role = {
+      connect: {
+        id: data.roleId,
       },
-    },
+    }
+  }
+
+  return await db.user.create({
+    data: userData,
   })
 }
 
@@ -31,6 +36,7 @@ export const update = async (
     deletedAt?: string
     active?: boolean
     photoUrl?: string
+    password?: string
   },
 ) => {
   return await db.user.update({ data, where: { id } })

@@ -25,7 +25,7 @@ export const Messages = {
   InvalidPassword: 'Password sekurangnya 8 karakter',
   AccountDoesntExists: 'akun tidak ada',
   InvalidCredential: 'Kredensial salah',
-  EmaildAlreadyUsed: 'Email ini sudah digunakan',
+  EmailAlreadyUsed: 'Email ini sudah digunakan',
   PhoneAlreadyUsed: 'Nomor telepon ini sudah digunakan',
   UsernameAlreadyUsed: 'Username ini sudah digunakan',
   paramsIdNotFound: 'params id tidak ada',

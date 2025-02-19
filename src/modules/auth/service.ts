@@ -26,7 +26,7 @@ export const loginService = async (credentials: Login) => {
     user = await findByPhone(phone)
   }
 
-  if (!user?.active) {
+  if (!user) {
     return throwError(Messages.AccountDoesntExists, HttpStatusCode.BadRequest)
   }
 

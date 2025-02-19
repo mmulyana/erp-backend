@@ -23,7 +23,7 @@ const isExist = async (payload: CreateAccount | UpdateAccount) => {
   if (!!payload.email) {
     const user = await findByEmail(payload.email)
     if (user) {
-      return throwError(Messages.EmaildAlreadyUsed, HttpStatusCode.BadRequest)
+      return throwError(Messages.EmailAlreadyUsed, HttpStatusCode.BadRequest)
     }
   }
 
@@ -42,6 +42,10 @@ const isExist = async (payload: CreateAccount | UpdateAccount) => {
 }
 
 const isExistById = async (id: string) => {
+  if (!isValidUUID(id)) {
+    return throwError(Messages.InvalidUUID, HttpStatusCode.NotFound)
+  }
+
   const data = await findById(id)
   if (!data) {
     return throwError(Messages.dataNotFound, HttpStatusCode.BadRequest)
@@ -66,10 +70,28 @@ export const createUserService = async (payload: CreateAccount) => {
 }
 
 export const updateUserService = async (id: string, payload: UpdateAccount) => {
-  await isExist(payload)
   await isExistById(id)
 
-  const data = await update(id, payload)
+  const currentUser = await findById(id)
+  const updatedData: Partial<UpdateAccount> = {}
+
+  for (const key in payload) {
+    if (payload[key] !== currentUser[key]) {
+      updatedData[key] = payload[key]
+    }
+  }
+
+  if (Object.keys(updatedData).length === 0) {
+    return {
+      username: currentUser.username,
+      email: currentUser.email,
+      phone: currentUser.phone,
+      photoUrl: currentUser.photoUrl,
+    }
+  }
+  await isExist(updatedData)
+
+  const data = await update(id, updatedData)
   return {
     username: data.username,
     email: data.email,
@@ -178,10 +200,6 @@ export const removePhotoUserService = async (id: string) => {
 }
 
 export const findUserService = async (id: string) => {
-  if (!isValidUUID(id)) {
-    return throwError(Messages.InvalidUUID, HttpStatusCode.NotFound)
-  }
-
   await isExistById(id)
 
   const data = await findById(id)
@@ -191,7 +209,8 @@ export const findUserService = async (id: string) => {
     phone: data.phone,
     photoUrl: data.photoUrl,
     role: data.role,
-    permissions: data.role.permissionRole.map((item) => item.permission.key),
+    permissions:
+      data.role?.permissionRole.map((item) => item.permission.key) || [],
   }
 }
 
@@ -200,11 +219,20 @@ export const saveTourService = async (userId: string, key: string) => {
   if (!user) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
-  
+
   const data = await findTourByIdandKey(userId, key)
   if (data) {
     return throwError(Messages.TourExist, HttpStatusCode.BadRequest)
   }
 
   await createTour(userId, key)
+}
+
+export const resetPasswordService = async (id: string) => {
+  await isExistById(id)
+
+  const password = await hash(process.env.DEFAULT_PASSWORD as string, 10)
+  await update(id, {
+    password,
+  })
 }
