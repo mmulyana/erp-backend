@@ -60,7 +60,6 @@ export const createUser = async (req: Request, res: Response) => {
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
-  console.log('parsed',parsed)
 
   const result = await createUserService(parsed.data)
   res.json(successResponse(result, 'user'))
