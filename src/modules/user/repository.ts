@@ -8,6 +8,7 @@ import { getPaginateParams } from '@/utils/params'
 import { Messages } from '@/utils/constant'
 
 import { CreateAccount, UpdateAccount } from './schema'
+import { Prisma } from '@prisma/client'
 
 export const create = async (data: CreateAccount & { password: string }) => {
   return await db.user.create({
@@ -59,16 +60,31 @@ export const findAll = async (
     ],
   }
 
+  const select = {
+    active: true,
+    id: true,
+    username: true,
+    email: true,
+    phone: true,
+    photoUrl: true,
+  }
+
+  const include = {
+    role: true,
+    tours: true,
+  }
+
   if (page === undefined || limit === undefined) {
     const users = await db.user.findMany({
       where,
       orderBy: { username: 'asc' },
-      include: {
-        role: true,
+      select: {
+        ...select,
+        ...include,
       },
     })
 
-    return { users }
+    return { data: users }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
@@ -79,18 +95,22 @@ export const findAll = async (
       take,
       where,
       orderBy: { username: 'asc' },
-      include: {
-        role: true,
+      select: {
+        ...select,
+        ...include,
       },
     }),
     db.user.count({ where }),
   ])
 
+  const total_pages = Math.ceil(total / limit)
+
   return {
-    users,
+    data: users,
     total,
     page,
     limit,
+    total_pages,
   }
 }
 

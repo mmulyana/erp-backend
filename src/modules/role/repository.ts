@@ -24,7 +24,7 @@ export const findAll = async (
       // include: {}
     })
 
-    return { roles }
+    return { data: roles }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
@@ -38,11 +38,14 @@ export const findAll = async (
     db.role.count({ where }),
   ])
 
+  const total_pages = Math.ceil(total / limit)
+
   return {
-    roles,
+    data: roles,
     total,
     page,
     limit,
+    total_pages,
   }
 }
 

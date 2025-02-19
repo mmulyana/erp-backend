@@ -48,7 +48,7 @@ export const createRole = async (req: Request, res: Response) => {
   }
 
   const result = await create(parsed.data)
-  res.json(successResponse(result, 'role'))
+  res.json(createResponse(result, 'role'))
 }
 
 export const updateRole = async (req: Request, res: Response) => {
