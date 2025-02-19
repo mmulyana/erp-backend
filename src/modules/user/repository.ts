@@ -107,7 +107,25 @@ export const findByPhone = async (phone: string) => {
 }
 
 export const findById = async (id: string) => {
-  return db.user.findUnique({ where: { id } })
+  return db.user.findUnique({
+    where: { id },
+    include: {
+      role: {
+        include: {
+          permissionRole: {
+            select: {
+              permission: {
+                select: {
+                  key: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      tours: true,
+    },
+  })
 }
 
 export const findRoleById = async (id: string) => {
@@ -115,4 +133,22 @@ export const findRoleById = async (id: string) => {
     return throwError(Messages.InvalidUUID, HttpStatusCode.NotFound)
   }
   return db.role.findUnique({ where: { id } })
+}
+
+export const findTourByIdandKey = async (userId: string, key: string) => {
+  return await db.tour.findFirst({
+    where: {
+      userId,
+      key,
+    },
+  })
+}
+
+export const createTour = async (userId: string, key: string) => {
+  await db.tour.create({
+    data: {
+      userId,
+      key,
+    },
+  })
 }

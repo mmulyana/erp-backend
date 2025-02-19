@@ -33,6 +33,7 @@ export const Messages = {
   notFound: 'tidak ditemukan',
   fileNotSended: 'Tidak ada file yang dikirim!',
   InvalidUUID: 'invalid uuid',
+  TourExist: 'Tur sudah ada',
 }
 
 export const TEST_URL = 'http://localhost:5001'

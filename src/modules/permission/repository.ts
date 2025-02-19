@@ -34,6 +34,9 @@ export const findAll = async (search?: string) => {
       name: 'asc',
     },
     where,
+    include: {
+      permissions: true,
+    },
   })
   return group
 }

@@ -3,6 +3,7 @@ import {
   removePhotoUser,
   removeRoleUser,
   unactivateUser,
+  createTourUser,
   activateUser,
   addPhotoUser,
   addRoleUser,
@@ -27,5 +28,6 @@ router.patch('/:id/role/add', addRoleUser)
 router.patch('/:id/role/remove', removeRoleUser)
 router.patch('/:id/photo/add/:prefix', upload.single('photo'), addPhotoUser)
 router.patch('/:id/photo/remove', removePhotoUser)
+router.post('/:id/tour', createTourUser)
 
 export default router

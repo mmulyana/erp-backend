@@ -525,10 +525,10 @@ async function main() {
     const allPermissions = await prisma.permission.findMany()
     await Promise.all(
       allPermissions.map((permission) =>
-        prisma.rolePermission.create({
+        prisma.permissionRole.create({
           data: {
             roleId: superadminRole.id,
-            permissionId: permission.id,
+            permissionId: permission.key,
           },
         })
       )
@@ -538,9 +538,9 @@ async function main() {
       // Create superadmin user
       await prisma.user.create({
         data: {
-          name: process.env.NAME as string,
+          username: process.env.NAME as string,
           email: process.env.EMAIL as string,
-          phoneNumber: process.env.PHONE as string,
+          phone: process.env.PHONE as string,
           password: await hash('password', 10),
           roleId: superadminRole.id,
         },

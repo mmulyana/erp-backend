@@ -2,13 +2,19 @@ import { HttpStatusCode } from 'axios'
 import { compare } from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-import { findByEmail, findByPhone, findByUsername } from './repository'
+import {
+  findByEmail,
+  findById,
+  findByPhone,
+  findByUsername,
+} from './repository'
 import { throwError } from '../../utils/error-handler'
 import { Messages } from '../../utils/constant'
 
 import { Login } from './schema'
+import { isValidUUID } from '@/utils/is-valid-uuid'
 
-export const login = async (credentials: Login) => {
+export const loginService = async (credentials: Login) => {
   const { email, username, password, phone } = credentials
 
   let user
@@ -28,13 +34,31 @@ export const login = async (credentials: Login) => {
     return throwError(Messages.InvalidCredential, HttpStatusCode.BadRequest)
   }
 
-  const token = jwt.sign(
-    { id: user.id, name: user.username },
-    process.env.SECRET as string,
-    { expiresIn: '7d' },
-  )
+  const token = jwt.sign({ id: user.id }, process.env.SECRET as string, {
+    expiresIn: '7d',
+  })
 
   return {
     token,
+  }
+}
+
+export const findMeService = async (id: string) => {
+  if (!isValidUUID(id)) {
+    return throwError(Messages.InvalidUUID, HttpStatusCode.NotFound)
+  }
+
+  const data = await findById(id)
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.NotFound)
+  }
+
+  return {
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    photoUrl: data.photoUrl,
+    role: data.role,
+    permissions: data.role?.permissionRole?.map((item) => item.permission.key),
   }
 }

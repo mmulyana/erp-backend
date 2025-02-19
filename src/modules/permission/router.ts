@@ -17,7 +17,7 @@ router.post('/item', savePermission)
 router.patch('/item/:id', updatePermission)
 router.delete('/item/:id', deletePermission)
 
-router.get('/grup', getAllByGroup)
+router.get('/group', getAllByGroup)
 router.post('/group', saveGroup)
 router.patch('/group/:id', updateGroup)
 router.delete('/group/:id', deleteGroup)

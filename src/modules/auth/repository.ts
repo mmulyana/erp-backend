@@ -1,4 +1,4 @@
-import db from "@/lib/prisma"
+import db from '@/lib/prisma'
 
 export const findByEmail = async (email: string) => {
   return db.user.findUnique({ where: { email } })
@@ -8,4 +8,26 @@ export const findByUsername = async (username: string) => {
 }
 export const findByPhone = async (phone: string) => {
   return db.user.findUnique({ where: { phone } })
+}
+
+export const findById = async (id: string) => {
+  return db.user.findUnique({
+    where: { id },
+    include: {
+      role: {
+        include: {
+          permissionRole: {
+            select: {
+              permission: {
+                select: {
+                  key: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      tours: true,
+    },
+  })
 }

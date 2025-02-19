@@ -3,11 +3,13 @@ import { hash } from 'bcryptjs'
 
 import {
   create,
+  createTour,
   findByEmail,
   findById,
   findByPhone,
   findByUsername,
   findRoleById,
+  findTourByIdandKey,
   update,
 } from './repository'
 import type { CreateAccount, UpdateAccount } from './schema'
@@ -188,5 +190,21 @@ export const findUserService = async (id: string) => {
     email: data.email,
     phone: data.phone,
     photoUrl: data.photoUrl,
+    role: data.role,
+    permissions: data.role.permissionRole.map((item) => item.permission.key),
   }
+}
+
+export const saveTourService = async (userId: string, key: string) => {
+  const user = await findById(userId)
+  if (!user) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+  }
+  
+  const data = await findTourByIdandKey(userId, key)
+  if (data) {
+    return throwError(Messages.TourExist, HttpStatusCode.BadRequest)
+  }
+
+  await createTour(userId, key)
 }

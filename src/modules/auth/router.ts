@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
-import { loginController } from './controller'
+import { findMe, login } from './controller'
+import isAuthenticated from '@/middleware/is-authenticated'
 
 const router = Router()
 
@@ -49,6 +50,7 @@ const router = Router()
  *                   description: Token JWT untuk autentikasi.
  *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  */
-router.post('/login', loginController)
+router.post('/login', login)
+router.get('/me', isAuthenticated, findMe)
 
 export default router

@@ -15,6 +15,7 @@ import {
   findUserService,
   removePhotoUserService,
   removeRoleUserService,
+  saveTourService,
   unactivateUserService,
   updateUserService,
 } from './service'
@@ -22,6 +23,7 @@ import { findAll, findRoleById } from './repository'
 
 import {
   activateResponse,
+  createResponse,
   deleteResponse,
   successResponse,
   unactivateResponse,
@@ -134,4 +136,11 @@ export const findUser = async (req: Request, res: Response) => {
 
   const result = await findUserService(id)
   res.json(successResponse(result, 'user'))
+}
+
+export const createTourUser = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+
+  await saveTourService(id, req.body.key)
+  res.json(createResponse('Tur'))
 }
