@@ -17,6 +17,6 @@ router.post('/', createRole)
 router.patch('/:id', updateRole)
 router.delete('/:id', deleteRole)
 router.post('/:id/permission', createPermissionRole)
-router.delete('/permission/:id', deletePermissionRole)
+router.delete('/:id/permission/:permissionId', deletePermissionRole)
 
 export default router

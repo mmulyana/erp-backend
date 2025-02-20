@@ -65,13 +65,6 @@ export const findById = async (id: string) => {
   }
 }
 
-export const findPermissionRoleById = async (id: string) => {
-  const permissionRole = await db.permissionRole.findUnique({ where: { id } })
-  if (!permissionRole) {
-    return throwError(Messages.notFound, HttpStatusCode.NotFound)
-  }
-}
-
 export const update = async (id: string, data: updateRole) => {
   return await db.role.update({
     where: { id },
@@ -100,7 +93,7 @@ export const destroy = async (id: string) => {
 }
 
 export const findOne = async (id: string) => {
-  return await db.role.findUnique({
+  const data = await db.role.findUnique({
     where: { id },
     select: {
       id: true,
@@ -127,6 +120,11 @@ export const findOne = async (id: string) => {
       },
     },
   })
+
+  return {
+    ...data,
+    permissions: data.permissionRole.map((item) => item.permissionId),
+  }
 }
 
 export const addPermissionToRole = async (
@@ -141,6 +139,13 @@ export const addPermissionToRole = async (
   })
 }
 
-export const removePermissionToRole = async (id: string) => {
-  return await db.permissionRole.delete({ where: { id } })
+export const findPermissionRole = async (
+  roleId: string,
+  permissionId: string,
+) => {
+  return await db.permissionRole.findFirst({ where: { roleId, permissionId } })
+}
+
+export const destoryPermissionRole = async (id: string) => {
+  await db.permissionRole.delete({ where: { id } })
 }

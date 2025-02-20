@@ -10,8 +10,9 @@ export const updateResponse = (data?: any, title?: string) => ({
   data,
 })
 
-export const deleteResponse = (title?: string) => ({
+export const deleteResponse = (title?: string, data?: any) => ({
   message: title ? `${title} berhasil dihapus` : 'Berhasil dihapus',
+  data,
 })
 
 export const activateResponse = (title?: string) => ({

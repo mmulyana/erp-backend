@@ -7,11 +7,9 @@ import {
   deleteResponse,
   updateResponse,
 } from '@/utils/response'
-import { errorParse } from '@/utils/error-handler'
+import { errorParse, throwError } from '@/utils/error-handler'
 
 import {
-  findPermissionRoleById,
-  removePermissionToRole,
   addPermissionToRole,
   findById,
   destroy,
@@ -19,12 +17,16 @@ import {
   findOne,
   create,
   update,
+  findPermissionRole,
+  destoryPermissionRole,
 } from './repository'
 import {
   CreatePermissionRoleSchema,
   CreateRoleSchema,
   UpdateRoleSchema,
 } from './schema'
+import { Messages } from '@/utils/constant'
+import { HttpStatusCode } from 'axios'
 
 export const findRoles = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
@@ -87,8 +89,18 @@ export const createPermissionRole = async (req: Request, res: Response) => {
 
 export const deletePermissionRole = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
-  await findPermissionRoleById(id)
 
-  await removePermissionToRole(id)
-  res.json(deleteResponse('permission role'))
+  const permissionId = req.params.permissionId
+  if (!permissionId) {
+    return throwError(Messages.BadRequest, HttpStatusCode.BadRequest)
+  }
+
+  const data = await findPermissionRole(id, permissionId)
+  await destoryPermissionRole(data.id)
+
+  res.json(
+    deleteResponse('permission role', {
+      roleId: id,
+    }),
+  )
 }
