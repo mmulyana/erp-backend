@@ -1,88 +1,72 @@
-import { NextFunction, Request, Response } from 'express'
-import BaseController from '../../../helper/base-controller'
-import PositionRepository from './repository'
+import { Request, Response } from 'express'
+import { PositionSchema } from './schema'
+import { errorParse } from '@/utils/error-handler'
+import {
+  create,
+  destroy,
+  isExist,
+  read,
+  readAll,
+  totalEmployeePerPosition,
+  totalEmployeePerStatus,
+  update,
+} from './repository'
+import {
+  createResponse,
+  deleteResponse,
+  successResponse,
+  updateResponse,
+} from '@/utils/response'
+import { checkParamsId, getParams } from '@/utils/params'
 
-export default class PositionController extends BaseController {
-  private repository: PositionRepository = new PositionRepository()
-
-  constructor() {
-    super('jabatan')
+export const savePosition = async (req: Request, res: Response) => {
+  const parsed = PositionSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  createHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await this.repository.create(req.body)
-      return this.response.success(res, this.message.successCreate())
-    } catch (error) {
-      next(error)
-    }
+  const result = await create(parsed.data)
+  res.json(createResponse(result, 'jabatan'))
+}
+export const updatePosition = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const parsed = PositionSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
-  updateHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.update(Number(id), req.body)
-      return this.response.success(res, this.message.successUpdate())
-    } catch (error: any) {
-      next(error)
-    }
-  }
-  deleteHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.delete(Number(id))
-      return this.response.success(res, this.message.successDelete())
-    } catch (error: any) {
-      next(error)
-    }
-  }
-  readHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const data = await this.repository.read(Number(id))
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error: any) {
-      next(error)
-    }
-  }
-  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { name } = req.query
-      const data = await this.repository.readAll(name?.toString())
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  readTotalByPositionHandler = async (
-    _: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const data = await this.repository.totalEmployeePerPosition()
-      return this.response.success(
-        res,
-        this.message.customMessage('pegawai per jabatan'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  readTotalByStatusnHandler = async (
-    _: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const data = await this.repository.totalEmployeePerStatus()
-      return this.response.success(
-        res,
-        this.message.customMessage('pegawai per status'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
+
+  const result = await update(id, parsed.data)
+  res.json(updateResponse(result, 'jabatan'))
+}
+export const getPosition = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await read(id)
+  res.json(successResponse(result, 'jabatan'))
+}
+
+export const getPositions = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const result = await readAll(page, limit, search)
+  res.json(successResponse(result, 'jabatan'))
+}
+
+export const destroyPosition = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  await destroy(id)
+  res.json(deleteResponse('jabatan'))
+}
+export const getTotalByPosition = async (req: Request, res: Response) => {
+  const result = await totalEmployeePerPosition()
+  res.json(successResponse(result, 'pegawai per jabatan'))
+}
+
+export const getTotalByStatus = async (req: Request, res: Response) => {
+  const result = await totalEmployeePerStatus()
+  res.json(successResponse(result, 'pegawai per status'))
 }

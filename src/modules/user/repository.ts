@@ -49,7 +49,7 @@ export const findAll = async (
   active?: boolean,
   roleId?: string,
 ) => {
-  const where = {
+  const where: Prisma.UserWhereInput = {
     AND: [
       search
         ? {
@@ -66,16 +66,13 @@ export const findAll = async (
     ],
   }
 
-  const select = {
+  const select: Prisma.UserSelect = {
     active: true,
     id: true,
     username: true,
     email: true,
     phone: true,
     photoUrl: true,
-  }
-
-  const include = {
     role: true,
     tours: true,
   }
@@ -84,10 +81,7 @@ export const findAll = async (
     const users = await db.user.findMany({
       where,
       orderBy: { username: 'asc' },
-      select: {
-        ...select,
-        ...include,
-      },
+      select,
     })
 
     return { data: users }
@@ -101,10 +95,7 @@ export const findAll = async (
       take,
       where,
       orderBy: { username: 'asc' },
-      select: {
-        ...select,
-        ...include,
-      },
+      select,
     }),
     db.user.count({ where }),
   ])

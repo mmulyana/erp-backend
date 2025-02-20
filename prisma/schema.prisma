@@ -9,17 +9,17 @@ datasource db {
 
 // Authorization
 model User {
-  id           String              @id @default(uuid()) @db.Uuid()
-  roleId       String?             @db.Uuid()
-  username     String              @unique @db.VarChar(50)
-  phone        String?             @unique @db.VarChar(13)
-  email        String?             @unique @db.VarChar(255)
-  active       Boolean             @default(true)
-  photoUrl     String?             @db.VarChar(100)
-  password     String              @db.VarChar(255)
-  createdAt    DateTime            @default(now()) @db.Date()
-  updatedAt    DateTime            @updatedAt
-  deletedAt    DateTime?
+  id        String    @id @default(uuid()) @db.Uuid()
+  roleId    String?   @db.Uuid()
+  username  String    @unique @db.VarChar(50)
+  phone     String?   @unique @db.VarChar(13)
+  email     String?   @unique @db.VarChar(255)
+  active    Boolean   @default(true)
+  photoUrl  String?   @db.VarChar(100)
+  password  String    @db.VarChar(255)
+  createdAt DateTime  @default(now()) @db.Date()
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   attachments  ProjectAttachment[]
   transactions TransactionGoods[]
@@ -32,12 +32,12 @@ model User {
   overtimes    Overtime[]
   cashAdvances CashAdvance[]
 
-  role        Role?         @relation(fields: [roleId], references: [id], onDelete:SetNull)
+  role Role? @relation(fields: [roleId], references: [id], onDelete: SetNull)
 }
 
 model Role {
   id             String           @id @default(uuid()) @db.Uuid()
-  name           String           
+  name           String
   description    String?
   createdAt      DateTime         @default(now()) @db.Date()
   updatedAt      DateTime         @updatedAt
@@ -94,6 +94,7 @@ model Employee {
   createdAt           DateTime              @default(now()) @db.Date()
   updatedAt           DateTime              @updatedAt
   deletedAt           DateTime?
+  status              Boolean?              @default(true)
   attendances         Attendance[]
   cashAdvances        CashAdvance[]
   statusTracks        EmployeeStatusTrack[]
@@ -114,7 +115,7 @@ model Position {
 }
 
 model Certification {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(uuid()) @db.Uuid()
   employeeId  String    @db.Uuid()
   name        String
   fileUrl     String?
