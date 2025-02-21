@@ -1,82 +1,51 @@
-import RouterWithFile from '../../../helper/router-with-file'
-import { MulterConfig } from '../../../utils/multer-config'
-import Validation from '../../../helper/validation'
-import EmployeeController from './controller'
-import { Multer } from 'multer'
+import { Router } from 'express'
 import {
-  competencySingleSchema,
-  updateEmployeeSchema,
-  competencySchema,
-  employeeSchema,
-  positionSchema,
-  addressSchema,
-  contactSchema,
-  certifchema,
-} from './schema'
+  deletePhotoEmployee,
+  destoryCertifEmployee,
+  destroyEmployee,
+  readEmployee,
+  readEmployees,
+  readExpireCertifEmployee,
+  readExpireSafetyEmployee,
+  readStatusEmployee,
+  saveCertifEmployee,
+  saveEmployee,
+  updateCertifEmployee,
+  updateCompetencyEmployee,
+  updateEmployee,
+  updatePositionEmployee,
+  updateStatusEmployee,
+  uploadPhotoEmployee,
+} from './controller'
+import upload from '@/utils/upload'
 
-export default class EmployeeRouter extends RouterWithFile {
-  private controller: EmployeeController = new EmployeeController()
-  private comptencySchema: Validation = new Validation(competencySchema)
-  private comptencySingleSchema: Validation = new Validation(competencySingleSchema)
-  private employeeSchema: Validation = new Validation(employeeSchema)
-  private updateEmployeeSchema: Validation = new Validation(updateEmployeeSchema)
-  private positionSchema: Validation = new Validation(positionSchema)
-  private addressSchema: Validation = new Validation(addressSchema)
-  private contactSchema: Validation = new Validation(contactSchema)
-  private uploadDoc: Multer
+const router = Router()
 
-  constructor(multerConfig: MulterConfig) {
-    super(multerConfig.uploadImg, 'employee')
-    this.uploadDoc = multerConfig.uploadDoc
-    this.register()
-    this.name = 'employee'
-  }
+router.get('/', readEmployees)
+router.post('/', saveEmployee)
+router.get('/:id', readEmployee)
+router.patch('/:id', updateEmployee)
+router.delete('/:id', destroyEmployee)
 
-  protected register() {
-    this.router.get('/list/pagination', this.controller.readByPaginationHandler)
-    this.router.get('/:id', this.controller.readHandler)
-    this.router.get('/', this.controller.readAllHandler)
+router.patch('/:id/photo/:prefix', upload.single('photo'), uploadPhotoEmployee)
+router.delete('/:id/photo', deletePhotoEmployee)
 
-    this.router.patch('/:id', this.updateEmployeeSchema.validate, this.controller.updateHandler)
-    this.router.patch('/soft-delete/:id', this.controller.softDeleteHandler)
-    
-    this.router.post('/', this.employeeSchema.validate, this.controller.createHandler)
-    this.router.delete('/:id', this.controller.deleteHandler)
-    
+router.patch('/:id/competencies', updateCompetencyEmployee)
 
-    this.router.patch('/update-photo/:id', this.upload.single('photo'), this.compressImage, this.controller.uploadPhotoHandler)
-    this.router.patch('/delete-photo/:id', this.controller.deletePhotoHandler)
+router.patch('/:id/position', updatePositionEmployee)
 
-    this.router.patch('/update-competencies', this.controller.updateCompetenciesHandler)
+router.patch('/:id/status', updateStatusEmployee)
+router.get('/:id/status', readStatusEmployee)
 
-    this.router.post('/address/:employeeId', this.addressSchema.validate, this.controller.createAddressHandler)
-    this.router.patch('/address/:addressId', this.addressSchema.validate, this.controller.updateAddressHandler)
-    this.router.delete('/address/:addressId', this.controller.deleteAddressHandler)
-    this.router.get('/address/:employeeId', this.controller.readAddressHandler)
+router.post(
+  '/:id/certification/:prefix',
+  upload.single('file'),
+  saveCertifEmployee,
+)
+router.patch('/:id/certification', upload.single('file'), updateCertifEmployee)
+router.delete('/:id/certification/:certifId', destoryCertifEmployee)
 
-    this.router.post('/contact/:employeeId', this.contactSchema.validate, this.controller.createContactHandler)
-    this.router.patch('/contact/:contactId', this.contactSchema.validate, this.controller.updateContactHandler)
-    this.router.delete('/contact/:contactId', this.controller.deleteContactHandler)
-    this.router.get('/contact/:employeeId', this.controller.readContactHandler)
+router.get('/expire/certification/:positionId', readExpireCertifEmployee)
+router.get('/expire/safety', readExpireSafetyEmployee)
 
-    this.router.patch('/position/:id', this.positionSchema.validate, this.controller.positionHandler)
-
-    this.router.patch('/status/active/:employeeId', this.controller.activeHandler)
-    this.router.patch('/status/inactive/:employeeId', this.controller.inactiveHandler)
-    this.router.get('/status/track/:employeeId', this.controller.employeeTrackHandler)
-
-    this.router.post('/competency/:employeeId', this.comptencySchema.validate, this.controller.createCompetencyHandler)
-    this.router.post('/competency/single/:employeeId', this.comptencySingleSchema.validate, this.controller.createSingleCompetencyHandler)
-    this.router.delete('/competency/:competencyId', this.controller.deleteCompetencyHandler)
-    this.router.get('/competency/:employeeId', this.controller.readCompetencyHandler)
-
-    this.router.post('/certification/single/:employeeId', this.uploadDoc.single('certif_file'), this.controller.createSingleHandler)
-    this.router.post('/certification/:employeeId', this.uploadDoc.array('certif_file', 5), this.controller.createCertifHandler)
-    this.router.patch('/certification/:certifId', this.uploadDoc.single('certif_file'), this.controller.updateCertifHandler)
-    this.router.delete('/certification/:certifId', this.controller.deleteCertifHandler)
-    this.router.get('/certification/:employeeId', this.controller.readCertifHandler)
-
-    this.router.get('/expiring/certification', this.controller.readExpiringCertificationHandler)
-    this.router.get('/expiring/safety', this.controller.readExpiringSafetyHandler)
-  }
-}
+export default router

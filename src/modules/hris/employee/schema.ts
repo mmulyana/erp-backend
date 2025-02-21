@@ -1,93 +1,63 @@
 import { z } from 'zod'
 
-const JoinedType = z.enum(['date', 'year'])
-const PayType = z.enum(['daily', 'monthly'])
-const EmploymentType = z.enum(['permanent', 'contract', 'partime'])
-const Gender = z.enum(['male', 'female'])
-const MaritalStatus = z.enum(['single', 'married', 'divorced'])
-
-export const employeeSchema = z.object({
-  fullname: z.string().min(1, "Nama tidak boleh kosong"),
-  status: z.boolean().default(true),
-  joined_at: z.string().optional().nullable(),
-  joined_type: JoinedType.default('date').optional().nullable(),
-  basic_salary: z.string().optional().nullable(),
-  overtime_salary: z.string().optional().nullable(),
-  pay_type: PayType.default('daily').optional().nullable(),
-  employment_type: EmploymentType.default('permanent').optional().nullable(),
-  place_of_birth: z.string().optional().nullable(),
-  birth_date: z.string().optional().nullable(),
-  last_education: z.string().optional().nullable(),
-  gender: Gender.optional().nullable(),
-  marital_status: MaritalStatus.optional().nullable(),
-  religion: z.string().optional().nullable(),
-  positionId: z.string().optional().nullable(),
-  email: z.string().optional().nullable(),
-  safety_induction_date: z.string().datetime().optional().nullable(),
-  addresses: z
-    .object({
-      type: z.enum(['domicile', 'origin', 'alternative']),
-      value: z.string(),
-    })
-    .array()
-    .optional()
-    .nullable(),
-  phoneNumbers: z
-    .object({
-      value: z.string(),
-    })
-    .array()
-    .optional()
-    .nullable(),
-  competencies: z.string().array().optional().nullable(),
+export const EmployeeSchema = z.object({
+  id: z.string().uuid(),
+  positionId: z.string().uuid().optional(),
+  fullname: z.string().max(50),
+  birthDate: z.string().nullable().optional(),
+  joinedAt: z.string().nullable().optional(),
+  active: z.boolean().nullable().default(true),
+  phone: z.string().nullable().optional(),
+  lastEducation: z.string().nullable().optional(),
+  salary: z.number().int().nullable().optional(),
+  overtimeSalary: z.number().int().nullable().optional(),
+  safetyInductionDate: z.date().nullable().optional(),
+  address: z.string().nullable().optional(),
+  createdAt: z.date().default(new Date()),
+  updatedAt: z.date().optional(),
+  status: z.boolean().nullable().default(true),
 })
 
-export const updateEmployeeSchema = employeeSchema
-  .omit({
-    fullname: true,
-    addresses: true,
-    competencies: true,
-    phoneNumbers: true,
-    positionId: true,
-  })
-  .partial()
-
-export const contactSchema = z.object({
-  id: z.number().optional(),
-  value: z.string(),
+export const CertificationSchema = z.object({
+  id: z.string().uuid(),
+  employeeId: z.string().uuid(),
+  name: z.string().min(1),
+  publisher: z.string().nullable().optional(),
+  issueMonth: z
+    .string()
+    .regex(/^(0[1-9]|1[0-2])$/)
+    .nullable()
+    .optional(),
+  expiryMonth: z
+    .string()
+    .regex(/^(0[1-9]|1[0-2])$/)
+    .nullable()
+    .optional(),
+  issueYear: z
+    .string()
+    .regex(/^\d{4}$/)
+    .nullable()
+    .optional(),
+  expiryYear: z
+    .string()
+    .regex(/^\d{4}$/)
+    .nullable()
+    .optional(),
+})
+export const UpdateCertificationSchema = CertificationSchema.extend({
+  id: z.string(),
 })
 
-export const addressSchema = z.object({
-  type: z.enum(['domicile', 'origin', 'alternative']).optional(),
-  value: z.string(),
+export const StatusTrackSchema = z.object({
+  note: z.string().optional(),
+  status: z.boolean().optional(),
 })
 
-export const deleteAddressSchema = z.object({
-  addressId: z.number(),
+export const CompetencySchema = z.object({
+  competencyIds: z.string().array().optional(),
 })
 
-export const deleteContactSchema = z.object({
-  contactId: z.number(),
-})
-
-export const positionSchema = z.object({
-  positionId: z.number(),
-})
-
-export const competencySchema = z.object({
-  competencyId: z.number().array(),
-})
-
-export const competencySingleSchema = z.object({
-  competencyId: z.number(),
-})
-
-export const certifchema = z.object({
-  certif_name: z.string(),
-  issuing_organization: z.string().optional(),
-  issue_year: z.string().optional(),
-  issue_month: z.string().optional(),
-  expiry_year: z.string().optional(),
-  expiry_month: z.string().optional(),
-  competencyId: z.string().optional(),
-})
+export type Employee = z.infer<typeof EmployeeSchema>
+export type Certification = z.infer<typeof CertificationSchema>
+export type StatusTrack = z.infer<typeof StatusTrackSchema>
+export type Competency = z.infer<typeof CompetencySchema>
