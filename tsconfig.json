@@ -19,7 +19,6 @@
     "jest.config.mjs",
     "src/modules/dashboard",
     "src/modules/helpdesk",
-    // "src/modules/hris",
     "src/modules/inventory",
     "src/modules/project"
   ]

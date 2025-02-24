@@ -92,7 +92,7 @@ model Employee {
   safetyInductionDate DateTime?
   address             String?
   createdAt           DateTime              @default(now()) @db.Date()
-  updatedAt           DateTime              @updatedAt
+  updatedAt           DateTime              @updatedAt @db.Date()
   deletedAt           DateTime?
   status              Boolean?              @default(true)
   attendances         Attendance[]
@@ -146,24 +146,28 @@ enum AttendanceType {
 }
 
 model Overtime {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid()) @db.Uuid()
   employeeId String   @db.Uuid()
   createdBy  String   @db.Uuid()
   totalHour  Int
   note       String?  @db.VarChar(255)
   date       DateTime @db.Date
+  createdAt  DateTime @default(now()) @db.Date
+  updatedAt  DateTime @updatedAt @db.Date
 
   employee Employee @relation(fields: [employeeId], references: [id])
   user     User     @relation(fields: [createdBy], references: [id])
 }
 
 model CashAdvance {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid())
   employeeId String   @db.Uuid()
   createdBy  String   @db.Uuid()
   amount     Int      @db.Integer()
   date       DateTime @db.Date
   note       String?  @db.VarChar(255)
+  createdAt  DateTime @default(now()) @db.Date()
+  updatedAt  DateTime @updatedAt @db.Date()
 
   employee Employee @relation(fields: [employeeId], references: [id])
 

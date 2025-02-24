@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
-export const competencySchema = z.object({
+export const CompetencySchema = z.object({
   name: z.string(),
-  color: z.string().optional()
+  color: z.string().optional(),
 })
+
+export type Competency = z.infer<typeof CompetencySchema>

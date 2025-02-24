@@ -1,3 +1,4 @@
+import db from '@/lib/prisma'
 import { Request, Response, NextFunction } from 'express'
 import { verify } from 'jsonwebtoken'
 
@@ -7,6 +8,7 @@ interface CustomError extends Error {
 
 interface UserPayload {
   id: string
+  permissions?: string[]
 }
 
 declare module 'express' {
@@ -15,11 +17,11 @@ declare module 'express' {
   }
 }
 
-const isAuthenticated = (
+const isAuthenticated = async (
   req: Request,
   res: Response,
   next: NextFunction,
-): void => {
+) => {
   const token = req.headers.authorization?.split(' ')[1]
 
   if (!token) {
@@ -31,7 +33,7 @@ const isAuthenticated = (
   verify(
     token,
     process.env.SECRET as string,
-    (err: any, payload: UserPayload): void => {
+    async (err: any, payload: UserPayload) => {
       if (err) {
         const customError = new Error() as CustomError
         if (err.name === 'TokenExpiredError') {
@@ -44,7 +46,25 @@ const isAuthenticated = (
         return next(customError)
       }
 
-      req.user = payload
+      const user = await db.user.findUnique({
+        where: { id: payload.id },
+        select: {
+          role: {
+            select: {
+              permissionRole: {
+                select: {
+                  permissionId: true,
+                },
+              },
+            },
+          },
+        },
+      })
+      const permissions = user.role.permissionRole.map(
+        (item) => item.permissionId,
+      )
+
+      req.user = { ...payload, permissions }
       next()
     },
   )

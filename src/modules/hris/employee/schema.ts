@@ -13,8 +13,6 @@ export const EmployeeSchema = z.object({
   overtimeSalary: z.number().int().nullable().optional(),
   safetyInductionDate: z.date().nullable().optional(),
   address: z.string().nullable().optional(),
-  createdAt: z.date().default(new Date()),
-  updatedAt: z.date().optional(),
   status: z.boolean().nullable().default(true),
 })
 

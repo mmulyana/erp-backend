@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
-export const cashAdvanceSchema = z.object({
-  employeeId: z.number(),
+export const CashAdvanceSchema = z.object({
+  employeeId: z.string().uuid(),
   amount: z.number(),
-  requestDate: z.string().date(),
-  description: z.string().optional().nullable(),
+  date: z.string().date(),
+  note: z.string().optional().nullable(),
 })
+
+export type CashAdvance = z.infer<typeof CashAdvanceSchema>
