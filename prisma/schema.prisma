@@ -79,8 +79,8 @@ model PermissionGroup {
 // HRMS Module
 model Employee {
   id                  String                @id @default(uuid()) @db.Uuid()
-  positionId          String?               @db.Uuid()
   fullname            String                @db.VarChar(50)
+  position            String?               @db.VarChar(50)
   photoUrl            String?
   birthDate           String?
   joinedAt            String?
@@ -103,15 +103,6 @@ model Employee {
   overtimes           Overtime[]
   employeeAssigned    EmployeeAssigned[]
   projects            Project[]
-  position            Position?             @relation(fields: [positionId], references: [id])
-}
-
-model Position {
-  id          String     @id @default(uuid()) @db.Uuid()
-  name        String     @db.VarChar(50)
-  color       String?    @db.VarChar(7)
-  description String?    @db.VarChar(255)
-  employees   Employee[]
 }
 
 model Certification {
@@ -481,13 +472,6 @@ model SupplierToTag {
   tagId      Int
   supplier   Supplier    @relation(fields: [supplierId], references: [id])
   tag        SupplierTag @relation(fields: [tagId], references: [id])
-}
-
-model Recap {
-  id        String   @id @default(uuid()) @db.Uuid()
-  name      String
-  startDate DateTime @db.Date()
-  endDate   DateTime @db.Date()
 }
 
 model Tour {

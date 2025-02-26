@@ -108,13 +108,7 @@ export const readAll = async (
     updatedAt: true,
     joinedAt: true,
     lastEducation: true,
-    position: {
-      select: {
-        name: true,
-        color: true,
-        id: true,
-      },
-    },
+    position: true,
     birthDate: true,
     competencies: {
       select: {
@@ -405,7 +399,6 @@ export const readExpireCertificate = async (positionId?: string) => {
       },
       employee: {
         deletedAt: null,
-        positionId: positionId ?? undefined,
       },
     },
 
@@ -447,7 +440,6 @@ export const readExpireSafety = async (positionId?: string) => {
         lte: oneMonthFromNow,
       },
       deletedAt: null,
-      positionId: positionId ?? undefined,
     },
     select: {
       id: true,

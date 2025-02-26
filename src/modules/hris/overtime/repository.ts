@@ -54,14 +54,12 @@ export const findAll = async (
   page?: number,
   limit?: number,
   search?: string,
-  positionId?: string,
   startDate?: Date,
 ) => {
   const where: Prisma.OvertimeWhereInput = {
     date: startDate,
     employee: {
       AND: [
-        positionId ? { positionId } : {},
         search
           ? {
               OR: [{ fullname: { contains: search } }],
@@ -78,11 +76,7 @@ export const findAll = async (
     employee: {
       select: {
         fullname: true,
-        position: {
-          select: {
-            name: true,
-          },
-        },
+        position: true,
       },
     },
   }
@@ -125,11 +119,7 @@ export const findOne = async (id: string) => {
     employee: {
       select: {
         fullname: true,
-        position: {
-          select: {
-            name: true,
-          },
-        },
+        position: true,
       },
     },
   }

@@ -43,14 +43,13 @@ export const destroyAttendance = async (req: Request, res: Response) => {
 }
 
 export const readAttendances = async (req: Request, res: Response) => {
-  const { date, search, positionId, endDate } = req.query
+  const { date, search, endDate } = req.query
   const localDate = endOfDay(new Date())
 
   const start_date = date ? new Date(String(date)) : new Date(localDate)
   const end_date = endDate ? new Date(String(endDate)) : undefined
-  const position_id = positionId ? String(positionId) : undefined
   const search_query = search ? String(search) : undefined
 
-  const result = await readAll(start_date, end_date, position_id, search_query)
+  const result = await readAll(start_date, end_date, search_query)
   res.json(successResponse(result, 'Kehadiran'))
 }

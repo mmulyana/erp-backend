@@ -463,7 +463,7 @@ async function main() {
           color: BOARD_COLORS[i],
           position: i,
         },
-      })
+      }),
     )
     await Promise.all(boardPromises)
   }
@@ -475,7 +475,7 @@ async function main() {
           name: name,
           color: LABELS_COLORS[i],
         },
-      })
+      }),
     )
     await Promise.all(labelPromises)
   }
@@ -486,14 +486,17 @@ async function main() {
       GROUP_PERMISSION.map((group) =>
         prisma.permissionGroup.create({
           data: { name: group.name },
-        })
-      )
+        }),
+      ),
     )
 
-    const groupIdMap = createdGroups.reduce((acc, group) => {
-      acc[group.name] = group.id
-      return acc
-    }, {} as Record<string, number>)
+    const groupIdMap = createdGroups.reduce(
+      (acc, group) => {
+        acc[group.name] = group.id
+        return acc
+      },
+      {} as Record<string, number>,
+    )
 
     // Create permissions with groups
     await Promise.all(
@@ -506,9 +509,9 @@ async function main() {
               description: permission.description,
               groupId: groupIdMap[group.name],
             },
-          })
-        )
-      )
+          }),
+        ),
+      ),
     )
   }
 
@@ -530,8 +533,8 @@ async function main() {
             roleId: superadminRole.id,
             permissionId: permission.key,
           },
-        })
-      )
+        }),
+      ),
     )
 
     if (!existingUser) {
@@ -541,7 +544,7 @@ async function main() {
           username: process.env.NAME as string,
           email: process.env.EMAIL as string,
           phone: process.env.PHONE as string,
-          password: await hash('password', 10),
+          password: await hash(process.env.DEFAULT_PASSWORD as string, 10),
           roleId: superadminRole.id,
         },
       })

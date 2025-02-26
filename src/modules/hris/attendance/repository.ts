@@ -62,71 +62,60 @@ export const readAll = async (
   startDate: Date,
   endDate?: Date,
   search?: string,
-  positionId?: string,
 ) => {
-  const where: Prisma.PositionWhereInput = {
-    ...(positionId ? { id: positionId } : undefined),
+  const where: Prisma.EmployeeWhereInput = {
+    AND: [
+      { status: true, deletedAt: null },
+      search
+        ? {
+            OR: [{ fullname: { contains: search } }],
+          }
+        : {},
+    ],
   }
-  const select = {
-    name: true,
-    employees: {
-      where: {
-        AND: [
-          { status: true, deletedAt: null },
-          search
-            ? {
-                OR: [{ fullname: { contains: search } }],
-              }
-            : {},
-        ],
-      },
+  const select: Prisma.EmployeeSelect = {
+    id: true,
+    fullname: true,
+    photoUrl: true,
+    attendances: {
       select: {
+        date: true,
         id: true,
-        fullname: true,
-        photoUrl: true,
-        attendances: {
-          select: {
-            date: true,
-            id: true,
-            type: true,
-          },
-          where: endDate
-            ? {
-                AND: [{ date: { gte: startDate } }, { date: { lte: endDate } }],
-              }
-            : {
-                date: startDate,
-              },
-        },
+        type: true,
       },
+      where: endDate
+        ? {
+            AND: [{ date: { gte: startDate } }, { date: { lte: endDate } }],
+          }
+        : {
+            date: startDate,
+          },
     },
   }
 
-  const positions = await db.position.findMany({
+  const employees = await db.employee.findMany({
     where,
     select,
   })
 
-  const data = positions
-    .filter((position) => position.employees.length > 0)
-    .map((position) => ({
-      ...position,
-      employees: position.employees.map((employee) => ({
-        ...employee,
-        attendances: !endDate
-          ? employee.attendances.length > 0
-            ? employee.attendances
-            : null
-          : generateDateRange(startDate, endDate).map((date) => {
-              const attendanceMap = new Map(
-                employee.attendances.map((a) => {
-                  const wibDate = convertToWIB(a.date)
-                  return [wibDate.toISOString(), { ...a, date: wibDate }]
-                }),
-              )
-              return attendanceMap.get(date) || null
-            }),
-      })),
-    }))
+  const data = employees.map((prev) => ({
+    ...prev,
+    employees: data.map((employee) => ({
+      ...employee,
+      attendances: !endDate
+        ? employee.attendances.length > 0
+          ? employee.attendances
+          : null
+        : generateDateRange(startDate, endDate).map((date) => {
+            const attendanceMap = new Map(
+              employee.attendances.map((a) => {
+                const wibDate = convertToWIB(a.date)
+                return [wibDate.toISOString(), { ...a, date: wibDate }]
+              }),
+            )
+            return attendanceMap.get(date) || null
+          }),
+    })),
+  }))
   return data
 }
