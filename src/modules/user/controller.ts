@@ -30,10 +30,10 @@ import {
   unactivateResponse,
   updateResponse,
 } from '@/utils/response'
+import { removeEmptyProperties } from '@/utils/remove-empty-object'
 import { errorParse, throwError } from '@/utils/error-handler'
 import { checkParamsId, getParams } from '@/utils/params'
 import { Messages } from '@/utils/constant'
-import { removeEmptyProperties } from '@/utils/remove-empty-object'
 
 export const findUsers = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)

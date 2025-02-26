@@ -1,70 +1,49 @@
-import { z } from 'zod'
-import { competencySchema } from './schema'
-import db from '../../../lib/db'
+import db from '@/lib/prisma'
+import { Competency } from './schema'
+import { throwError } from '@/utils/error-handler'
+import { HttpStatusCode } from 'axios'
+import { Prisma } from '@prisma/client'
 
-type competency = z.infer<typeof competencySchema>
-export default class CompetencyRepository {
-  create = async (data: competency) => {
-    await db.competency.create({ data })
+export const create = async (payload: Competency) => {
+  return await db.competency.create({
+    data: {
+      name: payload.name,
+      color: payload.color,
+    },
+  })
+}
+export const update = async (id: string, payload: Competency) => {
+  return await db.competency.update({
+    where: { id },
+    data: {
+      name: payload.name,
+      color: payload.color,
+    },
+  })
+}
+export const destroy = async (id: string) => {
+  return await db.competency.delete({ where: { id } })
+}
+export const findAll = async (search?: string) => {
+  const where: Prisma.CompetencyWhereInput = {
+    AND: [
+      search
+        ? {
+            name: { contains: search },
+          }
+        : {},
+    ],
   }
-  update = async (id: number, data: competency) => {
-    return await db.competency.update({
-      data,
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            EmployeeCompetency: true,
-            Certification: true,
-          },
-        },
-      },
-    })
-  }
-  delete = async (id: number) => {
-    await db.competency.delete({ where: { id } })
-  }
-  read = async (name?: string) => {
-    if (name !== '') {
-      const data = await db.competency.findMany({
-        where: {
-          name: {
-            contains: name,
-          },
-        },
-        include: {
-          _count: {
-            select: {
-              EmployeeCompetency: true,
-              Certification: true,
-            },
-          },
-        },
-      })
-      return data
-    }
-    return await db.competency.findMany({
-      include: {
-        _count: {
-          select: {
-            EmployeeCompetency: true,
-            Certification: true,
-          },
-        },
-      },
-    })
-  }
-  readOne = async (id: number) => {
-    return await db.competency.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            EmployeeCompetency: true,
-            Certification: true,
-          },
-        },
-      },
-    })
+  const data = await db.competency.findMany({ where })
+  return { data }
+}
+export const findOne = async (id: string) => {
+  const data = await db.competency.findUnique({ where: { id } })
+  return { data }
+}
+export const isExist = async (id: string) => {
+  const data = await db.competency.findUnique({ where: { id } })
+  if (!data) {
+    return throwError('Kompetensi tidak ditemukan', HttpStatusCode.BadRequest)
   }
 }

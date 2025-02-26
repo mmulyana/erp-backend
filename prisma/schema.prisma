@@ -484,10 +484,10 @@ model SupplierToTag {
 }
 
 model Recap {
-  id         Int      @id @default(autoincrement())
-  name       String
-  start_date DateTime @db.Date()
-  end_date   DateTime @db.Date()
+  id        String   @id @default(uuid()) @db.Uuid()
+  name      String
+  startDate DateTime @db.Date()
+  endDate   DateTime @db.Date()
 }
 
 model Tour {

@@ -1,23 +1,18 @@
 import { Router } from 'express'
-import Validation from '../../../helper/validation'
-import { competencySchema } from './schema'
-import CompetencyController from './controller'
+import {
+  destroyCompetency,
+  readCompetencies,
+  readCompetency,
+  saveCompetency,
+  updateCompetency,
+} from './controller'
 
-export default class CompetencyRouter {
-  public router: Router
-  private competencySchema: Validation = new Validation(competencySchema)
-  private controller: CompetencyController = new CompetencyController()
+const router = Router()
 
-  constructor() {
-    this.router = Router()
-    this.register()
-  }
+router.post('/', saveCompetency)
+router.get('/', readCompetencies)
+router.get('/:id', readCompetency)
+router.patch('/:id', updateCompetency)
+router.delete('/:id', destroyCompetency)
 
-  protected register() {
-    this.router.post('/', this.competencySchema.validate, this.controller.createHandler)
-    this.router.patch('/:id', this.competencySchema.validate, this.controller.updateHandler)
-    this.router.delete('/:id', this.controller.deleteHandler)
-    this.router.get('/', this.controller.readHandler)
-    this.router.get('/:id', this.controller.readOneHandler)
-  }
-}
+export default router
