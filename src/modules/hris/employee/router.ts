@@ -7,11 +7,9 @@ import {
   readEmployees,
   readExpireCertifEmployee,
   readExpireSafetyEmployee,
-  readStatusEmployee,
   saveCertifEmployee,
   saveEmployee,
   updateCertifEmployee,
-  updateCompetencyEmployee,
   updateEmployee,
   updatePositionEmployee,
   updateStatusEmployee,
@@ -30,12 +28,9 @@ router.delete('/:id', destroyEmployee)
 router.patch('/:id/photo/:prefix', upload.single('photo'), uploadPhotoEmployee)
 router.delete('/:id/photo', deletePhotoEmployee)
 
-router.patch('/:id/competencies', updateCompetencyEmployee)
-
 router.patch('/:id/position', updatePositionEmployee)
 
 router.patch('/:id/status', updateStatusEmployee)
-router.get('/:id/status', readStatusEmployee)
 
 router.post(
   '/:id/certification/:prefix',

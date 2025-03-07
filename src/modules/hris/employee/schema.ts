@@ -21,26 +21,8 @@ export const CertificationSchema = z.object({
   employeeId: z.string().uuid(),
   name: z.string().min(1),
   publisher: z.string().nullable().optional(),
-  issueMonth: z
-    .string()
-    .regex(/^(0[1-9]|1[0-2])$/)
-    .nullable()
-    .optional(),
-  expiryMonth: z
-    .string()
-    .regex(/^(0[1-9]|1[0-2])$/)
-    .nullable()
-    .optional(),
-  issueYear: z
-    .string()
-    .regex(/^\d{4}$/)
-    .nullable()
-    .optional(),
-  expiryYear: z
-    .string()
-    .regex(/^\d{4}$/)
-    .nullable()
-    .optional(),
+  issueDate: z.string().nullable().optional(),
+  expiryDate: z.string().nullable().optional(),
 })
 export const UpdateCertificationSchema = CertificationSchema.extend({
   id: z.string(),

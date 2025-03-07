@@ -19,10 +19,8 @@ import {
   readAll,
   readExpireCertificate,
   readExpireSafety,
-  readTrack,
   update,
   updateCertification,
-  updateCompentencies,
   updateStatus,
 } from './repository'
 import {
@@ -136,27 +134,6 @@ export const updateStatusEmployee = async (req: Request, res: Response) => {
 
   const result = await updateStatus(id, parsed.data)
   res.json(updateResponse(result, 'Status pegawai'))
-}
-
-export const readStatusEmployee = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-  await isExist(id)
-
-  const result = readTrack(id)
-  res.json(successResponse(result, 'status pegawai'))
-}
-
-export const updateCompetencyEmployee = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-  await isExist(id)
-
-  const parsed = CompetencySchema.safeParse(req.body)
-  if (!parsed.success) {
-    return errorParse(parsed.error)
-  }
-
-  const result = updateCompentencies(id, parsed.data)
-  res.json(updateResponse(result, 'kompetensi pegawai'))
 }
 
 export const saveCertifEmployee = async (req: Request, res: Response) => {

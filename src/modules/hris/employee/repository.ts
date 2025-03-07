@@ -110,17 +110,6 @@ export const readAll = async (
     lastEducation: true,
     position: true,
     birthDate: true,
-    competencies: {
-      select: {
-        competency: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-      },
-    },
     salary: true,
     overtimeSalary: true,
     status: true,
@@ -146,12 +135,9 @@ export const readAll = async (
     certifications: {
       select: {
         id: true,
-        expireAt: true,
-        expiryMonth: true,
-        expiryYear: true,
+        expiryDate: true,
         fileUrl: true,
-        issueMonth: true,
-        issueYear: true,
+        issueDate: true,
         name: true,
         publisher: true,
       },
@@ -194,50 +180,6 @@ export const readAll = async (
     limit,
     total_pages,
   }
-}
-
-export const updateCompentencies = async (
-  id: string,
-  { competencyIds }: Competency,
-) => {
-  const employee = await db.employee.findUnique({
-    where: { id },
-    include: {
-      competencies: {
-        include: {
-          competency: true,
-        },
-      },
-    },
-  })
-
-  const currentCompetencies = employee?.competencies.map(
-    (item) => item.competency.id,
-  )
-
-  const competenciesToConnect = competencyIds.filter(
-    (item) => !currentCompetencies?.includes(item),
-  )
-
-  const competenciesToDisconnect = currentCompetencies?.filter(
-    (item) => !competencyIds.includes(item),
-  )
-
-  await db.employee.update({
-    where: { id },
-    data: {
-      competencies: {
-        deleteMany: {
-          competencyId: {
-            in: competenciesToDisconnect,
-          },
-        },
-        create: competenciesToConnect.map((competencyId) => ({
-          competencyId,
-        })),
-      },
-    },
-  })
 }
 
 export const addPhoto = async (id: string, newPhoto: string) => {
@@ -291,50 +233,19 @@ export const updateStatus = async (
   }
 
   await db.employee.update({ data: { status }, where: { id } })
-
-  return await db.employeeStatusTrack.create({
-    data: {
-      status,
-      date,
-      note,
-      employeeId: id,
-    },
-    select: {
-      employeeId: true,
-    },
-  })
-}
-
-export const readTrack = async (id: string) => {
-  return await db.employeeStatusTrack.findMany({
-    where: { employeeId: id },
-    orderBy: { date: 'asc' },
-  })
 }
 
 export const createCertification = async (
   employeeId: string,
   payload: Certification & { fileUrl?: string },
 ) => {
-  let expireAt: null | Date = null
-  if (payload.expiryYear && payload.expiryMonth) {
-    const date = new Date(
-      Number(payload.expiryYear),
-      Number(payload.expiryMonth),
-      1,
-    )
-    expireAt = date
-  }
   return await db.certification.create({
     data: {
       name: payload.name,
-      expiryMonth: payload.expiryMonth,
-      expiryYear: payload.expiryYear,
+      expiryDate: payload.expiryDate,
+      issueDate: payload.issueDate,
       fileUrl: payload.fileUrl,
-      issueMonth: payload.issueMonth,
-      issueYear: payload.issueYear,
       employeeId,
-      expireAt,
     },
   })
 }
@@ -348,25 +259,13 @@ export const updateCertification = async (
     await deleteFile(data.fileUrl)
   }
 
-  let expireAt: null | Date = null
-  if (payload.expiryYear && payload.expiryMonth) {
-    const date = new Date(
-      Number(payload.expiryYear),
-      Number(payload.expiryMonth),
-      1,
-    )
-    expireAt = date
-  }
   return await db.certification.update({
     where: { id },
     data: {
       name: payload.name,
-      expiryMonth: payload.expiryMonth,
-      expiryYear: payload.expiryYear,
+      expiryDate: payload.expiryDate,
+      issueDate: payload.issueDate,
       fileUrl: payload.fileUrl,
-      issueMonth: payload.issueMonth,
-      issueYear: payload.issueYear,
-      expireAt,
     },
   })
 }
@@ -394,7 +293,7 @@ export const readExpireCertificate = async (positionId?: string) => {
 
   const expiringCertificates = await db.certification.findMany({
     where: {
-      expireAt: {
+      expiryDate: {
         lte: oneMonthFromNow,
       },
       employee: {
@@ -404,7 +303,7 @@ export const readExpireCertificate = async (positionId?: string) => {
 
     select: {
       name: true,
-      expireAt: true,
+      expiryDate: true,
       employee: {
         select: {
           id: true,
@@ -416,9 +315,9 @@ export const readExpireCertificate = async (positionId?: string) => {
   })
 
   return expiringCertificates.map((cert) => {
-    if (!cert.expireAt) return
+    if (!cert.expiryDate) return
     const expireDate = new Date(
-      new Date(cert.expireAt).getTime() + 7 * 60 * 60 * 1000,
+      new Date(cert.expiryDate).getTime() + 7 * 60 * 60 * 1000,
     )
 
     return {
