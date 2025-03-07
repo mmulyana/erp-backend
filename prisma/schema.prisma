@@ -36,69 +36,37 @@ model User {
 }
 
 model Role {
-  id             String           @id @default(uuid()) @db.Uuid()
-  name           String
-  description    String?
-  createdAt      DateTime         @default(now()) @db.Date()
-  updatedAt      DateTime         @updatedAt
-  deletedAt      DateTime?
-  permissionRole PermissionRole[]
-  users          User[]
-}
-
-model PermissionRole {
-  id           String @id @default(uuid()) @db.Uuid()
-  roleId       String @db.Uuid()
-  permissionId String
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [key])
-}
-
-model Permission {
-  key            String           @id @unique
-  name           String
-  description    String?
-  groupId        Int?
-  permissionRole PermissionRole[]
-  createdAt      DateTime         @default(now()) @db.Date()
-  updatedAt      DateTime         @updatedAt
-
-  group PermissionGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
-}
-
-model PermissionGroup {
-  id          Int          @id @default(autoincrement())
+  id          String    @id @default(uuid()) @db.Uuid()
   name        String
   description String?
-  createdAt   DateTime     @default(now()) @db.Date()
-  updatedAt   DateTime     @updatedAt
-  permissions Permission[]
+  createdAt   DateTime  @default(now()) @db.Date()
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  permissions String?
+  users       User[]
 }
 
 // HRMS Module
 model Employee {
-  id                  String                @id @default(uuid()) @db.Uuid()
-  fullname            String                @db.VarChar(50)
-  position            String?               @db.VarChar(50)
+  id                  String             @id @default(uuid()) @db.Uuid()
+  fullname            String             @db.VarChar(50)
+  position            String?            @db.VarChar(50)
   photoUrl            String?
   birthDate           String?
   joinedAt            String?
-  active              Boolean?              @default(true)
+  active              Boolean?           @default(true)
   phone               String?
   lastEducation       String?
   salary              Int?
   overtimeSalary      Int?
   safetyInductionDate DateTime?
   address             String?
-  createdAt           DateTime              @default(now()) @db.Date()
-  updatedAt           DateTime              @updatedAt @db.Date()
+  createdAt           DateTime           @default(now()) @db.Date()
+  updatedAt           DateTime           @updatedAt @db.Date()
   deletedAt           DateTime?
-  status              Boolean?              @default(true)
+  status              Boolean?           @default(true)
   attendances         Attendance[]
   cashAdvances        CashAdvance[]
-  statusTracks        EmployeeStatusTrack[]
-  competencies        EmployeeCompetency[]
   certifications      Certification[]
   overtimes           Overtime[]
   employeeAssigned    EmployeeAssigned[]
@@ -106,16 +74,13 @@ model Employee {
 }
 
 model Certification {
-  id          String    @id @default(uuid()) @db.Uuid()
-  employeeId  String    @db.Uuid()
-  name        String
-  fileUrl     String?
-  publisher   String?
-  issueMonth  String?   @db.VarChar(2)
-  expiryMonth String?   @db.VarChar(2)
-  issueYear   String?   @db.VarChar(4)
-  expiryYear  String?   @db.VarChar(4)
-  expireAt    DateTime?
+  id         String    @id @default(uuid()) @db.Uuid()
+  employeeId String    @db.Uuid()
+  name       String
+  fileUrl    String?
+  publisher  String?
+  issueDate  DateTime?
+  expiryDate DateTime?
 
   employee Employee @relation(fields: [employeeId], references: [id])
 }
@@ -163,32 +128,6 @@ model CashAdvance {
   employee Employee @relation(fields: [employeeId], references: [id])
 
   user User @relation(fields: [createdBy], references: [id])
-}
-
-model EmployeeCompetency {
-  id           Int    @id @default(autoincrement())
-  employeeId   String @db.Uuid()
-  competencyId String @db.Uuid()
-
-  employee   Employee   @relation(fields: [employeeId], references: [id])
-  competency Competency @relation(fields: [competencyId], references: [id])
-}
-
-model Competency {
-  id                 String               @id @default(uuid()) @db.Uuid()
-  name               String               @db.VarChar(50)
-  color              String?              @db.VarChar(7)
-  EmployeeCompetency EmployeeCompetency[]
-}
-
-model EmployeeStatusTrack {
-  id         String   @id @default(uuid()) @db.Uuid()
-  date       DateTime @default(now())
-  status     Boolean
-  employeeId String   @db.Uuid()
-  note       String?  @db.VarChar(255)
-
-  employee Employee @relation(fields: [employeeId], references: [id])
 }
 
 // Activity Features

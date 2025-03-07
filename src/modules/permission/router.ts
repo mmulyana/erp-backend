@@ -1,25 +1,9 @@
 import { Router } from 'express'
-import {
-  deletePermission,
-  getAllPermission,
-  updatePermission,
-  savePermission,
-  getAllByGroup,
-  deleteGroup,
-  updateGroup,
-  saveGroup,
-} from './controller'
+import { getPermissions, updatePermissions } from './controller'
 
 const router = Router()
 
-router.get('/item/', getAllPermission)
-router.post('/item', savePermission)
-router.patch('/item/:id', updatePermission)
-router.delete('/item/:id', deletePermission)
-
-router.get('/group', getAllByGroup)
-router.post('/group', saveGroup)
-router.patch('/group/:id', updateGroup)
-router.delete('/group/:id', deleteGroup)
+router.get('/', getPermissions)
+router.put('/', updatePermissions)
 
 export default router

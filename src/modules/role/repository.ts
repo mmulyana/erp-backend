@@ -7,6 +7,7 @@ import { getPaginateParams } from '@/utils/params'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
 import db from '@/lib/prisma'
+import { makePermissionsUnique } from '@/utils/unique'
 
 export const findAll = async (
   page?: number,
@@ -71,24 +72,12 @@ export const update = async (id: string, data: updateRole) => {
     data: {
       name: data.name,
       description: data.description,
+      permissions: makePermissionsUnique(data.permissions),
     },
   })
 }
 
 export const destroy = async (id: string) => {
-  const permissionRole = await db.permissionRole.findMany({
-    where: {
-      roleId: id,
-    },
-  })
-  if (permissionRole.length > 0) {
-    await db.permissionRole.deleteMany({
-      where: {
-        roleId: id,
-      },
-    })
-  }
-
   await db.role.delete({ where: { id } })
 }
 
@@ -99,17 +88,7 @@ export const findOne = async (id: string) => {
       id: true,
       name: true,
       description: true,
-      _count: {
-        select: {
-          permissionRole: true,
-          users: true,
-        },
-      },
-      permissionRole: {
-        select: {
-          permissionId: true,
-        },
-      },
+      permissions: true,
       users: {
         select: {
           id: true,
@@ -123,29 +102,6 @@ export const findOne = async (id: string) => {
 
   return {
     ...data,
-    permissions: data.permissionRole.map((item) => item.permissionId),
+    permissions: data.permissions.split(','),
   }
-}
-
-export const addPermissionToRole = async (
-  roleId: string,
-  permissionId: string,
-) => {
-  return await db.permissionRole.create({
-    data: {
-      permissionId: permissionId,
-      roleId: roleId,
-    },
-  })
-}
-
-export const findPermissionRole = async (
-  roleId: string,
-  permissionId: string,
-) => {
-  return await db.permissionRole.findFirst({ where: { roleId, permissionId } })
-}
-
-export const destoryPermissionRole = async (id: string) => {
-  await db.permissionRole.delete({ where: { id } })
 }
