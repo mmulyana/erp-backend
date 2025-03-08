@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-export const boardSchema = z.object({
+export const BoardSchema = z.object({
   name: z.string(),
   color: z.string(),
 })
-export type Board = z.infer<typeof boardSchema>
+export type Board = z.infer<typeof BoardSchema>

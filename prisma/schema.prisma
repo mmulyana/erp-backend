@@ -192,11 +192,11 @@ model Project {
   lead       User?      @relation(fields: [leadId], references: [id])
   client     Client?    @relation(fields: [clientId], references: [id])
   boardItems BoardItems @relation(fields: [boardItemsId], references: [id])
-  Employee   Employee?  @relation(fields: [createdBy], references: [id])
+  user       Employee?  @relation(fields: [createdBy], references: [id])
 }
 
 model AssignedEmployee {
-  id         Int       @id @default(autoincrement())
+  id         String    @id @default(uuid()) @db.Uuid()
   employeeId String    @db.Uuid()
   projectId  String    @db.Uuid()
   startDate  DateTime? @db.Date

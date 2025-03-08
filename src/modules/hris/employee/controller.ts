@@ -73,20 +73,8 @@ export const readEmployees = async (req: Request, res: Response) => {
   const positionId = req.params.positionId
     ? String(req.params.positionId)
     : undefined
-  const competencies = req.query.competencies
-    ? Array.isArray(req.query.competencies)
-      ? (req.query.competencies as string[])
-      : [req.query.competencies as string]
-    : undefined
 
-  const result = await readAll(
-    page,
-    limit,
-    search,
-    positionId,
-    active,
-    competencies,
-  )
+  const result = await readAll(page, limit, search, positionId, active)
   res.json(successResponse(result, 'pegawai'))
 }
 export const uploadPhotoEmployee = async (req: Request, res: Response) => {

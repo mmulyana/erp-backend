@@ -1,27 +1,21 @@
 import { Router } from 'express'
-import Validation from '../../../helper/validation'
-import ClientController from './controller'
-import { createSchema, updateSchema } from './schema'
+import {
+  saveClient,
+  readClient,
+  readClients,
+  updateClient,
+  destroyClient,
+  readTopClient,
+} from './controller'
 
-export default class ClientRouter {
-  public router: Router
-  private controller: ClientController = new ClientController()
-  private createSchema: Validation = new Validation(createSchema)
-  private updateSchema: Validation = new Validation(updateSchema)
+const router = Router()
 
-  constructor() {
-    this.router = Router()
-    this.register()
-  }
+router.get('/', readClients)
+router.get('/:id', readClient)
+router.post('/', saveClient)
+router.patch('/:id', updateClient)
+router.delete('/:id', destroyClient)
 
-  protected register() {
-    this.router.post('/', this.createSchema.validate, this.controller.handleCreate)
-    this.router.patch('/:id', this.updateSchema.validate, this.controller.handleUpdate)
-    this.router.delete('/:id', this.controller.handleDelete)
+router.get('/data/top-client', readTopClient)
 
-    this.router.get('/', this.controller.handleRead)
-    this.router.get('/list/pagination', this.controller.handleReadByPagination)
-    this.router.get('/:id', this.controller.handleReadOne)
-    this.router.get('/data/top-client', this.controller.handleTopClientChart)
-  }
-}
+export default router

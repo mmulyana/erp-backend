@@ -1,77 +1,108 @@
-import { Prisma } from '@prisma/client'
-import db from '../../../lib/db'
-import { deleteFile } from '../../../utils/file'
-import { Company } from './schema'
+import { deleteFile } from '@/utils/file'
+import db from '@/lib/prisma'
 
-type Filter = {
-  name?: string
+import { Company } from './schema'
+import { throwError } from '@/utils/error-handler'
+import { HttpStatusCode } from 'axios'
+import { Prisma } from '@prisma/client'
+import { getPaginateParams } from '@/utils/params'
+
+type Payload = Company & { photoUrl?: string }
+
+export const create = async (payload: Payload) => {
+  await db.companyClient.create({
+    data: {
+      name: payload.name,
+      address: payload.address,
+      email: payload.email,
+      phone: payload.phone,
+      photoUrl: payload.photoUrl,
+    },
+  })
 }
 
-export default class CompanyRepository {
-  create = async (data: Company & { logo?: string }) => {
-    await db.companyClient.create({ data })
-  }
-  update = async (id: number, data: Partial<Company & { logo?: string }>) => {
-    if (data.logo) {
-      const data = await db.companyClient.findUnique({ where: { id } })
-      if (data?.logo) {
-        deleteFile(data.logo)
-      }
-    }
-    return await db.companyClient.update({
-      data,
-      where: { id },
-      select: { id: true },
-    })
-  }
-  delete = async (id: number) => {
+export const update = async (id: string, data: Payload) => {
+  if (data.photoUrl) {
     const data = await db.companyClient.findUnique({ where: { id } })
-    if (data?.logo) {
-      deleteFile(data.logo)
+    if (data?.photoUrl) {
+      deleteFile(data.photoUrl)
     }
-    await db.companyClient.delete({ where: { id } })
   }
-  read = async () => {
-    return await db.companyClient.findMany()
-  }
-  readOne = async (id: number) => {
-    return await db.companyClient.findUnique({ where: { id } })
-  }
-  readByPagination = async (
-    page: number = 1,
-    limit: number = 10,
-    filter?: Filter
-  ) => {
-    const skip = (page - 1) * limit
-    let where: Prisma.CompanyClientWhereInput = {}
+  return await db.companyClient.update({
+    data,
+    where: { id },
+  })
+}
 
-    if (filter) {
-      if (filter.name) {
-        where = {
-          OR: [
-            { name: { contains: filter.name.toLowerCase() } },
-            { name: { contains: filter.name.toUpperCase() } },
-            { name: { contains: filter.name } },
-          ],
-        }
-      }
-    }
+export const destroy = async (id: string) => {
+  const data = await db.companyClient.findUnique({ where: { id } })
+  if (data?.photoUrl) {
+    deleteFile(data.photoUrl)
+  }
+  await db.companyClient.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+  })
+}
 
+export const read = async (id: string) => {
+  return await db.companyClient.findUnique({
+    where: { id },
+    include: { employees: true },
+  })
+}
+
+type Params = {
+  page?: number
+  limit?: number
+  search?: string
+}
+export const readAll = async ({ page, limit, search }: Params) => {
+  const where: Prisma.CompanyClientWhereInput = {
+    AND: [search !== undefined ? { name: { contains: search } } : {}],
+  }
+
+  const include = {
+    employees: true,
+  }
+
+  if (page === undefined || limit === undefined) {
     const data = await db.companyClient.findMany({
-      skip,
-      take: limit,
       where,
+      include,
     })
+    return { data }
+  }
 
-    const total = await db.companyClient.count({ where })
-    const total_pages = Math.ceil(total / limit)
+  const { skip, take } = getPaginateParams(page, limit)
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      total_pages,
-    }
+  const [data, total] = await Promise.all([
+    db.companyClient.findMany({
+      skip,
+      take,
+      where,
+      orderBy: {
+        name: 'asc',
+      },
+    }),
+    db.companyClient.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages,
+  }
+}
+
+export const isExist = async (id: string) => {
+  const data = await db.companyClient.findUnique({ where: { id } })
+  if (!data) {
+    return throwError('Data tidak ditemukan', HttpStatusCode.BadRequest)
   }
 }

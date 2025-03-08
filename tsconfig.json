@@ -17,9 +17,6 @@
     "node_modules",
     "dist",
     "jest.config.mjs",
-    "src/modules/dashboard",
-    "src/modules/helpdesk",
     "src/modules/inventory",
-    "src/modules/project"
   ]
 }

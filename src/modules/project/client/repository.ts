@@ -1,6 +1,12 @@
 import { Prisma } from '@prisma/client'
-import db from '../../../lib/db'
+import { HttpStatusCode } from 'axios'
+
+import { getPaginateParams } from '@/utils/params'
+import { throwError } from '@/utils/error-handler'
+
 import { Client } from './schema'
+
+import db from '@/lib/prisma'
 
 type ChartData = {
   client: string
@@ -15,160 +21,153 @@ type ChartConfig = {
   }
 }
 
-type FilterClient = {
-  name?: string
-  companyId?: number
+type Params = {
+  page?: number
+  limit?: number
+  search?: string
+  companyId?: string
 }
 
-export default class ClientRepository {
-  create = async (payload: Client) => {
-    await db.client.create({
-      data: { ...payload, companyId: Number(payload.companyId) || null },
-    })
+export const isExist = async (id: string) => {
+  const data = await db.client.findUnique({ where: { id } })
+  if (!data) {
+    return throwError('Klien tidak ditemukan', HttpStatusCode.BadRequest)
   }
-  update = async (id: number, payload: Client) => {
-    return await db.client.update({
-      data: { ...payload, companyId: Number(payload.companyId) || null },
-      where: { id },
-      select: { id: true },
-    })
+}
+
+export const create = async (payload: Client) => {
+  return await db.client.create({
+    data: {
+      name: payload.name,
+      companyId: payload.companyId,
+      email: payload.email,
+      phone: payload.phone,
+      position: payload.positon,
+    },
+  })
+}
+
+export const update = async (id: string, payload: Client) => {
+  return await db.client.update({
+    data: {
+      name: payload.name,
+      companyId: payload.companyId,
+      email: payload.email,
+      phone: payload.phone,
+      position: payload.positon,
+    },
+    where: { id },
+  })
+}
+
+export const destroy = async (id: string) => {
+  await db.client.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+  })
+}
+
+export const readAll = async ({ page, limit, search, companyId }: Params) => {
+  let where: Prisma.ClientWhereInput = {
+    AND: [
+      search !== undefined
+        ? {
+            name: { contains: search },
+          }
+        : {},
+      companyId !== undefined ? { companyId } : {},
+    ],
   }
-  delete = async (id: number) => {
-    await db.client.delete({ where: { id } })
-  }
-  read = async (filter?: FilterClient) => {
-    let where: Prisma.ClientWhereInput = {}
 
-    if (filter) {
-      if (filter.name) {
-        where = {
-          OR: [
-            { name: { contains: filter.name.toLowerCase() } },
-            { name: { contains: filter.name.toUpperCase() } },
-            { name: { contains: filter.name } },
-          ],
-        }
-      }
-
-      if (filter.companyId && !isNaN(filter.companyId)) {
-        where.companyId = filter.companyId
-      }
-    }
-
-    return await db.client.findMany({
-      where,
-      include: {
-        company: true,
-      },
-    })
-  }
-  readByPagination = async (
-    page: number = 1,
-    limit: number = 10,
-    filter?: FilterClient
-  ) => {
-    const skip = (page - 1) * limit
-    let where: Prisma.ClientWhereInput = {}
-
-    if (filter) {
-      if (filter.name) {
-        where = {
-          OR: [
-            { name: { contains: filter.name.toLowerCase() } },
-            { name: { contains: filter.name.toUpperCase() } },
-            { name: { contains: filter.name } },
-          ],
-        }
-      }
-
-      if (filter.companyId && !isNaN(filter.companyId)) {
-        where.companyId = filter.companyId
-      }
-    }
-
+  if (page === undefined || limit === undefined) {
     const data = await db.client.findMany({
+      where,
+      include: { company: true },
+    })
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+  const [data, total] = await Promise.all([
+    db.client.findMany({
       skip,
-      take: limit,
+      take,
       where,
-      include: {
-        company: true,
-      },
-    })
-
-    const total = await db.client.count({ where })
-    const total_pages = Math.ceil(total / limit)
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      total_pages,
-    }
-  }
-  readOne = async (id: number) => {
-    return await db.client.findUnique({
-      where: { id },
-      include: {
-        company: true,
-      },
-    })
-  }
-  getTopClients = async () => {
-    const data = await db.client.findMany({
-      select: {
-        id: true,
-        name: true,
-        position: true,
-        _count: {
-          select: {
-            Project: {
-              where: {
-                isDeleted: false,
-              },
-            },
-          },
-        },
-      },
+      include: { company: true },
       orderBy: {
-        Project: {
-          _count: 'desc',
+        name: 'asc',
+      },
+    }),
+    db.client.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages,
+  }
+}
+
+export const read = async (id: string) => {
+  return await db.client.findUnique({
+    where: { id },
+    include: { company: true },
+  })
+}
+
+export const topClients = async () => {
+  const data = await db.client.findMany({
+    select: {
+      id: true,
+      name: true,
+      position: true,
+      _count: {
+        select: {
+          project: { where: { deletedAt: null } },
         },
       },
-      take: 5,
-    })
+    },
+    orderBy: {
+      project: { _count: 'desc' },
+    },
+    take: 5,
+  })
 
-    const clients = data
-      .filter((item) => !!item._count.Project)
-      .map((item) => ({
-        clientId: item.id,
-        clientName: item.name,
-        count: item._count.Project,
-      }))
-
-    const colors = ['#2A9D90', '#3B82F6', '#10B981', '#F59E0B', '#EF4444']
-
-    const chartData: ChartData[] = clients.map((item, index) => ({
-      client: item.clientName.toLowerCase(),
-      count: item.count,
-      fill: colors[index],
+  const clients = data
+    .filter((item) => !!item._count.project)
+    .map((item) => ({
+      clientId: item.id,
+      clientName: item.name,
+      count: item._count.project,
     }))
 
-    const chartConfig: ChartConfig = clients.reduce<ChartConfig>(
-      (config, item, index) => {
-        const clientKey = item.clientName.toLowerCase()
-        config[clientKey] = {
-          label: item.clientName,
-          color: colors[index],
-        }
-        return config
-      },
-      {}
-    )
+  const colors = ['#2A9D90', '#3B82F6', '#10B981', '#F59E0B', '#EF4444']
 
-    return {
-      chartData,
-      chartConfig,
-    }
+  const chartData: ChartData[] = clients.map((item, index) => ({
+    client: item.clientName.toLowerCase(),
+    count: item.count,
+    fill: colors[index],
+  }))
+
+  const chartConfig: ChartConfig = clients.reduce<ChartConfig>(
+    (config, item, index) => {
+      const clientKey = item.clientName.toLowerCase()
+      config[clientKey] = {
+        label: item.clientName,
+        color: colors[index],
+      }
+      return config
+    },
+    {},
+  )
+
+  return {
+    chartData,
+    chartConfig,
   }
 }

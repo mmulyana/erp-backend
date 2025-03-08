@@ -63,40 +63,6 @@ export const destroy = async (id: string) => {
 }
 
 export const read = async (id: string) => {
-  return await db.employee.findUnique({ where: { id } })
-}
-
-export const readAll = async (
-  page?: number,
-  limit?: number,
-  search?: string,
-  positionId?: string,
-  active?: boolean,
-  competencies?: string[],
-) => {
-  const where: Prisma.EmployeeWhereInput = {
-    AND: [
-      search
-        ? {
-            OR: [{ fullname: { contains: search } }],
-          }
-        : {},
-      active !== undefined ? { active } : {},
-      positionId !== undefined ? { positionId } : {},
-      competencies && competencies.length > 0
-        ? {
-            competencies: {
-              some: {
-                competencyId: {
-                  in: competencies,
-                },
-              },
-            },
-          }
-        : {},
-    ].filter(Boolean),
-  }
-
   const select: Prisma.EmployeeSelect = {
     id: true,
     fullname: true,
@@ -113,9 +79,6 @@ export const readAll = async (
     salary: true,
     overtimeSalary: true,
     status: true,
-  }
-
-  const selectDetail: Prisma.EmployeeSelect = {
     attendances: {
       select: {
         date: true,
@@ -149,11 +112,51 @@ export const readAll = async (
       },
     },
   }
+  return await db.employee.findUnique({ where: { id }, select })
+}
+
+export const readAll = async (
+  page?: number,
+  limit?: number,
+  search?: string,
+  positionId?: string,
+  active?: boolean,
+) => {
+  const where: Prisma.EmployeeWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [{ fullname: { contains: search } }],
+          }
+        : {},
+
+      active !== undefined ? { active } : {},
+      positionId !== undefined ? { positionId } : {},
+    ].filter(Boolean),
+  }
+
+  const select: Prisma.EmployeeSelect = {
+    id: true,
+    fullname: true,
+    active: true,
+    address: true,
+    phone: true,
+    photoUrl: true,
+    createdAt: true,
+    updatedAt: true,
+    joinedAt: true,
+    lastEducation: true,
+    position: true,
+    birthDate: true,
+    salary: true,
+    overtimeSalary: true,
+    status: true,
+  }
 
   if (page === undefined || limit === undefined) {
     const data = await db.employee.findMany({
       where,
-      select: { ...select, ...selectDetail },
+      select,
     })
     return { data }
   }
