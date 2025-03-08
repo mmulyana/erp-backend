@@ -1,54 +1,51 @@
-import { NextFunction, Request, Response } from 'express'
-import BaseController from '../../../helper/base-controller'
-import BoardRepository from './repository'
+import { Request, Response } from 'express'
 
-export default class BoardController extends BaseController {
-  private repository: BoardRepository = new BoardRepository()
+import { errorParse } from '@/utils/error-handler'
+import { checkParamsId } from '@/utils/params'
+import {
+  createResponse,
+  deleteResponse,
+  updateResponse,
+} from '@/utils/response'
 
-  constructor() {
-    super('Board')
+import { boardChart, create, destroy, read, update } from './repository'
+import { BoardSchema } from './schema'
+
+export const saveBoard = async (req: Request, res: Response) => {
+  const parsed = BoardSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  handleCreate = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await this.repository.create(req.body)
-      return this.response.success(res, this.message.successCreate())
-    } catch (error) {
-      next(error)
-    }
+  const result = await create(parsed.data)
+  res.json(createResponse(result, 'board'))
+}
+
+export const updateBoard = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+
+  const parsed = BoardSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
-  handleUpdate = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.update(id, req.body)
-      return this.response.success(res, this.message.successUpdate())
-    } catch (error) {
-      next(error)
-    }
-  }
-  handleDelete = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.delete(id)
-      return this.response.success(res, this.message.successDelete())
-    } catch (error) {
-      next(error)
-    }
-  }
-  handleRead = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await this.repository.read()
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  handleBoardChart = async (_: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await this.repository.getBoardChart()
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
+
+  const result = await update(id, parsed.data)
+  res.json(updateResponse(result, 'board'))
+}
+
+export const destroyBoard = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+
+  await destroy(id)
+  res.json(deleteResponse('board'))
+}
+
+export const readBoards = async (req: Request, res: Response) => {
+  const result = await read()
+  res.json(result)
+}
+
+export const readBoardChart = async (req: Request, res: Response) => {
+  const result = await boardChart()
+  res.json(result)
 }

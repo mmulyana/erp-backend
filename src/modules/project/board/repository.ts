@@ -1,6 +1,7 @@
-import db from '@/lib/prisma'
-import { Board } from './schema'
 import { generateUUID } from '@/utils/generate-uuid'
+import db from '@/lib/prisma'
+
+import { Board } from './schema'
 
 type ChartData = {
   [key: string]: number
@@ -47,7 +48,7 @@ export const read = async () => {
   })
 }
 
-export const getBoardChart = async () => {
+export const boardChart = async () => {
   const boardStats = await db.boardContainer.findMany({
     select: {
       id: true,
