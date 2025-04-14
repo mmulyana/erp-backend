@@ -209,8 +209,6 @@ export const findUserService = async (id: string) => {
     phone: data.phone,
     photoUrl: data.photoUrl,
     role: data.role,
-    permissions:
-      data.role?.permissionRole.map((item) => item.permission.key) || [],
   }
 }
 

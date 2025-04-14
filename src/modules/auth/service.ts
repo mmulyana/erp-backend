@@ -59,8 +59,6 @@ export const findMeService = async (id: string) => {
     email: data.email,
     phone: data.phone,
     photoUrl: data.photoUrl,
-    role: data.role,
-    permissions: data.role?.permissionRole?.map((item) => item.permission.key) || [],
     tours: data.tours.map((item) => item.key),
   }
 }

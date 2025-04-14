@@ -1,27 +1,20 @@
 import { Request, Response } from 'express'
+import { HttpStatusCode } from 'axios'
+
 import {
-  CertificationSchema,
-  CompetencySchema,
-  EmployeeSchema,
-  StatusTrackSchema,
-  UpdateCertificationSchema,
-} from './schema'
-import { errorParse, throwError } from '@/utils/error-handler'
-import {
-  addPhoto,
+  read,
   create,
-  createCertification,
-  deleteCertification,
-  deletePhoto,
   destroy,
   isExist,
-  read,
-  readAll,
-  readExpireCertificate,
-  readExpireSafety,
   update,
+  readAll,
+  addPhoto,
+  deletePhoto,
+  readExpireSafety,
   updateCertification,
-  updateStatus,
+  createCertification,
+  deleteCertification,
+  readExpireCertificate,
 } from './repository'
 import {
   createResponse,
@@ -30,7 +23,9 @@ import {
   updateResponse,
 } from '@/utils/response'
 import { checkParamsId, getParams } from '@/utils/params'
-import { HttpStatusCode } from 'axios'
+import { errorParse, throwError } from '@/utils/error-handler'
+
+import { CertificationSchema, EmployeeSchema } from './schema'
 
 export const saveEmployee = async (req: Request, res: Response) => {
   const parsed = EmployeeSchema.safeParse(req.body)
@@ -38,7 +33,9 @@ export const saveEmployee = async (req: Request, res: Response) => {
     return errorParse(parsed.error)
   }
 
-  const result = await create(parsed.data)
+  const photoUrl = req.file.filename || undefined
+
+  const result = await create({ ...parsed.data, photoUrl })
   res.json(createResponse(result, 'pegawai'))
 }
 export const updateEmployee = async (req: Request, res: Response) => {
@@ -96,34 +93,6 @@ export const deletePhotoEmployee = async (req: Request, res: Response) => {
   res.json(deleteResponse('photo pegawai'))
 }
 
-export const updatePositionEmployee = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-
-  const { positionId } = req.body
-  if (!positionId) {
-    return throwError(
-      'positionId tidak boleh kosong',
-      HttpStatusCode.BadRequest,
-    )
-  }
-
-  const result = await update(id, { positionId })
-  res.json(updateResponse(result, 'jabatan pegawai'))
-}
-
-export const updateStatusEmployee = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-  await isExist(id)
-
-  const parsed = StatusTrackSchema.safeParse(req.body)
-  if (!parsed.success) {
-    return errorParse(parsed.error)
-  }
-
-  const result = await updateStatus(id, parsed.data)
-  res.json(updateResponse(result, 'Status pegawai'))
-}
-
 export const saveCertifEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
 
@@ -147,12 +116,12 @@ export const updateCertifEmployee = async (req: Request, res: Response) => {
 
   const fileUrl = req.body.filename || undefined
 
-  const parsed = UpdateCertificationSchema.safeParse(req.body)
+  const parsed = CertificationSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
 
-  const result = await updateCertification(parsed.data.id, {
+  const result = await updateCertification(req.params.id, {
     ...parsed.data,
     fileUrl,
   })
@@ -172,18 +141,11 @@ export const destoryCertifEmployee = async (req: Request, res: Response) => {
   res.json(deleteResponse('sertifikat pegawai'))
 }
 export const readExpireCertifEmployee = async (req: Request, res: Response) => {
-  const positionId = req.query.positionId
-    ? String(req.query.positionId)
-    : undefined
-  const result = await readExpireCertificate(positionId)
+  const result = await readExpireCertificate()
   res.json(successResponse(result, 'Sertifikasi kedaluwarsa'))
 }
 
 export const readExpireSafetyEmployee = async (req: Request, res: Response) => {
-  const positionId = req.query.positionId
-    ? String(req.query.positionId)
-    : undefined
-
-  const result = await readExpireSafety(positionId)
+  const result = await readExpireSafety()
   res.json(successResponse(result, 'safety induction kadaluwarsa'))
 }

@@ -24,7 +24,7 @@ route.use('/user', isAuthenticated, userRoutes)
 route.use('/role', isAuthenticated, roleRoutes)
 route.use('/permission', isAuthenticated, permissionRoutes)
 
-route.use('/employee', isAuthenticated, employeeRoutes)
+route.use('/employee', employeeRoutes)
 route.use('/overtime', isAuthenticated, overtimeRoutes)
 route.use('/attendance', isAuthenticated, attendanceRoutes)
 route.use('/cash-advance', isAuthenticated, cashadvanceRoutes)

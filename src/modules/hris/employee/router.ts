@@ -11,8 +11,6 @@ import {
   saveEmployee,
   updateCertifEmployee,
   updateEmployee,
-  updatePositionEmployee,
-  updateStatusEmployee,
   uploadPhotoEmployee,
 } from './controller'
 import upload from '@/utils/upload'
@@ -20,17 +18,13 @@ import upload from '@/utils/upload'
 const router = Router()
 
 router.get('/', readEmployees)
-router.post('/', saveEmployee)
+router.post('/', upload.single('photoUrl'), saveEmployee)
 router.get('/:id', readEmployee)
 router.patch('/:id', updateEmployee)
 router.delete('/:id', destroyEmployee)
 
 router.patch('/:id/photo/:prefix', upload.single('photo'), uploadPhotoEmployee)
 router.delete('/:id/photo', deletePhotoEmployee)
-
-router.patch('/:id/position', updatePositionEmployee)
-
-router.patch('/:id/status', updateStatusEmployee)
 
 router.post(
   '/:id/certification/:prefix',

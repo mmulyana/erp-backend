@@ -1,31 +1,31 @@
 import { z } from 'zod'
 
 export const EmployeeSchema = z.object({
-  id: z.string().uuid(),
-  positionId: z.string().uuid().optional(),
-  fullname: z.string().max(50),
+  fullname: z.string(),
+  position: z.string(),
   birthDate: z.string().nullable().optional(),
   joinedAt: z.string().nullable().optional(),
-  active: z.boolean().nullable().default(true),
-  phone: z.string().nullable().optional(),
   lastEducation: z.string().nullable().optional(),
-  salary: z.number().int().nullable().optional(),
-  overtimeSalary: z.number().int().nullable().optional(),
-  safetyInductionDate: z.date().nullable().optional(),
+  salary: z
+    .union([z.string(), z.number()])
+    .transform((val) => (val === '' ? null : Number(val)))
+    .nullable()
+    .optional(),
+  overtimeSalary: z
+    .union([z.string(), z.number()])
+    .transform((val) => (val === '' ? null : Number(val)))
+    .nullable()
+    .optional(),
   address: z.string().nullable().optional(),
-  status: z.boolean().nullable().default(true),
+  phone: z.string().nullable().optional(),
 })
 
 export const CertificationSchema = z.object({
-  id: z.string().uuid(),
   employeeId: z.string().uuid(),
   name: z.string().min(1),
   publisher: z.string().nullable().optional(),
   issueDate: z.string().nullable().optional(),
   expiryDate: z.string().nullable().optional(),
-})
-export const UpdateCertificationSchema = CertificationSchema.extend({
-  id: z.string(),
 })
 
 export const StatusTrackSchema = z.object({
@@ -33,11 +33,6 @@ export const StatusTrackSchema = z.object({
   status: z.boolean().optional(),
 })
 
-export const CompetencySchema = z.object({
-  competencyIds: z.string().array().optional(),
-})
-
 export type Employee = z.infer<typeof EmployeeSchema>
 export type Certification = z.infer<typeof CertificationSchema>
 export type StatusTrack = z.infer<typeof StatusTrackSchema>
-export type Competency = z.infer<typeof CompetencySchema>

@@ -254,7 +254,7 @@ model ReportAttachment {
 
 model Client {
   id        String  @id @default(uuid()) @db.Uuid()
-  companyId String?
+  companyId String? @db.Uuid()
   name      String
   email     String?
   phone     String?

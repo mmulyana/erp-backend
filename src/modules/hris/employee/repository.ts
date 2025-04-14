@@ -3,7 +3,7 @@ import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
 import db from '@/lib/prisma'
 
-import { Certification, Competency, Employee, StatusTrack } from './schema'
+import { Certification, Employee } from './schema'
 import { Prisma } from '@prisma/client'
 import { getPaginateParams } from '@/utils/params'
 import { deleteFile } from '@/utils/file'
@@ -33,15 +33,15 @@ export const create = async (data: Payload) => {
   return await db.employee.create({
     data: {
       fullname: data.fullname,
+      position: data.position,
       photoUrl: data.photoUrl,
       birthDate: data.birthDate,
       joinedAt: data.joinedAt,
-      phone: data.phone,
-      address: data.address,
+      lastEducation: data.lastEducation,
       salary: data.salary,
       overtimeSalary: data.overtimeSalary,
-      lastEducation: data.lastEducation,
-      safetyInductionDate: data.safetyInductionDate,
+      address: data.address,
+      phone: data.phone,
     },
   })
 }
@@ -220,24 +220,6 @@ export const deletePhoto = async (id: string) => {
   })
 }
 
-export const updateStatus = async (
-  id: string,
-  { note, status }: StatusTrack,
-) => {
-  const date = new Date().toISOString()
-
-  const data = await db.employee.findUnique({ where: { id } })
-  if (status) {
-    if (!!data?.status) {
-      return throwError('Pegawai sudah aktif', HttpStatusCode.BadRequest)
-    }
-  } else if (!status && !data?.status) {
-    return throwError('Pegawai sudah nonaktif', HttpStatusCode.BadRequest)
-  }
-
-  await db.employee.update({ data: { status }, where: { id } })
-}
-
 export const createCertification = async (
   employeeId: string,
   payload: Certification & { fileUrl?: string },
@@ -288,7 +270,7 @@ export const deleteCertification = async (id: string) => {
   await db.certification.delete({ where: { id } })
 }
 
-export const readExpireCertificate = async (positionId?: string) => {
+export const readExpireCertificate = async () => {
   const today = new Date()
   const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
   const oneMonthFromNow = new Date(jakartaTime)
@@ -330,7 +312,7 @@ export const readExpireCertificate = async (positionId?: string) => {
   })
 }
 
-export const readExpireSafety = async (positionId?: string) => {
+export const readExpireSafety = async () => {
   const today = new Date()
   const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
   const oneMonthFromNow = new Date(jakartaTime)

@@ -14,19 +14,6 @@ export const findById = async (id: string) => {
   return db.user.findUnique({
     where: { id },
     include: {
-      role: {
-        include: {
-          permissionRole: {
-            select: {
-              permission: {
-                select: {
-                  key: true,
-                },
-              },
-            },
-          },
-        },
-      },
       tours: true,
     },
   })

@@ -11,7 +11,7 @@ const generateFilename = (prefix: string, originalName: string): string => {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../../public/upload'))
+    cb(null, path.join(__dirname, '../../uploads'))
   },
   filename: (req, file, cb) => {
     const prefix = req.params.prefix

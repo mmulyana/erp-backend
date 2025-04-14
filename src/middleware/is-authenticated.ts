@@ -8,7 +8,7 @@ interface CustomError extends Error {
 
 interface UserPayload {
   id: string
-  permissions?: string[]
+  // permissions?: string[]
 }
 
 declare module 'express' {
@@ -50,21 +50,12 @@ const isAuthenticated = async (
         where: { id: payload.id },
         select: {
           role: {
-            select: {
-              permissionRole: {
-                select: {
-                  permissionId: true,
-                },
-              },
-            },
+            select: {},
           },
         },
       })
-      const permissions = user.role.permissionRole.map(
-        (item) => item.permissionId,
-      )
 
-      req.user = { ...payload, permissions }
+      req.user = { ...payload }
       next()
     },
   )
