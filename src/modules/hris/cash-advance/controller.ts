@@ -24,7 +24,6 @@ export const saveCashAdvance = async (req: Request, res: Response) => {
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
-
   const data = await create({ ...parsed.data, createdBy: req.user.id })
   res.json(createResponse(data, 'kasbon'))
 }

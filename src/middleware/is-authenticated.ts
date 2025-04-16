@@ -48,14 +48,15 @@ const isAuthenticated = async (
 
       const user = await db.user.findUnique({
         where: { id: payload.id },
-        select: {
-          role: {
-            select: {},
-          },
-        },
       })
+      if (!user) {
+        const customError = new Error() as CustomError
+        customError.message = 'Akun tidak ditemukan'
+        customError.status = 403
+        return next(customError)
+      }
 
-      req.user = { ...payload }
+      req.user = { id: user.id }
       next()
     },
   )

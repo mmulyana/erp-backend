@@ -86,7 +86,7 @@ export const findAll = async (
             OR: [
               {
                 employee: {
-                  fullname: { contains: search, mode: 'insensitive' }, // Case-insensitive search
+                  fullname: { contains: search, mode: 'insensitive' },
                 },
               },
             ],
@@ -104,7 +104,16 @@ export const findAll = async (
   }
 
   if (page === undefined || limit === undefined) {
-    const data = await db.cashAdvance.findMany({ where })
+    const data = await db.cashAdvance.findMany({
+      where,
+      include: {
+        employee: {
+          select: {
+            fullname: true,
+          },
+        },
+      },
+    })
     return { data }
   }
 
@@ -118,11 +127,17 @@ export const findAll = async (
       orderBy: {
         createdAt: 'asc',
       },
+      include: {
+        employee: {
+          select: {
+            fullname: true,
+          },
+        },
+      },
     }),
     db.cashAdvance.count({ where }),
   ])
 
-  // Hitung total halaman
   const total_pages = Math.ceil(total / limit)
 
   return {

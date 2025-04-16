@@ -15,6 +15,7 @@ import {
   createCertification,
   deleteCertification,
   readExpireCertificate,
+  readAllInfinite,
 } from './repository'
 import {
   createResponse,
@@ -72,6 +73,22 @@ export const readEmployees = async (req: Request, res: Response) => {
     : undefined
 
   const result = await readAll(page, limit, search, positionId, active)
+  res.json(successResponse(result, 'pegawai'))
+}
+export const readEmployeesInfinite = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const active = req.query.active ? req.query.active === 'true' : undefined
+  const positionId = req.params.positionId
+    ? String(req.params.positionId)
+    : undefined
+
+  const result = await readAllInfinite(
+    page,
+    limit || 10,
+    search,
+    positionId,
+    active,
+  )
   res.json(successResponse(result, 'pegawai'))
 }
 export const uploadPhotoEmployee = async (req: Request, res: Response) => {

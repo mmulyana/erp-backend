@@ -15,15 +15,19 @@ import { Login } from './schema'
 import { isValidUUID } from '@/utils/is-valid-uuid'
 
 export const loginService = async (credentials: Login) => {
-  const { email, username, password, phone } = credentials
+  const { username, password } = credentials
+
+  const isEmail = username.includes('@')
+  const isPhoneNumber = /^\d+$/.test(username)
+  const isUsername = /^[a-zA-Z0-9]+$/.test(username)
 
   let user
-  if (email) {
-    user = await findByEmail(email)
-  } else if (username) {
+  if (isEmail) {
+    user = await findByEmail(username)
+  } else if (isUsername) {
     user = await findByUsername(username)
-  } else if (phone) {
-    user = await findByPhone(phone)
+  } else if (isPhoneNumber) {
+    user = await findByPhone(username)
   }
 
   if (!user) {

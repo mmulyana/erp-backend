@@ -119,7 +119,7 @@ export const readAll = async (
   page?: number,
   limit?: number,
   search?: string,
-  positionId?: string,
+  position?: string,
   active?: boolean,
 ) => {
   const where: Prisma.EmployeeWhereInput = {
@@ -131,7 +131,7 @@ export const readAll = async (
         : {},
 
       active !== undefined ? { active } : {},
-      positionId !== undefined ? { positionId } : {},
+      position !== undefined ? { position } : {},
     ].filter(Boolean),
   }
 
@@ -182,6 +182,66 @@ export const readAll = async (
     page,
     limit,
     total_pages,
+  }
+}
+
+export const readAllInfinite = async (
+  page?: number,
+  limit?: number,
+  search?: string,
+  position?: string,
+  active?: boolean,
+) => {
+  const where: Prisma.EmployeeWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [{ fullname: { contains: search } }],
+          }
+        : {},
+      active !== undefined ? { active } : {},
+      position !== undefined ? { position } : {},
+    ].filter(Boolean),
+  }
+
+  const select: Prisma.EmployeeSelect = {
+    id: true,
+    fullname: true,
+    active: true,
+    address: true,
+    phone: true,
+    photoUrl: true,
+    createdAt: true,
+    updatedAt: true,
+    joinedAt: true,
+    lastEducation: true,
+    position: true,
+    birthDate: true,
+    salary: true,
+    overtimeSalary: true,
+    status: true,
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.employee.findMany({
+      skip,
+      take,
+      where,
+      select,
+      orderBy: {
+        fullname: 'asc',
+      },
+    }),
+    db.employee.count({ where }),
+  ])
+
+  const hasNextPage = page * limit < total
+
+  return {
+    data,
+    nextPage: hasNextPage ? page + 1 : undefined,
   }
 }
 

@@ -11,7 +11,7 @@ import {
 
 const router = Router()
 
-router.post('/', readCashAdvances)
+router.get('/', readCashAdvances)
 router.post('/', saveCashAdvance)
 router.get('/:id', readCashAdvance)
 router.patch('/:id', updateCashAdvance)

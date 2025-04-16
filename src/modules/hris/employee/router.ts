@@ -1,22 +1,24 @@
 import { Router } from 'express'
 import {
   deletePhotoEmployee,
-  destoryCertifEmployee,
-  destroyEmployee,
+  uploadPhotoEmployee,
+  saveEmployee,
   readEmployee,
   readEmployees,
+  updateEmployee,
+  destroyEmployee,
+  readEmployeesInfinite,
+  saveCertifEmployee,
+  destoryCertifEmployee,
   readExpireCertifEmployee,
   readExpireSafetyEmployee,
-  saveCertifEmployee,
-  saveEmployee,
   updateCertifEmployee,
-  updateEmployee,
-  uploadPhotoEmployee,
 } from './controller'
 import upload from '@/utils/upload'
 
 const router = Router()
 
+router.get('/data/infinite', readEmployeesInfinite)
 router.get('/', readEmployees)
 router.post('/', upload.single('photoUrl'), saveEmployee)
 router.get('/:id', readEmployee)
