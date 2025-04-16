@@ -20,12 +20,16 @@ const router = Router()
 
 router.get('/data/infinite', readEmployeesInfinite)
 router.get('/', readEmployees)
-router.post('/', upload.single('photoUrl'), saveEmployee)
+router.post('/:prefix', upload.single('photoUrl'), saveEmployee)
 router.get('/:id', readEmployee)
 router.patch('/:id', updateEmployee)
 router.delete('/:id', destroyEmployee)
 
-router.patch('/:id/photo/:prefix', upload.single('photo'), uploadPhotoEmployee)
+router.patch(
+  '/:id/photo/:prefix',
+  upload.single('photoUrl'),
+  uploadPhotoEmployee,
+)
 router.delete('/:id/photo', deletePhotoEmployee)
 
 router.post(

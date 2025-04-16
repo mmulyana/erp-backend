@@ -14,8 +14,8 @@ const storage = multer.diskStorage({
     cb(null, path.join(__dirname, '../../uploads'))
   },
   filename: (req, file, cb) => {
-    const prefix = req.params.prefix
-    const newFilename = generateFilename(prefix, file.originalname)
+    const name = req.params.prefix || 'image'
+    const newFilename = generateFilename(name, file.originalname)
     cb(null, newFilename)
   },
 })

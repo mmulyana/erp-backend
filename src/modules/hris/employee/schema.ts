@@ -18,6 +18,7 @@ export const EmployeeSchema = z.object({
     .optional(),
   address: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
+  photoName: z.string().optional()
 })
 
 export const CertificationSchema = z.object({
