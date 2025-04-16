@@ -138,8 +138,8 @@ model CashAdvance {
   date       DateTime @db.Date
   note       String?  @db.VarChar(255)
 
-  createdAt DateTime  @default(now()) @db.Date()
-  updatedAt DateTime  @updatedAt @db.Date()
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   employee Employee @relation(fields: [employeeId], references: [id])

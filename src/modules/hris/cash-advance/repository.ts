@@ -121,12 +121,12 @@ export const findAll = async (
 
   const [data, total] = await Promise.all([
     db.cashAdvance.findMany({
-      where,
-      skip,
-      take,
       orderBy: {
         createdAt: 'asc',
       },
+      where,
+      skip,
+      take,
       include: {
         employee: {
           select: {
