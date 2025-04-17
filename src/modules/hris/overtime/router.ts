@@ -3,11 +3,14 @@ import {
   destroyOvertime,
   readOvertime,
   readOvertimes,
+  readTotalPerDay,
   saveOvertime,
   updateOvertime,
 } from './controller'
 
 const router = Router()
+
+router.get('/data/total-per-day', readTotalPerDay)
 router.get('/', readOvertimes)
 router.post('/', saveOvertime)
 router.get('/:id', readOvertime)

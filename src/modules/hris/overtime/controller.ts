@@ -4,6 +4,7 @@ import {
   findAll,
   findOne,
   isExist,
+  totalPerDay,
   update,
 } from './repository'
 import { Request, Response } from 'express'
@@ -66,4 +67,9 @@ export const readOvertime = async (req: Request, res: Response) => {
 
   const result = await findOne(id)
   res.json(successResponse(result, 'lembur'))
+}
+
+export const readTotalPerDay = async (req: Request, res: Response) => {
+  const result = await totalPerDay(new Date(req.query.startDate as string))
+  res.json(successResponse(result, 'Total kehadiran'))
 }

@@ -65,7 +65,7 @@ export const findAll = async ({
   const where: Prisma.OvertimeWhereInput = {
     date: startDate,
     employee: {
-      deletedAt: null,
+      // deletedAt: null,
       AND: [
         search
           ? {
@@ -154,7 +154,7 @@ export const findOne = async (id: string) => {
       select: {
         fullname: true,
         position: true,
-        id: true
+        id: true,
       },
     },
   }
@@ -166,5 +166,20 @@ export const isExist = async (id: string) => {
   const data = await db.overtime.findUnique({ where: { id } })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+  }
+}
+
+export const totalPerDay = async (date: Date) => {
+  const overtimes = await db.overtime.findMany({
+    where: {
+      date: {
+        gte: date,
+        lte: date,
+      },
+    },
+  })
+
+  return {
+    total: overtimes.length,
   }
 }
