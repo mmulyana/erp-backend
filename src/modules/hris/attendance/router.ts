@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import {
-  destroyAttendance,
+  // destroyAttendance,
   readAttendances,
+  readTotalPerDay,
   saveAttendance,
   updateAttendance,
 } from './controller'
@@ -10,7 +11,8 @@ const router = Router()
 
 router.get('/', readAttendances)
 router.post('/', saveAttendance)
-router.patch('/:id', updateAttendance)
-router.delete('/:id', destroyAttendance)
+router.patch('/', updateAttendance)
+router.get('/total-per-day', readTotalPerDay)
+// router.delete('/:id', destroyAttendance)
 
 export default router

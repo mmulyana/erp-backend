@@ -1,55 +1,60 @@
 import { Request, Response } from 'express'
-import { AttendanceSchema } from './schema'
+
+import { getParams } from '@/utils/params'
 import { errorParse } from '@/utils/error-handler'
-import { create, destroy, isExist, readAll, update } from './repository'
 import {
   createResponse,
-  deleteResponse,
+  // deleteResponse,
   successResponse,
   updateResponse,
 } from '@/utils/response'
-import { checkParamsId } from '@/utils/params'
-import { endOfDay } from 'date-fns'
+
+import { create, readAll, totalPerDay, update } from './repository'
+import { AttendanceSchema } from './schema'
 
 export const saveAttendance = async (req: Request, res: Response) => {
   const parsed = AttendanceSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
-
+  // console.log('payload', parsed.data)
   const result = await create({ ...parsed.data, createdBy: req.user.id })
   res.json(createResponse(result, 'Kehadiran'))
 }
 
 export const updateAttendance = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-  await isExist(id)
-
   const parsed = AttendanceSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
 
-  const result = await update(id, parsed.data)
+  const result = await update({ ...parsed.data, createdBy: req.user.id })
   res.json(updateResponse(result, 'Kehadiran'))
 }
 
-export const destroyAttendance = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-  await isExist(id)
+// export const destroyAttendance = async (req: Request, res: Response) => {
+//   const { id } = checkParamsId(req)
+//   await isExist(id)
 
-  await destroy(id)
-  res.json(deleteResponse('Kehadiran'))
-}
+//   await destroy(id)
+//   res.json(deleteResponse('Kehadiran'))
+// }
 
 export const readAttendances = async (req: Request, res: Response) => {
-  const { date, search, endDate } = req.query
-  const localDate = endOfDay(new Date())
-
-  const start_date = date ? new Date(String(date)) : new Date(localDate)
-  const end_date = endDate ? new Date(String(endDate)) : undefined
-  const search_query = search ? String(search) : undefined
-
-  const result = await readAll(start_date, end_date, search_query)
+  const { page, limit, search } = getParams(req)
+  // console.log('-------------')
+  // console.log('local', req.query.startDate)
+  // console.log('hasil konversi ke utc', new Date(req.query.startDate as string))
+  const result = await readAll({
+    page,
+    limit,
+    search,
+    startDate: new Date(req.query.startDate as string),
+  })
   res.json(successResponse(result, 'Kehadiran'))
+}
+
+export const readTotalPerDay = async (req: Request, res: Response) => {
+  const result = await totalPerDay(new Date(req.query.startDate as string))
+  res.json(successResponse(result, 'Total kehadiran'))
 }

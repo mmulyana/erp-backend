@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const AttendanceSchema = z.object({
   employeeId: z.string().uuid(),
-  date: z.string(),
+  date: z.coerce.date(),
   type: z.enum(['presence', 'absent']),
 })
 
