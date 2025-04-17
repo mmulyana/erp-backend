@@ -50,11 +50,13 @@ export const destroyOvertime = async (req: Request, res: Response) => {
 
 export const readOvertimes = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
-  const start_date = req.query.startDate
-    ? new Date(req.query.startDate as string)
-    : undefined
 
-  const result = await findAll(page, limit, search, start_date)
+  const result = await findAll({
+    page,
+    limit,
+    search,
+    startDate: new Date(req.query.startDate as string),
+  })
   res.json(successResponse(result, 'lembur'))
 }
 

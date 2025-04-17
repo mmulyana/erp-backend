@@ -17,7 +17,7 @@ export const create = async (payload: Payload) => {
   })
   if (existing.length > 0) {
     return throwError(
-      `Data lemburan untuk tanggal ${payload.date} sudah tercatat sebelumnya`,
+      `Anda hanya dapat memasukan data lembur pegawai satu kali pada tanggal ${new Date(payload.date).getDate()}`,
       HttpStatusCode.BadRequest,
     )
   }
@@ -50,54 +50,88 @@ export const destroy = async (id: string) => {
   await db.overtime.delete({ where: { id } })
 }
 
-export const findAll = async (
-  page?: number,
-  limit?: number,
-  search?: string,
-  startDate?: Date,
-) => {
+type findAllParams = {
+  page?: number
+  limit?: number
+  search?: string
+  startDate?: Date
+}
+export const findAll = async ({
+  page,
+  limit,
+  search,
+  startDate,
+}: findAllParams) => {
   const where: Prisma.OvertimeWhereInput = {
     date: startDate,
     employee: {
+      deletedAt: null,
       AND: [
         search
           ? {
-              OR: [{ fullname: { contains: search } }],
+              OR: [{ fullname: { contains: search, mode: 'insensitive' } }],
             }
           : {},
       ],
     },
   }
+
   const select: Prisma.OvertimeSelect = {
     id: true,
-    note: true,
-    date: true,
     totalHour: true,
+    note: true,
     employee: {
       select: {
         fullname: true,
         position: true,
+        id: true,
       },
     },
   }
 
   if (page === undefined || limit === undefined) {
-    const data = await db.overtime.findMany({ where, select })
+    const rawData = await db.overtime.findMany({
+      where,
+      select,
+      orderBy: {
+        createdAt: 'asc',
+      },
+    })
+
+    const data = rawData.map((item) => ({
+      id: item.id,
+      employeeId: item.employeeId,
+      fullname: item.employee.fullname,
+      position: item.employee.position ?? '-',
+      totalHour: item.totalHour,
+      note: item.note ?? '',
+    }))
+
     return { data }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
 
-  const [data, total] = await Promise.all([
+  const [rawData, total] = await Promise.all([
     db.overtime.findMany({
       skip,
       take,
       where,
       select,
-      orderBy: {},
+      orderBy: {
+        createdAt: 'asc',
+      },
     }),
     db.overtime.count({ where }),
   ])
+
+  const data = rawData.map((item) => ({
+    id: item.id,
+    fullname: item.employee.fullname,
+    position: item.employee.position ?? '-',
+    totalHour: item.totalHour,
+    note: item.note ?? '',
+  }))
 
   const total_pages = Math.ceil(total / limit)
 
@@ -120,12 +154,12 @@ export const findOne = async (id: string) => {
       select: {
         fullname: true,
         position: true,
+        id: true
       },
     },
   }
 
-  const data = await db.overtime.findUnique({ where: { id }, select })
-  return { data }
+  return await db.overtime.findUnique({ where: { id }, select })
 }
 
 export const isExist = async (id: string) => {
