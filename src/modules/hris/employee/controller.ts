@@ -34,7 +34,7 @@ export const saveEmployee = async (req: Request, res: Response) => {
     return errorParse(parsed.error)
   }
 
-  const photoUrl = req.file.filename || undefined
+  const photoUrl = req?.file?.filename || undefined
 
   const result = await create({ ...parsed.data, photoUrl })
   res.json(createResponse(result, 'pegawai'))

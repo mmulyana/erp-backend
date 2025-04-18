@@ -1,10 +1,22 @@
 import { z } from 'zod'
 
 export const EmployeeSchema = z.object({
-  fullname: z.string(),
+  fullname: z.string().min(1, { message: 'Nama pegawai tidak boleh kosong' }),
   position: z.string(),
-  birthDate: z.string().nullable().optional(),
-  joinedAt: z.string().nullable().optional(),
+  birthDate: z
+    .preprocess((val) => {
+      if (val === '' || val == null) return null
+      return new Date(val as string)
+    }, z.date().nullable())
+    .nullable()
+    .optional(),
+  joinedAt: z
+    .preprocess((val) => {
+      if (val === '' || val == null) return null
+      return new Date(val as string)
+    }, z.date().nullable())
+    .nullable()
+    .optional(),
   lastEducation: z.string().nullable().optional(),
   salary: z
     .union([z.string(), z.number()])
@@ -18,7 +30,7 @@ export const EmployeeSchema = z.object({
     .optional(),
   address: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
-  photoName: z.string().optional()
+  photoName: z.string().optional(),
 })
 
 export const CertificationSchema = z.object({

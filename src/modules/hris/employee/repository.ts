@@ -169,7 +169,7 @@ export const readAll = async (
       where,
       select,
       orderBy: {
-        fullname: 'asc',
+        createdAt: 'desc',
       },
     }),
     db.employee.count({ where }),

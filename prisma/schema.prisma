@@ -18,7 +18,7 @@ model User {
   photoUrl String? @db.VarChar(100)
   password String  @db.VarChar(255)
 
-  createdAt DateTime  @default(now()) @db.Date()
+  createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
@@ -42,7 +42,7 @@ model Role {
   description String?
   permissions String?
 
-  createdAt DateTime  @default(now()) @db.Date()
+  createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
@@ -55,8 +55,8 @@ model Employee {
   fullname            String    @db.VarChar(50)
   position            String?   @db.VarChar(50)
   photoUrl            String?   @db.VarChar(100)
-  birthDate           String?
-  joinedAt            String?
+  birthDate           DateTime?
+  joinedAt            DateTime?
   active              Boolean?  @default(true)
   phone               String?
   lastEducation       String?
@@ -66,8 +66,8 @@ model Employee {
   status              Boolean?  @default(true)
   address             String?   @db.Text()
 
-  createdAt DateTime  @default(now()) @db.Date()
-  updatedAt DateTime  @updatedAt @db.Date()
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   assignedEmployee AssignedEmployee[]
@@ -87,8 +87,8 @@ model Certification {
   issueDate  DateTime?
   expiryDate DateTime?
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   employee Employee @relation(fields: [employeeId], references: [id])
@@ -98,11 +98,11 @@ model Attendance {
   id         String         @id @default(uuid()) @db.Uuid()
   employeeId String         @db.Uuid()
   createdBy  String         @db.Uuid()
-  date       DateTime       @db.Date
+  date       DateTime
   type       AttendanceType @default(presence)
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   employee Employee @relation(fields: [employeeId], references: [id])
@@ -120,10 +120,10 @@ model Overtime {
   createdBy  String   @db.Uuid()
   totalHour  Int
   note       String?  @db.VarChar(255)
-  date       DateTime @db.Date
+  date       DateTime
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   employee Employee @relation(fields: [employeeId], references: [id])
@@ -135,7 +135,7 @@ model CashAdvance {
   employeeId String   @db.Uuid()
   createdBy  String   @db.Uuid()
   amount     Int      @db.Integer()
-  date       DateTime @db.Date
+  date       DateTime
   note       String?  @db.VarChar(255)
 
   createdAt DateTime  @default(now())
@@ -174,15 +174,15 @@ model Project {
   progressPercentage Int       @default(0)
   paymentPercentage  Int       @default(0)
   netValue           BigInt?
-  startedAt          DateTime? @db.Date()
-  endedAt            DateTime? @db.Date()
-  archivedAt         DateTime? @db.Date()
+  startedAt          DateTime?
+  endedAt            DateTime?
+  archivedAt         DateTime?
   boardItemsId       String    @unique
   createdBy          String    @db.Uuid()
 
-  createdAt DateTime  @default(now()) @db.Date()
-  updatedAt DateTime  @updatedAt @db.Date()
-  deletedAt DateTime? @db.Date()
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   attachments ProjectAttachment[]
   employees   AssignedEmployee[]
@@ -199,8 +199,8 @@ model AssignedEmployee {
   id         String    @id @default(uuid()) @db.Uuid()
   employeeId String    @db.Uuid()
   projectId  String    @db.Uuid()
-  startDate  DateTime? @db.Date
-  endDate    DateTime? @db.Date
+  startDate  DateTime?
+  endDate    DateTime?
 
   project  Project  @relation(fields: [projectId], references: [id])
   employee Employee @relation(fields: [employeeId], references: [id])
@@ -245,8 +245,8 @@ model ReportAttachment {
   reportId String @db.Uuid()
   photoUrl String
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   report ProjectReport @relation(fields: [reportId], references: [id])
@@ -260,8 +260,8 @@ model Client {
   phone     String?
   position  String?
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   project Project[]
@@ -277,8 +277,8 @@ model CompanyClient {
   address  String? @db.Text()
   photoUrl String?
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   employees Client[]
@@ -297,8 +297,8 @@ model Inventory {
   category    String  @db.VarChar(50)
   photoUrl    String  @db.VarChar(100)
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   location LocationInventory? @relation(fields: [locationId], references: [id])
@@ -324,8 +324,8 @@ model StockLoan {
   photoUrl       String   @db.VarChar(100)
   returnPhotoUrl String   @db.VarChar(100)
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   project   Project   @relation(fields: [projectId], references: [id])
@@ -345,8 +345,8 @@ model StockLedger {
   date           DateTime
   photoUrl       String          @db.VarChar(100)
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   User      User?     @relation(fields: [createdBy], references: [id])
@@ -379,8 +379,8 @@ model Supplier {
   address  String? @db.Text()
   photoUrl String? @db.VarChar(100)
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   stockIn StockIn[]
@@ -390,8 +390,8 @@ model LocationInventory {
   id   String @id @default(uuid()) @db.Uuid()
   name String @db.VarChar(50)
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   inventories Inventory[]
@@ -402,8 +402,8 @@ model BrandInventory {
   name     String  @db.VarChar(50)
   photoUrl String? @db.VarChar(100)
 
-  createdAt DateTime  @default(now()) @db.Date
-  updatedAt DateTime  @updatedAt @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   inventories Inventory[]

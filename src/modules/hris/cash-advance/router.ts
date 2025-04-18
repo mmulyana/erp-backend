@@ -9,6 +9,7 @@ import {
   getTotalInYear,
   getTotalInMonth,
   getTotalInDay,
+  getReportInLastSixMonths,
 } from './controller'
 
 const router = Router()
@@ -16,6 +17,7 @@ const router = Router()
 router.get('/report/year', getTotalInYear)
 router.get('/report/month', getTotalInMonth)
 router.get('/report/day', getTotalInDay)
+router.get('/report/six-month', getReportInLastSixMonths)
 // router.get('/data/total', getTotalInYear)
 
 router.get('/', readCashAdvances)

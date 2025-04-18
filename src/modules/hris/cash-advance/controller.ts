@@ -14,10 +14,10 @@ import {
   findAll,
   findOne,
   isExist,
-  readTotal,
-  ReadTotalInDay,
-  ReadTotalInMonth,
-  readTotalInYear,
+  reportLastSixMonth,
+  totalInDay,
+  totalInMonth,
+  totalInYear,
   update,
 } from './repository'
 
@@ -70,28 +70,28 @@ export const readCashAdvances = async (req: Request, res: Response) => {
   res.json(successResponse(data, 'kasbon'))
 }
 
-// export const getTotalInYear = async (req: Request, res: Response) => {
-//   const total = req.params.total ? Number(req.params.total) : undefined
-//   const data = await readTotalInYear(total)
-//   res.json(successResponse(data, 'jumlah kasbon'))
-// }
-
 export const getTotalInYear = async (req: Request, res: Response) => {
-  const data = await readTotalInYear(
+  const data = await totalInYear(
     req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
   )
   res.json(successResponse(data, 'total dalam setahun'))
 }
 
 export const getTotalInMonth = async (req: Request, res: Response) => {
-  const data = await ReadTotalInMonth(
+  const data = await totalInMonth(
     req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
   )
   res.json(successResponse(data, 'total dalam sebulan'))
 }
 
 export const getTotalInDay = async (req: Request, res: Response) => {
-  const data = await ReadTotalInDay(
+  const data = await totalInDay(
+    req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
+  )
+  res.json(successResponse(data, 'total dalam sehari'))
+}
+export const getReportInLastSixMonths = async (req: Request, res: Response) => {
+  const data = await reportLastSixMonth(
     req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
   )
   res.json(successResponse(data, 'total dalam sehari'))

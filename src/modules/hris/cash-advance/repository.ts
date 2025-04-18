@@ -7,10 +7,12 @@ import {
   startOfDay,
   endOfDay,
   subDays,
+  getMonth,
 } from 'date-fns'
 import { Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 
+import { convertUTCToWIB } from '@/utils/convert-date'
 import { throwError } from '@/utils/error-handler'
 import { getPaginateParams } from '@/utils/params'
 import { Messages } from '@/utils/constant'
@@ -144,8 +146,13 @@ export const findAll = async (
 
   const total_pages = Math.ceil(total / limit)
 
+  const converted = data.map((item) => ({
+    ...item,
+    date: convertUTCToWIB(item.date),
+  }))
+
   return {
-    data,
+    data: converted,
     total,
     page,
     limit,
@@ -160,95 +167,7 @@ export const findOne = async (id: string) => {
   })
 }
 
-export const readTotal = async () => {
-  const now = new Date()
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-
-  const totalAmount = await db.cashAdvance.aggregate({
-    _sum: {
-      amount: true,
-    },
-    where: {
-      date: {
-        gte: startOfMonth,
-        lte: endOfMonth,
-      },
-    },
-  })
-
-  return { total: totalAmount._sum.amount || 0 }
-}
-
-// export const readTotalInYear = async (totalMonths: number = 12) => {
-//   const now = new Date()
-//   const startDate = new Date(
-//     now.getFullYear(),
-//     now.getMonth() - (totalMonths - 1),
-//     1,
-//   )
-//   const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-
-//   const monthlyTotals = await db.cashAdvance.groupBy({
-//     by: ['date'],
-//     _sum: {
-//       amount: true,
-//     },
-//     where: {
-//       date: {
-//         gte: startDate,
-//         lte: endDate,
-//       },
-//     },
-//   })
-
-//   const monthNames = [
-//     'Januari',
-//     'Februari',
-//     'Maret',
-//     'April',
-//     'Mei',
-//     'Juni',
-//     'Juli',
-//     'Agustus',
-//     'September',
-//     'Oktober',
-//     'November',
-//     'Desember',
-//   ]
-
-//   const monthlyMap = new Map<number, number>()
-
-//   monthlyTotals.forEach((item) => {
-//     const date = new Date(item.date)
-//     const month = date.getMonth()
-//     const currentTotal = monthlyMap.get(month) || 0
-//     monthlyMap.set(month, currentTotal + (item._sum.amount || 0))
-//   })
-
-//   const chartData: MonthlyTotal[] = []
-//   for (let i = 0; i < totalMonths; i++) {
-//     const monthIndex = (now.getMonth() - (totalMonths - 1) + i + 12) % 12
-//     chartData.push({
-//       month: monthNames[monthIndex],
-//       total: Math.round(monthlyMap.get(monthIndex) || 0),
-//     })
-//   }
-
-//   const chartConfig = {
-//     total: {
-//       label: 'Total',
-//       color: '#2A9D90',
-//     },
-//   } satisfies ChartConfig
-
-//   return {
-//     chartData,
-//     chartConfig,
-//   }
-// }
-
-export const readTotalInYear = async (date: Date) => {
+export const totalInYear = async (date: Date) => {
   const currentYearStart = startOfYear(date)
   const currentYearEnd = endOfYear(date)
 
@@ -294,7 +213,7 @@ export const readTotalInYear = async (date: Date) => {
   }
 }
 
-export const ReadTotalInMonth = async (date: Date) => {
+export const totalInMonth = async (date: Date) => {
   const currentStart = startOfMonth(date)
   const currentEnd = endOfMonth(date)
 
@@ -341,7 +260,7 @@ export const ReadTotalInMonth = async (date: Date) => {
   }
 }
 
-export const ReadTotalInDay = async (date: Date) => {
+export const totalInDay = async (date: Date) => {
   const currentStart = startOfDay(date)
   const currentEnd = endOfDay(date)
 
@@ -384,5 +303,39 @@ export const ReadTotalInDay = async (date: Date) => {
   return {
     total: currentTotal,
     lastDay: percentage,
+  }
+}
+
+export const reportLastSixMonth = async (date: Date) => {
+  const chartData: { month: number; total: number }[] = []
+
+  for (let i = 5; i >= 0; i--) {
+    const targetDate = subMonths(date, i)
+    const start = startOfMonth(targetDate)
+    const end = endOfMonth(targetDate)
+
+    const result = await db.cashAdvance.aggregate({
+      _sum: { amount: true },
+      where: {
+        deletedAt: null,
+        date: {
+          gte: start,
+          lte: end,
+        },
+      },
+    })
+
+    chartData.push({
+      month: getMonth(targetDate),
+      total: result._sum.amount ?? 0,
+    })
+  }
+
+  const totalAll = chartData.reduce((acc, cur) => acc + cur.total, 0)
+  const mean = Math.round(totalAll / chartData.length)
+
+  return {
+    chartData,
+    mean,
   }
 }

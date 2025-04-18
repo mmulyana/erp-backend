@@ -16,7 +16,7 @@ export const ALLOWED_FILE_TYPES = [
 ]
 
 export const Messages = {
-  BadRequest: 'Invalid input data. Please check your request and try again.',
+  BadRequest: 'Data yang diminta belum sesuai, mohon ulangi',
   InvalidEmail: 'Format email salah',
   InvalidName: 'Nama harus lebih dari 1 huruf',
   supportedImage: 'Only .jpg, .jpeg, .png and .webp formats are supported.',
