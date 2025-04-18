@@ -339,3 +339,52 @@ export const reportLastSixMonth = async (date: Date) => {
     mean,
   }
 }
+
+export const reportBiggestByEmployee = async (date: Date) => {
+  const start = startOfMonth(date)
+  const end = endOfMonth(date)
+
+  const result = await db.cashAdvance.groupBy({
+    by: ['employeeId'],
+    where: {
+      deletedAt: null,
+      date: {
+        gte: start,
+        lte: end,
+      },
+    },
+    _sum: {
+      amount: true,
+    },
+    orderBy: {
+      _sum: {
+        amount: 'desc',
+      },
+    },
+    take: 5,
+  })
+
+  const employeeIds = result.map((r) => r.employeeId)
+
+  const employees = await db.employee.findMany({
+    where: {
+      id: { in: employeeIds },
+    },
+    select: {
+      id: true,
+      fullname: true,
+      position: true,
+    },
+  })
+
+  const data = result.map((r) => {
+    const emp = employees.find((e) => e.id === r.employeeId)
+    return {
+      fullname: emp?.fullname,
+      position: emp?.position,
+      total: r._sum.amount ?? 0,
+    }
+  })
+
+  return data
+}

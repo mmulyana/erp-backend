@@ -14,6 +14,7 @@ import {
   findAll,
   findOne,
   isExist,
+  reportBiggestByEmployee,
   reportLastSixMonth,
   totalInDay,
   totalInMonth,
@@ -92,6 +93,15 @@ export const getTotalInDay = async (req: Request, res: Response) => {
 }
 export const getReportInLastSixMonths = async (req: Request, res: Response) => {
   const data = await reportLastSixMonth(
+    req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
+  )
+  res.json(successResponse(data, 'total dalam sehari'))
+}
+export const getReportBiggestByEmployee = async (
+  req: Request,
+  res: Response,
+) => {
+  const data = await reportBiggestByEmployee(
     req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
   )
   res.json(successResponse(data, 'total dalam sehari'))
