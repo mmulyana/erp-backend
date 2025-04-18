@@ -20,11 +20,6 @@ import db from '@/lib/prisma'
 
 import { CashAdvance } from './schema'
 
-type MonthlyTotal = {
-  month: string
-  total: number
-}
-
 export type FilterCash = {
   fullname?: string
   startDate?: Date
@@ -128,7 +123,7 @@ export const findAll = async (
   const [data, total] = await Promise.all([
     db.cashAdvance.findMany({
       orderBy: {
-        createdAt: 'asc',
+        createdAt: 'desc',
       },
       where,
       skip,

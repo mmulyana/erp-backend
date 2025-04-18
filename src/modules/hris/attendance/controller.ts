@@ -9,7 +9,13 @@ import {
   updateResponse,
 } from '@/utils/response'
 
-import { create, readAll, totalPerDay, update } from './repository'
+import {
+  create,
+  readAll,
+  readReportAttendance,
+  totalPerDay,
+  update,
+} from './repository'
 import { AttendanceSchema } from './schema'
 
 export const saveAttendance = async (req: Request, res: Response) => {
@@ -57,4 +63,16 @@ export const readAttendances = async (req: Request, res: Response) => {
 export const readTotalPerDay = async (req: Request, res: Response) => {
   const result = await totalPerDay(new Date(req.query.startDate as string))
   res.json(successResponse(result, 'Total kehadiran'))
+}
+
+export const getReportAttendances = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const result = await readReportAttendance({
+    page,
+    limit,
+    search,
+    startDate: new Date(req.query.startDate as string),
+    endDate: new Date(req.query.endDate as string),
+  })
+  res.json(successResponse(result, 'Kehadiran'))
 }

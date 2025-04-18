@@ -1,13 +1,13 @@
 import { Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 
-import { convertToWIB, generateDateRange } from '@/utils/generate-date-range'
 import { throwError } from '@/utils/error-handler'
+import { getPaginateParams } from '@/utils/params'
 import { Messages } from '@/utils/constant'
 import db from '@/lib/prisma'
 
 import { Attendance } from './schema'
-import { getPaginateParams } from '@/utils/params'
+import { addDays, differenceInDays, endOfDay, startOfDay } from 'date-fns'
 
 export const isExist = async (id: string) => {
   const data = await db.attendance.findUnique({ where: { id } })
@@ -70,11 +70,6 @@ export const update = async (payload: Attendance & { createdBy: string }) => {
     })
   }
 }
-
-// export const destroy = async (id: string) => {
-//   await isExist(id)
-//   await db.attendance.delete({ where: { id } })
-// }
 
 type ReadAllParams = {
   startDate: Date
@@ -223,5 +218,159 @@ export const totalPerDay = async (date: Date) => {
     total_presence,
     total_absent,
     total_notYet,
+  }
+}
+
+type ReadReportAttendanceParams = {
+  startDate: Date
+  endDate: Date
+  search?: string
+  position?: string
+  page?: number
+  limit?: number
+}
+
+export const readReportAttendance = async ({
+  startDate,
+  endDate,
+  search,
+  position,
+  page,
+  limit,
+}: ReadReportAttendanceParams) => {
+  const start = startDate
+  const end = endDate
+  const rangeLength = differenceInDays(end, start) + 1
+
+  const whereEmployee: Prisma.EmployeeWhereInput = {
+    deletedAt: null,
+    active: true,
+    fullname: search ? { contains: search, mode: 'insensitive' } : undefined,
+    position: position || undefined,
+  }
+
+  if (page === undefined || limit === undefined) {
+    const employees = await db.employee.findMany({
+      where: whereEmployee,
+      orderBy: { fullname: 'asc' },
+      select: {
+        id: true,
+        fullname: true,
+      },
+    })
+
+    const allAttendances = await db.attendance.findMany({
+      where: {
+        employeeId: { in: employees.map((e) => e.id) },
+        date: {
+          gte: start,
+          lte: end,
+        },
+      },
+      select: {
+        employeeId: true,
+        date: true,
+        type: true,
+      },
+    })
+
+    const data = employees.map((emp) => {
+      const empAttendance = allAttendances.filter(
+        (att) => att.employeeId === emp.id,
+      )
+
+      const attendanceArray: ('presence' | 'absent' | null)[] = []
+
+      for (let i = 0; i < rangeLength; i++) {
+        const currDate = addDays(start, i)
+        const found = empAttendance.find(
+          (a) => a.date.toDateString() === currDate.toDateString(),
+        )
+        attendanceArray.push(found?.type || null)
+      }
+
+      const present = attendanceArray.filter((x) => x === 'presence').length
+      const absent = attendanceArray.filter((x) => x === 'absent').length
+
+      return {
+        fullname: emp.fullname,
+        attendance: attendanceArray,
+        present,
+        absent,
+      }
+    })
+
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [employees, total] = await Promise.all([
+    db.employee.findMany({
+      where: whereEmployee,
+      skip,
+      take,
+      orderBy: { fullname: 'asc' },
+      select: {
+        id: true,
+        fullname: true,
+      },
+    }),
+    db.employee.count({ where: whereEmployee }),
+  ])
+
+  const employeeIds = employees.map((e) => e.id)
+
+  const allAttendances = await db.attendance.findMany({
+    where: {
+      employeeId: { in: employeeIds },
+      date: {
+        gte: start,
+        lte: end,
+      },
+    },
+    select: {
+      employeeId: true,
+      date: true,
+      type: true,
+    },
+  })
+  // console.log('employeeIds', employeeIds)
+  // console.log('all attendnace', allAttendances)
+
+  const data = employees.map((emp) => {
+    const empAttendance = allAttendances.filter(
+      (att) => att.employeeId === emp.id,
+    )
+
+    const attendanceArray: ('presence' | 'absent' | null)[] = []
+
+    for (let i = 0; i < rangeLength; i++) {
+      const currDate = addDays(start, i)
+      const found = empAttendance.find(
+        (a) => a.date.toDateString() === currDate.toDateString(),
+      )
+      attendanceArray.push(found?.type || null)
+    }
+
+    const present = attendanceArray.filter((x) => x === 'presence').length
+    const absent = attendanceArray.filter((x) => x === 'absent').length
+
+    return {
+      fullname: emp.fullname,
+      attendance: attendanceArray,
+      present,
+      absent,
+    }
+  })
+
+  const total_pages = Math.ceil(total / limit)
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages,
   }
 }
