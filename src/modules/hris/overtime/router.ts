@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   destroyOvertime,
+  getReportOvertimes,
   readOvertime,
   readOvertimes,
   readTotalPerDay,
@@ -11,6 +12,8 @@ import {
 const router = Router()
 
 router.get('/data/total-per-day', readTotalPerDay)
+router.get('/data/report', getReportOvertimes)
+
 router.get('/', readOvertimes)
 router.post('/', saveOvertime)
 router.get('/:id', readOvertime)

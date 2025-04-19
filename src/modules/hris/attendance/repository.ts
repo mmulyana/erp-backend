@@ -238,8 +238,8 @@ export const readReportAttendance = async ({
   page,
   limit,
 }: ReadReportAttendanceParams) => {
-  const start = startDate
-  const end = endDate
+  const start = new Date(startOfDay(new Date(startDate)))
+  const end = new Date(endOfDay(new Date(endDate)))
   const rangeLength = differenceInDays(end, start) + 1
 
   const whereEmployee: Prisma.EmployeeWhereInput = {

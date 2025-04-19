@@ -4,6 +4,7 @@ import {
   findAll,
   findOne,
   isExist,
+  readReportOvertime,
   totalPerDay,
   update,
 } from './repository'
@@ -72,4 +73,17 @@ export const readOvertime = async (req: Request, res: Response) => {
 export const readTotalPerDay = async (req: Request, res: Response) => {
   const result = await totalPerDay(new Date(req.query.startDate as string))
   res.json(successResponse(result, 'Total kehadiran'))
+}
+
+export const getReportOvertimes = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+
+  const result = await readReportOvertime({
+    page,
+    limit,
+    search,
+    startDate: new Date(req.query.startDate as string),
+    endDate: new Date(req.query.endDate as string),
+  })
+  res.json(successResponse(result, 'lembur'))
 }

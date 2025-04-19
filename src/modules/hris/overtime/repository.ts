@@ -5,6 +5,7 @@ import { HttpStatusCode } from 'axios'
 import { Messages } from '@/utils/constant'
 import { Prisma } from '@prisma/client'
 import { getPaginateParams } from '@/utils/params'
+import { eachDayOfInterval, endOfDay, startOfDay } from 'date-fns'
 
 type Payload = Overtime & { createdBy: string }
 
@@ -181,5 +182,151 @@ export const totalPerDay = async (date: Date) => {
 
   return {
     total: overtimes.length,
+  }
+}
+
+type reportParams = {
+  startDate: Date
+  endDate: Date
+  search?: string
+  position?: string
+  page?: number
+  limit?: number
+}
+
+export const readReportOvertime = async ({
+  startDate,
+  endDate,
+  search,
+  position,
+  page,
+  limit,
+}: reportParams) => {
+  const start = new Date(startOfDay(new Date(startDate)))
+  const end = new Date(endOfDay(new Date(endDate)))
+  const allDates = eachDayOfInterval({ start, end })
+
+  const whereEmployee: Prisma.EmployeeWhereInput = {
+    deletedAt: null,
+    active: true,
+    fullname: search ? { contains: search, mode: 'insensitive' } : undefined,
+    position: position || undefined,
+  }
+
+  if (page === undefined || limit === undefined) {
+    const employees = await db.employee.findMany({
+      where: whereEmployee,
+      orderBy: { fullname: 'asc' },
+      select: {
+        id: true,
+        fullname: true,
+      },
+    })
+
+    const overtimes = await db.overtime.findMany({
+      where: {
+        deletedAt: null,
+        date: { gte: start, lte: end },
+        employeeId: { in: employees.map((e) => e.id) },
+      },
+      select: {
+        id: true,
+        totalHour: true,
+        date: true,
+        employeeId: true,
+      },
+    })
+
+    const data = employees.map((emp) => {
+      const empOvertime = overtimes.filter((ot) => ot.employeeId === emp.id)
+
+      const overtimeArray: ({ id: string; totalHour: number } | null)[] =
+        allDates.map((date) => {
+          const found = empOvertime.find(
+            (ot) => ot.date.toDateString() === date.toDateString(),
+          )
+          return found ? { id: found.id, totalHour: found.totalHour } : null
+        })
+
+      const total = overtimeArray.reduce(
+        (sum, val) => sum + (val?.totalHour ?? 0),
+        0,
+      )
+
+      return {
+        id: emp.id,
+        fullname: emp.fullname,
+        overtimes: overtimeArray,
+        total,
+      }
+    })
+
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [employees, total] = await Promise.all([
+    db.employee.findMany({
+      where: whereEmployee,
+      skip,
+      take,
+      orderBy: { fullname: 'asc' },
+      select: {
+        id: true,
+        fullname: true,
+      },
+    }),
+    db.employee.count({ where: whereEmployee }),
+  ])
+
+  const employeeIds = employees.map((e) => e.id)
+
+  const overtimes = await db.overtime.findMany({
+    where: {
+      deletedAt: null,
+      date: { gte: start, lte: end },
+      employeeId: { in: employeeIds },
+    },
+    select: {
+      id: true,
+      totalHour: true,
+      date: true,
+      employeeId: true,
+    },
+  })
+
+  const data = employees.map((emp) => {
+    const empOvertime = overtimes.filter((ot) => ot.employeeId === emp.id)
+
+    const overtimeArray: ({ id: string; totalHour: number } | null)[] =
+      allDates.map((date) => {
+        const found = empOvertime.find(
+          (ot) => ot.date.toDateString() === date.toDateString(),
+        )
+        return found ? { id: found.id, totalHour: found.totalHour } : null
+      })
+
+    const total = overtimeArray.reduce(
+      (sum, val) => sum + (val?.totalHour ?? 0),
+      0,
+    )
+
+    return {
+      id: emp.id,
+      fullname: emp.fullname,
+      overtimes: overtimeArray,
+      total,
+    }
+  })
+
+  const total_pages = Math.ceil(total / limit)
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages,
   }
 }
