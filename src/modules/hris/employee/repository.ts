@@ -11,6 +11,15 @@ import db from '@/lib/prisma'
 import { PaginationParams } from '@/types'
 
 import { Certification, Employee } from './schema'
+import {
+  addMonths,
+  differenceInCalendarMonths,
+  eachDayOfInterval,
+  endOfDay,
+  getDate,
+  getMonth,
+  startOfDay,
+} from 'date-fns'
 
 type Payload = Employee & {
   photoUrl?: string
@@ -362,4 +371,135 @@ export const findCertificate = async (id: string) => {
       id: true,
     },
   })
+}
+
+// DATA
+export const findAttendanceById = async ({
+  employeeId,
+  startDate,
+  endDate,
+}: {
+  employeeId: string
+  startDate: Date
+  endDate: Date
+}) => {
+  const start = startOfDay(new Date(startDate))
+  const end = endOfDay(new Date(endDate))
+
+  const attendances = await db.attendance.findMany({
+    where: {
+      deletedAt: null,
+      employeeId,
+      date: {
+        gte: start,
+        lte: end,
+      },
+    },
+    select: {
+      date: true,
+      type: true,
+    },
+  })
+
+  // gruping per bulan
+  const totalMonths = differenceInCalendarMonths(end, start) + 1
+
+  const data = Array.from({ length: totalMonths }, (_, i) => {
+    const currentMonth = addMonths(start, i)
+    const month = currentMonth.getMonth()
+    const year = currentMonth.getFullYear()
+
+    const presence = attendances
+      .filter(
+        (att) =>
+          att.type === 'presence' &&
+          att.date.getFullYear() === year &&
+          att.date.getMonth() === month,
+      )
+      .map((att) => getDate(att.date))
+
+    return { presence }
+  })
+
+  const allDates = eachDayOfInterval({ start, end })
+  const filledDates = attendances.map((a) => a.date.toDateString())
+
+  const total = {
+    presence: attendances.filter((a) => a.type === 'presence').length,
+    absent: attendances.filter((a) => a.type === 'absent').length,
+    notYet: allDates.filter((d) => !filledDates.includes(d.toDateString()))
+      .length,
+  }
+
+  return { data, total }
+}
+
+export const findOvertimeById = async ({
+  employeeId,
+  startDate,
+  endDate,
+  page,
+  limit,
+  search,
+}: {
+  employeeId: string
+  startDate?: Date
+  endDate?: Date
+  page?: number
+  limit?: number
+  search?: string
+}) => {
+  const where: Prisma.OvertimeWhereInput = {
+    deletedAt: null,
+    employeeId,
+    date:
+      startDate || endDate
+        ? {
+            ...(startDate && { gte: startOfDay(new Date(startDate)) }),
+            ...(endDate && { lte: endOfDay(new Date(endDate)) }),
+          }
+        : undefined,
+    note: search ? { contains: search, mode: 'insensitive' } : undefined,
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.overtime.findMany({
+      where,
+      orderBy: { date: 'desc' },
+      select: {
+        id: true,
+        totalHour: true,
+        note: true,
+        date: true,
+      },
+    })
+
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.overtime.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { date: 'desc' },
+      select: {
+        id: true,
+        totalHour: true,
+        note: true,
+        date: true,
+      },
+    }),
+    db.overtime.count({ where }),
+  ])
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages: Math.ceil(total / limit),
+  }
 }

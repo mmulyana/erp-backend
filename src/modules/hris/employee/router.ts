@@ -4,11 +4,13 @@ import upload from '@/utils/upload'
 import {
   deleteCertificate,
   deleteEmployee,
+  getAttendancesById,
   getCertificate,
   getCertificates,
   getEmployee,
   getEmployees,
   getEmployeesInfinite,
+  getOvertimesById,
   patchCertificate,
   patchEmployee,
   postCertificate,
@@ -29,6 +31,10 @@ router.post('/:prefix', upload.single('photoUrl'), postEmployee)
 router.get('/:id', getEmployee)
 router.patch('/:id', patchEmployee)
 router.delete('/:id', deleteEmployee)
+
+// detail
+router.get('/:id/data/attendance', getAttendancesById)
+router.get('/:id/data/overtime', getOvertimesById)
 
 // certificate
 router.get('/:id/certificate', getCertificates)

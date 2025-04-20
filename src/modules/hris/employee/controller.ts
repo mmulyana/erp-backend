@@ -17,6 +17,8 @@ import {
   destroyCertificate,
   createCertificate,
   updateCertificate,
+  findAttendanceById,
+  findOvertimeById,
 } from './repository'
 import {
   createResponse,
@@ -114,8 +116,6 @@ export const patchCertificate = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isCertifExist(id)
 
-  console.log('data', req.body)
-
   const parsed = CertificationSchema.partial().safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
@@ -154,4 +154,43 @@ export const getCertificate = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   const result = await findCertificate(id)
   res.json(successResponse(result, 'sertifikat'))
+}
+
+// DETAIL
+export const getAttendancesById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await findAttendanceById({
+    employeeId: id,
+    startDate: new Date(req.query.startDate as string),
+    endDate: new Date(req.query.endDate as string),
+  })
+
+  res.json(successResponse(result, 'absensi pegawai'))
+}
+
+export const getOvertimesById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const startDate = req.query.startDate
+    ? new Date(req.query.startDate as string)
+    : undefined
+  const endDate = req.query.endDate
+    ? new Date(req.query.endDate as string)
+    : undefined
+
+  const { page, limit, search } = getParams(req)
+
+  const result = await findOvertimeById({
+    employeeId: id,
+    startDate,
+    endDate,
+    limit,
+    page,
+    search,
+  })
+
+  res.json(successResponse(result, 'lembur pegawai'))
 }
