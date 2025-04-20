@@ -34,11 +34,22 @@ export const EmployeeSchema = z.object({
 })
 
 export const CertificationSchema = z.object({
-  employeeId: z.string().uuid(),
   name: z.string().min(1),
   publisher: z.string().nullable().optional(),
-  issueDate: z.string().nullable().optional(),
-  expiryDate: z.string().nullable().optional(),
+  issueDate: z
+    .preprocess((val) => {
+      if (val === '' || val == null) return null
+      return new Date(val as string)
+    }, z.date().nullable())
+    .nullable()
+    .optional(),
+  expiryDate: z
+    .preprocess((val) => {
+      if (val === '' || val == null) return null
+      return new Date(val as string)
+    }, z.date().nullable())
+    .nullable()
+    .optional(),
 })
 
 export const StatusTrackSchema = z.object({
@@ -48,4 +59,3 @@ export const StatusTrackSchema = z.object({
 
 export type Employee = z.infer<typeof EmployeeSchema>
 export type Certification = z.infer<typeof CertificationSchema>
-export type StatusTrack = z.infer<typeof StatusTrackSchema>

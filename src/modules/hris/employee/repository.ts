@@ -1,13 +1,16 @@
+import { Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
+
+import { isValidUUID } from '@/utils/is-valid-uuid'
+import { getPaginateParams } from '@/utils/params'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
+import { deleteFile } from '@/utils/file'
 import db from '@/lib/prisma'
 
+import { PaginationParams } from '@/types'
+
 import { Certification, Employee } from './schema'
-import { Prisma } from '@prisma/client'
-import { getPaginateParams } from '@/utils/params'
-import { deleteFile } from '@/utils/file'
-import { differenceInDays, format } from 'date-fns'
 
 type Payload = Employee & {
   photoUrl?: string
@@ -23,6 +26,10 @@ export const isExist = async (id: string) => {
 }
 
 export const isCertifExist = async (id: string) => {
+  if (!isValidUUID(id)) {
+    throwError('ID tidak valid', HttpStatusCode.BadRequest)
+  }
+
   const data = await db.certification.findUnique({ where: { id } })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
@@ -245,62 +252,29 @@ export const readAllInfinite = async (
   }
 }
 
-export const addPhoto = async (id: string, newPhoto: string) => {
-  if (newPhoto) {
-    const data = await db.employee.findUnique({ where: { id } })
-    if (data?.photoUrl) {
-      deleteFile(data?.photoUrl)
-    }
-  }
-
-  await db.employee.update({
-    where: { id },
-    data: {
-      photoUrl: newPhoto,
-    },
-  })
-}
-
-export const deletePhoto = async (id: string) => {
-  const data = await db.employee.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      photoUrl: true,
-    },
-  })
-  if (data?.photoUrl) {
-    deleteFile(data?.photoUrl)
-  }
-  await db.employee.update({
-    where: { id },
-    data: {
-      photoUrl: null,
-    },
-  })
-}
-
-export const createCertification = async (
+// CERTIFICATION
+export const createCertificate = async (
   employeeId: string,
   payload: Certification & { fileUrl?: string },
 ) => {
   return await db.certification.create({
     data: {
-      name: payload.name,
-      expiryDate: payload.expiryDate,
-      issueDate: payload.issueDate,
-      fileUrl: payload.fileUrl,
       employeeId,
+      name: payload.name,
+      fileUrl: payload.fileUrl,
+      publisher: payload.publisher,
+      issueDate: payload.issueDate,
+      expiryDate: payload.expiryDate,
     },
   })
 }
 
-export const updateCertification = async (
+export const updateCertificate = async (
   id: string,
-  payload: Certification & { fileUrl?: string },
+  payload: Certification & { fileUrl?: string; changeFile?: boolean },
 ) => {
   const data = await db.certification.findUnique({ where: { id } })
-  if (payload.fileUrl && data.fileUrl) {
+  if (payload.changeFile && data.fileUrl) {
     await deleteFile(data.fileUrl)
   }
 
@@ -308,99 +282,84 @@ export const updateCertification = async (
     where: { id },
     data: {
       name: payload.name,
-      expiryDate: payload.expiryDate,
-      issueDate: payload.issueDate,
       fileUrl: payload.fileUrl,
+      publisher: payload.publisher,
+      issueDate: payload.issueDate,
+      expiryDate: payload.expiryDate,
     },
   })
 }
 
-export const deleteCertification = async (id: string) => {
-  const data = await db.certification.findUnique({
+export const destroyCertificate = async (id: string) => {
+  await db.certification.update({
     where: { id },
-    select: {
-      fileUrl: true,
-      employeeId: true,
-    },
+    data: { deletedAt: new Date() },
   })
-  if (data?.fileUrl) {
-    deleteFile(data.fileUrl)
+}
+
+export const findCertificates = async ({
+  search,
+  page,
+  limit,
+}: PaginationParams) => {
+  const where: Prisma.CertificationWhereInput = {
+    deletedAt: null,
+    name: search ? { contains: search, mode: 'insensitive' } : undefined,
   }
 
-  await db.certification.delete({ where: { id } })
+  const select: Prisma.CertificationSelect = {
+    id: true,
+    name: true,
+    fileUrl: true,
+    publisher: true,
+    issueDate: true,
+    expiryDate: true,
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.certification.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      select,
+    })
+
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.certification.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+      select,
+    }),
+    db.certification.count({ where }),
+  ])
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages: Math.ceil(total / limit),
+  }
 }
 
-export const readExpireCertificate = async () => {
-  const today = new Date()
-  const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
-  const oneMonthFromNow = new Date(jakartaTime)
-  oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
+export const findCertificate = async (id: string) => {
+  await isCertifExist(id)
 
-  const expiringCertificates = await db.certification.findMany({
-    where: {
-      expiryDate: {
-        lte: oneMonthFromNow,
-      },
-      employee: {
-        deletedAt: null,
-      },
-    },
-
+  return db.certification.findUnique({
+    where: { id },
     select: {
-      name: true,
       expiryDate: true,
-      employee: {
-        select: {
-          id: true,
-          fullname: true,
-          photoUrl: true,
-        },
-      },
-    },
-  })
-
-  return expiringCertificates.map((cert) => {
-    if (!cert.expiryDate) return
-    const expireDate = new Date(
-      new Date(cert.expiryDate).getTime() + 7 * 60 * 60 * 1000,
-    )
-
-    return {
-      ...cert,
-      daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
-    }
-  })
-}
-
-export const readExpireSafety = async () => {
-  const today = new Date()
-  const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
-  const oneMonthFromNow = new Date(jakartaTime)
-  oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
-
-  const expiringSafety = await db.employee.findMany({
-    where: {
-      safetyInductionDate: {
-        lte: oneMonthFromNow,
-      },
-      deletedAt: null,
-    },
-    select: {
+      issueDate: true,
+      name: true,
+      fileUrl: true,
+      publisher: true,
       id: true,
-      fullname: true,
-      photoUrl: true,
-      safetyInductionDate: true,
     },
-  })
-
-  return expiringSafety.map((item) => {
-    if (!item.safetyInductionDate) return
-    const expireDate = new Date(item.safetyInductionDate)
-
-    return {
-      ...item,
-      expireAt: format(expireDate, 'EEEE, d MMM yyyy'),
-      daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
-    }
   })
 }
