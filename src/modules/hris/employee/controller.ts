@@ -19,6 +19,7 @@ import {
   updateCertificate,
   findAttendanceById,
   findOvertimeById,
+  findCashAdvancesById,
 } from './repository'
 import {
   createResponse,
@@ -193,4 +194,20 @@ export const getOvertimesById = async (req: Request, res: Response) => {
   })
 
   res.json(successResponse(result, 'lembur pegawai'))
+}
+
+export const getCashAdvancesById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const { page, limit, search } = getParams(req)
+
+  const result = await findCashAdvancesById({
+    employeeId: id,
+    limit,
+    page,
+    search,
+  })
+
+  res.json(successResponse(result, 'kasbon pegawai'))
 }

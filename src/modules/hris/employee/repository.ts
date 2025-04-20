@@ -503,3 +503,62 @@ export const findOvertimeById = async ({
     total_pages: Math.ceil(total / limit),
   }
 }
+
+export const findCashAdvancesById = async ({
+  employeeId,
+  search,
+  page,
+  limit,
+}: {
+  employeeId: string
+  search?: string
+  page?: number
+  limit?: number
+}) => {
+  const where: Prisma.CashAdvanceWhereInput = {
+    deletedAt: null,
+    employeeId,
+    note: search ? { contains: search, mode: 'insensitive' } : undefined,
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.cashAdvance.findMany({
+      where,
+      orderBy: { date: 'desc' },
+      select: {
+        id: true,
+        amount: true,
+        note: true,
+        date: true,
+      },
+    })
+
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.cashAdvance.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { date: 'desc' },
+      select: {
+        id: true,
+        amount: true,
+        note: true,
+        date: true,
+      },
+    }),
+    db.cashAdvance.count({ where }),
+  ])
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages: Math.ceil(total / limit),
+  }
+}

@@ -5,6 +5,7 @@ import {
   deleteCertificate,
   deleteEmployee,
   getAttendancesById,
+  getCashAdvancesById,
   getCertificate,
   getCertificates,
   getEmployee,
@@ -35,6 +36,7 @@ router.delete('/:id', deleteEmployee)
 // detail
 router.get('/:id/data/attendance', getAttendancesById)
 router.get('/:id/data/overtime', getOvertimesById)
+router.get('/:id/data/cash-advance', getCashAdvancesById)
 
 // certificate
 router.get('/:id/certificate', getCertificates)
