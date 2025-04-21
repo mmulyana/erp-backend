@@ -56,7 +56,7 @@ export const create = async (data: Payload) => {
       position: data.position,
       photoUrl: data.photoUrl,
       birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
-      joinedAt: data.joinedAt,
+      joinedAt: data.joinedAt ? new Date(data.joinedAt) : undefined,
       lastEducation: data.lastEducation,
       salary: data.salary,
       overtimeSalary: data.overtimeSalary,
@@ -68,7 +68,7 @@ export const create = async (data: Payload) => {
 
 export const update = async (id: string, data: Payload) => {
   const exist = await db.employee.findUnique({ where: { id } })
-  if (exist.photoUrl) {
+  if (data.photoUrl && exist.photoUrl) {
     await deleteFile(exist.photoUrl)
   }
 
@@ -77,6 +77,9 @@ export const update = async (id: string, data: Payload) => {
     data: {
       ...data,
       birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+      safetyInductionDate: data.safetyInductionDate
+        ? new Date(data.safetyInductionDate)
+        : undefined,
     },
   })
 }
@@ -107,6 +110,7 @@ export const read = async (id: string) => {
     salary: true,
     overtimeSalary: true,
     status: true,
+    safetyInductionDate: true,
   }
   return await db.employee.findUnique({ where: { id }, select })
 }
@@ -304,13 +308,15 @@ export const findCertificates = async ({
   search,
   page,
   limit,
-}: PaginationParams) => {
+  id,
+}: PaginationParams & { id: string }) => {
   const where: Prisma.CertificateWhereInput = {
     deletedAt: null,
     name: search ? { contains: search, mode: 'insensitive' } : undefined,
+    employeeId: id,
   }
 
-  const select: Prisma.CertificateSelect = {
+const select: Prisma.CertificateSelect = {
     id: true,
     name: true,
     fileUrl: true,

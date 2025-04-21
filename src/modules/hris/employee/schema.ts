@@ -17,6 +17,13 @@ export const EmployeeSchema = z.object({
     }, z.date().nullable())
     .nullable()
     .optional(),
+  safetyInductionDate: z
+    .preprocess((val) => {
+      if (val === '' || val == null) return null
+      return new Date(val as string)
+    }, z.date().nullable())
+    .nullable()
+    .optional(),
   lastEducation: z.string().nullable().optional(),
   salary: z
     .union([z.string(), z.number()])

@@ -149,11 +149,15 @@ export const deleteCertificate = async (req: Request, res: Response) => {
   res.json(deleteResponse('sertifikat pegawai'))
 }
 export const getCertificates = async (req: Request, res: Response) => {
+  const {id} = checkParamsId(req)
+  await isExist(id)
+
   const { page, limit, search } = getParams(req)
   const result = await findCertificates({
     limit,
     page,
     search,
+    id
   })
   res.json(successResponse(result, 'sertifikasi pegawai'))
 }

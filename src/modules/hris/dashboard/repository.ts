@@ -1,4 +1,10 @@
-import { addDays, endOfDay, startOfDay } from 'date-fns'
+import {
+  addDays,
+  addYears,
+  differenceInCalendarDays,
+  endOfDay,
+  startOfDay,
+} from 'date-fns'
 import { Prisma } from '@prisma/client'
 
 import { getPaginateParams } from '@/utils/params'
@@ -16,10 +22,14 @@ export const findTotalEmployee = async () => {
       deletedAt: null,
     },
   })
-  return {
+
+  const data = {
     all: employees.length,
     active: employees.filter((i) => i.status).length,
     nonactive: employees.filter((i) => !i.status).length,
+  }
+  return {
+    data,
   }
 }
 
@@ -31,6 +41,17 @@ export const findExpiringCertificates = async ({
   const today = startOfDay(new Date())
   const deadline = endOfDay(addDays(today, day))
 
+  const include: Prisma.CertificateInclude = {
+    employee: {
+      select: {
+        id: true,
+        fullname: true,
+        position: true,
+        photoUrl: true,
+      },
+    },
+  }
+
   const where: Prisma.CertificateWhereInput = {
     expiryDate: {
       gte: today,
@@ -39,18 +60,25 @@ export const findExpiringCertificates = async ({
   }
 
   if (page === undefined || limit === undefined) {
-    const data = await db.certificate.findMany({
+    const rawData = await db.certificate.findMany({
+      include,
       where,
       orderBy: { expiryDate: 'asc' },
     })
+
+    const data = rawData.map((item) => ({
+      ...item,
+      expireUntil: differenceInCalendarDays(new Date(item.expiryDate), today),
+    }))
 
     return { data }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
 
-  const [data, total] = await Promise.all([
+  const [rawData, total] = await Promise.all([
     db.certificate.findMany({
+      include,
       where,
       orderBy: { expiryDate: 'asc' },
       skip,
@@ -58,6 +86,11 @@ export const findExpiringCertificates = async ({
     }),
     db.certificate.count({ where }),
   ])
+
+  const data = rawData.map((item) => ({
+    ...item,
+    expireUntil: differenceInCalendarDays(new Date(item.expiryDate), today),
+  }))
 
   const total_pages = Math.ceil(total / limit)
 
@@ -77,18 +110,38 @@ export const findExpiringSafetyInduction = async ({
 }: ExpiringParams) => {
   const today = startOfDay(new Date())
   const deadline = endOfDay(addDays(today, day))
+  const maxDate = addYears(deadline, -1)
 
   const where: Prisma.EmployeeWhereInput = {
     safetyInductionDate: {
-      gte: today,
-      lte: deadline,
+      lte: maxDate,
     },
   }
 
+  const select: Prisma.EmployeeSelect = {
+    id: true,
+    fullname: true,
+    position: true,
+    safetyInductionDate: true,
+    photoUrl: true,
+  }
+
   if (page === undefined || limit === undefined) {
-    const data = await db.employee.findMany({
+    const rawData = await db.employee.findMany({
       where,
+      select,
       orderBy: { safetyInductionDate: 'asc' },
+    })
+
+    const data = rawData.map((emp) => {
+      const expiryDate = addYears(emp.safetyInductionDate!, 1)
+      const expireUntil = differenceInCalendarDays(expiryDate, today)
+
+      return {
+        ...emp,
+        expiryDate,
+        expireUntil,
+      }
     })
 
     return { data }
@@ -96,9 +149,10 @@ export const findExpiringSafetyInduction = async ({
 
   const { skip, take } = getPaginateParams(page, limit)
 
-  const [data, total] = await Promise.all([
+  const [rawData, total] = await Promise.all([
     db.employee.findMany({
       where,
+      select,
       orderBy: { safetyInductionDate: 'asc' },
       skip,
       take,
@@ -106,17 +160,25 @@ export const findExpiringSafetyInduction = async ({
     db.employee.count({ where }),
   ])
 
-  const total_pages = Math.ceil(total / limit)
+  const data = rawData.map((emp) => {
+    const expiryDate = addYears(emp.safetyInductionDate!, 1)
+    const expireUntil = differenceInCalendarDays(expiryDate, today)
+
+    return {
+      ...emp,
+      expiryDate,
+      expireUntil,
+    }
+  })
 
   return {
     data,
     total,
     page,
     limit,
-    total_pages,
+    total_pages: Math.ceil(total / limit),
   }
 }
-
 export const findEmployeePosition = async () => {
   const result = await db.employee.groupBy({
     by: ['position'],
