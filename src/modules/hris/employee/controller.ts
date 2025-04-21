@@ -20,6 +20,8 @@ import {
   findAttendanceById,
   findOvertimeById,
   findCashAdvancesById,
+  findChartCashAdvancesById,
+  destroyPhoto,
 } from './repository'
 import {
   createResponse,
@@ -46,12 +48,13 @@ export const patchEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
-  const parsed = EmployeeSchema.safeParse(req.body)
+  const parsed = EmployeeSchema.partial().safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
+  const photoUrl = req?.file?.filename || undefined
 
-  const result = await update(id, parsed.data)
+  const result = await update(id, { ...parsed.data, photoUrl })
   res.json(updateResponse(result, 'pegawai'))
 }
 export const deleteEmployee = async (req: Request, res: Response) => {
@@ -94,6 +97,13 @@ export const getEmployeesInfinite = async (req: Request, res: Response) => {
   )
   res.json(successResponse(result, 'pegawai'))
 }
+export const patchDestroyPhoto = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await destroyPhoto(id)
+  res.json(updateResponse(result, 'photo pegawai'))
+}
 
 // certification
 export const postCertificate = async (req: Request, res: Response) => {
@@ -112,7 +122,6 @@ export const postCertificate = async (req: Request, res: Response) => {
   const result = await createCertificate(id, { ...parsed.data, fileUrl })
   res.json(createResponse(result, 'sertifikat pegawai'))
 }
-
 export const patchCertificate = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isCertifExist(id)
@@ -132,7 +141,6 @@ export const patchCertificate = async (req: Request, res: Response) => {
   })
   res.json(updateResponse(result, 'sertifikat pegawai'))
 }
-
 export const deleteCertificate = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isCertifExist(id)
@@ -140,7 +148,6 @@ export const deleteCertificate = async (req: Request, res: Response) => {
   await destroyCertificate(id)
   res.json(deleteResponse('sertifikat pegawai'))
 }
-
 export const getCertificates = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const result = await findCertificates({
@@ -150,7 +157,6 @@ export const getCertificates = async (req: Request, res: Response) => {
   })
   res.json(successResponse(result, 'sertifikasi pegawai'))
 }
-
 export const getCertificate = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   const result = await findCertificate(id)
@@ -170,7 +176,6 @@ export const getAttendancesById = async (req: Request, res: Response) => {
 
   res.json(successResponse(result, 'absensi pegawai'))
 }
-
 export const getOvertimesById = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
@@ -195,7 +200,6 @@ export const getOvertimesById = async (req: Request, res: Response) => {
 
   res.json(successResponse(result, 'lembur pegawai'))
 }
-
 export const getCashAdvancesById = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
@@ -210,4 +214,12 @@ export const getCashAdvancesById = async (req: Request, res: Response) => {
   })
 
   res.json(successResponse(result, 'kasbon pegawai'))
+}
+export const getChartCashAdvancesById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await findChartCashAdvancesById(id)
+
+  res.json(successResponse(result, 'chart kasbon pegawai'))
 }

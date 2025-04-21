@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 
 export async function deleteFile(filename: string) {
-  let filePath = 'public/upload/' + filename
+  let filePath = 'uploads/' + filename
   try {
     await fs.unlink(filePath)
     console.log(`Successfully deleted file: ${filePath}`)

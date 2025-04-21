@@ -8,11 +8,13 @@ import {
   getCashAdvancesById,
   getCertificate,
   getCertificates,
+  getChartCashAdvancesById,
   getEmployee,
   getEmployees,
   getEmployeesInfinite,
   getOvertimesById,
   patchCertificate,
+  patchDestroyPhoto,
   patchEmployee,
   postCertificate,
   postEmployee,
@@ -30,13 +32,15 @@ router.delete('/data/certificate/:id', deleteCertificate)
 router.get('/', getEmployees)
 router.post('/:prefix', upload.single('photoUrl'), postEmployee)
 router.get('/:id', getEmployee)
-router.patch('/:id', patchEmployee)
+router.patch('/:id', upload.single('photoUrl'), patchEmployee)
 router.delete('/:id', deleteEmployee)
+router.patch('/:id/photo', patchDestroyPhoto)
 
 // detail
 router.get('/:id/data/attendance', getAttendancesById)
 router.get('/:id/data/overtime', getOvertimesById)
 router.get('/:id/data/cash-advance', getCashAdvancesById)
+router.get('/:id/data/cash-advance/chart', getChartCashAdvancesById)
 
 // certificate
 router.get('/:id/certificate', getCertificates)

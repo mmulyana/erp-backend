@@ -1,5 +1,18 @@
 import { Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
+import {
+  addMonths,
+  differenceInCalendarMonths,
+  eachDayOfInterval,
+  endOfDay,
+  endOfMonth,
+  format,
+  getDate,
+  startOfDay,
+  startOfMonth,
+  subMonths,
+} from 'date-fns'
+import { id as ind } from 'date-fns/locale'
 
 import { isValidUUID } from '@/utils/is-valid-uuid'
 import { getPaginateParams } from '@/utils/params'
@@ -11,15 +24,6 @@ import db from '@/lib/prisma'
 import { PaginationParams } from '@/types'
 
 import { Certification, Employee } from './schema'
-import {
-  addMonths,
-  differenceInCalendarMonths,
-  eachDayOfInterval,
-  endOfDay,
-  getDate,
-  getMonth,
-  startOfDay,
-} from 'date-fns'
 
 type Payload = Employee & {
   photoUrl?: string
@@ -39,7 +43,7 @@ export const isCertifExist = async (id: string) => {
     throwError('ID tidak valid', HttpStatusCode.BadRequest)
   }
 
-  const data = await db.certification.findUnique({ where: { id } })
+  const data = await db.certificate.findUnique({ where: { id } })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
@@ -51,7 +55,7 @@ export const create = async (data: Payload) => {
       fullname: data.fullname,
       position: data.position,
       photoUrl: data.photoUrl,
-      birthDate: data.birthDate,
+      birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
       joinedAt: data.joinedAt,
       lastEducation: data.lastEducation,
       salary: data.salary,
@@ -63,9 +67,17 @@ export const create = async (data: Payload) => {
 }
 
 export const update = async (id: string, data: Payload) => {
+  const exist = await db.employee.findUnique({ where: { id } })
+  if (exist.photoUrl) {
+    await deleteFile(exist.photoUrl)
+  }
+
   return await db.employee.update({
     where: { id },
-    data,
+    data: {
+      ...data,
+      birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+    },
   })
 }
 
@@ -95,38 +107,6 @@ export const read = async (id: string) => {
     salary: true,
     overtimeSalary: true,
     status: true,
-    attendances: {
-      select: {
-        date: true,
-        id: true,
-        employeeId: true,
-        type: true,
-      },
-    },
-    overtimes: {
-      select: {
-        id: true,
-        date: true,
-        note: true,
-        totalHour: true,
-      },
-    },
-    certifications: {
-      select: {
-        id: true,
-        expiryDate: true,
-        fileUrl: true,
-        issueDate: true,
-        name: true,
-        publisher: true,
-      },
-    },
-    projects: {
-      select: {
-        id: true,
-        name: true,
-      },
-    },
   }
   return await db.employee.findUnique({ where: { id }, select })
 }
@@ -261,12 +241,26 @@ export const readAllInfinite = async (
   }
 }
 
+export const destroyPhoto = async (id: string) => {
+  const data = await db.employee.findUnique({ where: { id } })
+  if (data.photoUrl) {
+    await deleteFile(data.photoUrl)
+  }
+
+  return await db.employee.update({
+    where: { id },
+    data: {
+      photoUrl: null,
+    },
+  })
+}
+
 // CERTIFICATION
 export const createCertificate = async (
   employeeId: string,
   payload: Certification & { fileUrl?: string },
 ) => {
-  return await db.certification.create({
+  return await db.certificate.create({
     data: {
       employeeId,
       name: payload.name,
@@ -282,12 +276,12 @@ export const updateCertificate = async (
   id: string,
   payload: Certification & { fileUrl?: string; changeFile?: boolean },
 ) => {
-  const data = await db.certification.findUnique({ where: { id } })
+  const data = await db.certificate.findUnique({ where: { id } })
   if (payload.changeFile && data.fileUrl) {
     await deleteFile(data.fileUrl)
   }
 
-  return await db.certification.update({
+  return await db.certificate.update({
     where: { id },
     data: {
       name: payload.name,
@@ -300,7 +294,7 @@ export const updateCertificate = async (
 }
 
 export const destroyCertificate = async (id: string) => {
-  await db.certification.update({
+  await db.certificate.update({
     where: { id },
     data: { deletedAt: new Date() },
   })
@@ -311,12 +305,12 @@ export const findCertificates = async ({
   page,
   limit,
 }: PaginationParams) => {
-  const where: Prisma.CertificationWhereInput = {
+  const where: Prisma.CertificateWhereInput = {
     deletedAt: null,
     name: search ? { contains: search, mode: 'insensitive' } : undefined,
   }
 
-  const select: Prisma.CertificationSelect = {
+  const select: Prisma.CertificateSelect = {
     id: true,
     name: true,
     fileUrl: true,
@@ -326,7 +320,7 @@ export const findCertificates = async ({
   }
 
   if (page === undefined || limit === undefined) {
-    const data = await db.certification.findMany({
+    const data = await db.certificate.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       select,
@@ -338,14 +332,14 @@ export const findCertificates = async ({
   const { skip, take } = getPaginateParams(page, limit)
 
   const [data, total] = await Promise.all([
-    db.certification.findMany({
+    db.certificate.findMany({
       where,
       skip,
       take,
       orderBy: { createdAt: 'desc' },
       select,
     }),
-    db.certification.count({ where }),
+    db.certificate.count({ where }),
   ])
 
   return {
@@ -360,7 +354,7 @@ export const findCertificates = async ({
 export const findCertificate = async (id: string) => {
   await isCertifExist(id)
 
-  return db.certification.findUnique({
+  return db.certificate.findUnique({
     where: { id },
     select: {
       expiryDate: true,
@@ -561,4 +555,47 @@ export const findCashAdvancesById = async ({
     limit,
     total_pages: Math.ceil(total / limit),
   }
+}
+
+export const findChartCashAdvancesById = async (employeeId: string) => {
+  const now = new Date()
+
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const date = subMonths(now, 5 - i)
+    return {
+      key: format(date, 'yyyy-MM'),
+      label: format(date, 'LLLL', { locale: ind }),
+      start: startOfMonth(date),
+      end: endOfMonth(date),
+    }
+  })
+
+  const advances = await db.cashAdvance.findMany({
+    where: {
+      deletedAt: null,
+      employeeId,
+      date: {
+        gte: months[0].start,
+        lte: months[5].end,
+      },
+    },
+    select: {
+      date: true,
+      amount: true,
+    },
+  })
+
+  // group dan jumlah amount per bulan
+  const chartData = months.map(({ label, start, end }) => {
+    const total = advances
+      .filter((a) => a.date >= start && a.date <= end)
+      .reduce((sum, curr) => sum + curr.amount, 0)
+
+    return {
+      month: label,
+      total,
+    }
+  })
+
+  return chartData
 }
