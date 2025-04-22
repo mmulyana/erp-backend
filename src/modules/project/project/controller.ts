@@ -22,10 +22,8 @@ import {
   successResponse,
   updateResponse,
 } from '@/utils/response'
-import { errorParse, throwError } from '@/utils/error-handler'
+import { errorParse } from '@/utils/error-handler'
 import { checkParamsId, getParams } from '@/utils/params'
-import { Messages } from '@/utils/constant'
-import { HttpStatusCode } from 'axios'
 
 export const saveProject = async (req: Request, res: Response) => {
   const parsed = ProjectSchema.safeParse(req.body)
@@ -111,6 +109,17 @@ export const readProjects = async (req: Request, res: Response) => {
       percentage: paymentPercentage,
       option: paymentOption as any,
     },
+  })
+
+  res.json(successResponse(result, 'proyek'))
+}
+export const readProjectsInfinite = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const result = await readAll({
+    page,
+    limit,
+    search,
+    infinite: true,
   })
 
   res.json(successResponse(result, 'proyek'))

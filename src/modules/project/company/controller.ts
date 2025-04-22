@@ -19,6 +19,7 @@ export const saveCompany = async (req: Request, res: Response) => {
   const result = await create(parsed.data)
   res.json(createResponse(result, 'Perusahaan baru'))
 }
+
 export const updateCompany = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
@@ -31,6 +32,7 @@ export const updateCompany = async (req: Request, res: Response) => {
   const result = await update(id, parsed.data)
   res.json(updateResponse(result, 'Perusahaan'))
 }
+
 export const destroyCompany = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
@@ -38,6 +40,7 @@ export const destroyCompany = async (req: Request, res: Response) => {
   await destroy(id)
   res.json(deleteResponse('Perusahaan'))
 }
+
 export const readCompany = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
@@ -48,5 +51,11 @@ export const readCompany = async (req: Request, res: Response) => {
 export const readCompanies = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const result = await readAll({ page, limit, search })
+  res.json(successResponse(result, 'Perusahaan'))
+}
+
+export const readCompaniesInfinite = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const result = await readAll({ page, limit, search, infinite: true })
   res.json(successResponse(result, 'Perusahaan'))
 }

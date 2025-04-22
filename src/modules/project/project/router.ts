@@ -10,9 +10,13 @@ import {
   saveAssignEmployeee,
   updateAssignEmployeee,
   destroyAssignEmployeee,
+  readProjectsInfinite,
 } from './controller'
 
 const router = Router()
+
+router.get('/data/infinite', readProjectsInfinite)
+router.patch('data/total', readTotalProject)
 
 router.get('/', readProjects)
 router.get('/:id', readProject)
@@ -26,6 +30,5 @@ router.post('assign/employee', saveAssignEmployeee)
 router.patch('assign/employee/:id', updateAssignEmployeee)
 router.delete('assign/employee/:id', destroyAssignEmployeee)
 
-router.patch('data/total', readTotalProject)
 
 export default router

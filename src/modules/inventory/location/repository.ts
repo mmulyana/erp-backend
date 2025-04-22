@@ -11,6 +11,11 @@ import { Location } from './schema'
 const select: Prisma.LocationInventorySelect = {
   id: true,
   name: true,
+  _count: {
+    select: {
+      inventories: true,
+    },
+  },
 }
 
 export const create = async (payload: Location & { photoUrl?: string }) => {

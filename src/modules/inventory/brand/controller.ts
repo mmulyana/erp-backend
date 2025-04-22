@@ -9,7 +9,15 @@ import {
   updateResponse,
 } from '@/utils/response'
 
-import { create, destroy, isExist, read, readAll, update } from './repository'
+import {
+  create,
+  destroy,
+  destroyPhoto,
+  isExist,
+  read,
+  readAll,
+  update,
+} from './repository'
 import { BrandSchema } from './schema'
 
 export const getBrand = async (req: Request, res: Response) => {
@@ -81,4 +89,12 @@ export const postBrand = async (req: Request, res: Response) => {
     photoUrl,
   })
   res.json(createResponse(result, 'merek'))
+}
+
+export const patchDestroyPhotoBrand = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await destroyPhoto(id)
+  res.json(updateResponse(result, 'merek'))
 }

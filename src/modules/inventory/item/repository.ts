@@ -80,9 +80,15 @@ type readAllParams = {
   page?: number
   limit?: number
   search?: string
+  infinite?: boolean
 }
 
-export const readAll = async ({ limit, page, search }: readAllParams) => {
+export const readAll = async ({
+  limit,
+  page,
+  search,
+  infinite,
+}: readAllParams) => {
   const where: Prisma.InventoryWhereInput = {
     AND: [
       search
@@ -108,6 +114,7 @@ export const readAll = async ({ limit, page, search }: readAllParams) => {
   }
 
   const { skip, take } = getPaginateParams(page, limit)
+
   const [data, total] = await Promise.all([
     db.inventory.findMany({
       where,
@@ -122,49 +129,20 @@ export const readAll = async ({ limit, page, search }: readAllParams) => {
   ])
 
   const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
+
+  if (infinite) {
+    return {
+      data,
+      nextPage: hasNextPage ? page + 1 : undefined,
+    }
+  }
   return {
     data,
     page,
     limit,
     total_pages,
     total,
-  }
-}
-
-export const readAllInfinite = async ({ limit, page, search }: readAllParams) => {
-  const where: Prisma.InventoryWhereInput = {
-    AND: [
-      search
-        ? {
-            name: { contains: search, mode: 'insensitive' },
-          }
-        : {},
-      {
-        deletedAt: null,
-      },
-    ],
-  }
-
-  const { skip, take } = getPaginateParams(page, limit)
-
-  const [data, total] = await Promise.all([
-    db.inventory.findMany({
-      select,
-      where,
-      skip,
-      take,
-      orderBy: {
-        name: 'desc',
-      },
-    }),
-    db.inventory.count({ where }),
-  ])
-
-  const hasNextPage = page * limit < total
-
-  return {
-    data,
-    nextPage: hasNextPage ? page + 1 : undefined,
   }
 }
 

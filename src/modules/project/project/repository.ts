@@ -57,6 +57,7 @@ type Params = {
     percentage?: number
     option: '==' | '<=' | '>='
   }
+  infinite?: boolean
 }
 
 export const isExist = async (id: string) => {
@@ -158,6 +159,7 @@ export const readAll = async ({
   netValue,
   progress,
   payment,
+  infinite,
 }: Params) => {
   const where: Prisma.ProjectWhereInput = {
     AND: [
@@ -235,6 +237,15 @@ export const readAll = async ({
   ])
 
   const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
+
+  if (infinite) {
+    return {
+      data,
+      nextPage: hasNextPage ? page + 1 : undefined,
+    }
+  }
+  
   return {
     data,
     total,

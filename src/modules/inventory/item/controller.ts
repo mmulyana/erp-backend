@@ -1,14 +1,6 @@
 import { checkParamsId, getParams } from '@/utils/params'
 import { Request, Response } from 'express'
-import {
-  create,
-  destroy,
-  isExist,
-  read,
-  readAll,
-  readAllInfinite,
-  update,
-} from './repository'
+import { create, destroy, isExist, read, readAll, update } from './repository'
 import {
   createResponse,
   deleteResponse,
@@ -40,10 +32,11 @@ export const getInventories = async (req: Request, res: Response) => {
 export const getInventoriesInfinite = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
 
-  const result = await readAllInfinite({
+  const result = await readAll({
     limit,
     page,
     search,
+    infinite: true,
   })
   res.json(successResponse(result, 'inventory'))
 }

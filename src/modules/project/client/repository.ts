@@ -14,18 +14,12 @@ type ChartData = {
   fill?: string | null
 }
 
-type ChartConfig = {
-  [key: string]: {
-    label: string
-    color: string
-  }
-}
-
 type Params = {
   page?: number
   limit?: number
   search?: string
   companyId?: string
+  infinite?: boolean
 }
 
 export const isExist = async (id: string) => {
@@ -69,7 +63,13 @@ export const destroy = async (id: string) => {
   })
 }
 
-export const readAll = async ({ page, limit, search, companyId }: Params) => {
+export const readAll = async ({
+  page,
+  limit,
+  search,
+  companyId,
+  infinite,
+}: Params) => {
   let where: Prisma.ClientWhereInput = {
     AND: [
       search !== undefined
@@ -104,6 +104,14 @@ export const readAll = async ({ page, limit, search, companyId }: Params) => {
   ])
 
   const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
+
+  if (infinite) {
+    return {
+      data,
+      nextPage: hasNextPage ? page + 1 : undefined,
+    }
+  }
   return {
     data,
     total,
@@ -154,20 +162,7 @@ export const topClients = async () => {
     fill: colors[index],
   }))
 
-  const chartConfig: ChartConfig = clients.reduce<ChartConfig>(
-    (config, item, index) => {
-      const clientKey = item.clientName.toLowerCase()
-      config[clientKey] = {
-        label: item.clientName,
-        color: colors[index],
-      }
-      return config
-    },
-    {},
-  )
-
   return {
     chartData,
-    chartConfig,
   }
 }

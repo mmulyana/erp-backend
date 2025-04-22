@@ -6,6 +6,7 @@ import {
   getBrands,
   getBrandsInfinite,
   patchBrand,
+  patchDestroyPhotoBrand,
   postBrand,
 } from './controller'
 
@@ -17,5 +18,7 @@ router.get('/:id', getBrand)
 router.patch('/:id', upload.single('photoUrl'), patchBrand)
 router.post('/', upload.single('photoUrl'), postBrand)
 router.delete('/:id', deleteBrand)
+
+router.patch('/:id/photo', patchDestroyPhotoBrand)
 
 export default router

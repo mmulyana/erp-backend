@@ -17,7 +17,7 @@ export const getLocation = async (req: Request, res: Response) => {
   await isExist(id)
 
   const result = await read(id)
-  res.json(successResponse(result, 'merek'))
+  res.json(successResponse(result, 'lokasi'))
 }
 
 export const getLocations = async (req: Request, res: Response) => {
@@ -28,7 +28,7 @@ export const getLocations = async (req: Request, res: Response) => {
     page,
     search,
   })
-  res.json(successResponse(result, 'merek'))
+  res.json(successResponse(result, 'lokasi'))
 }
 
 export const getLocationsInfinite = async (req: Request, res: Response) => {
@@ -40,7 +40,7 @@ export const getLocationsInfinite = async (req: Request, res: Response) => {
     search,
     infinite: true,
   })
-  res.json(successResponse(result, 'merek'))
+  res.json(successResponse(result, 'lokasi'))
 }
 
 export const deleteLocation = async (req: Request, res: Response) => {
@@ -48,7 +48,7 @@ export const deleteLocation = async (req: Request, res: Response) => {
   await isExist(id)
 
   await destroy(id)
-  res.json(deleteResponse(null, 'merek'))
+  res.json(deleteResponse(null, 'lokasi'))
 }
 
 export const patchLocation = async (req: Request, res: Response) => {
@@ -66,7 +66,7 @@ export const patchLocation = async (req: Request, res: Response) => {
     createdBy: req.user.id,
     photoUrl,
   })
-  res.json(updateResponse(result, 'merek'))
+  res.json(updateResponse(result, 'lokasi'))
 }
 
 export const postLocation = async (req: Request, res: Response) => {
@@ -80,5 +80,5 @@ export const postLocation = async (req: Request, res: Response) => {
     ...parsed.data,
     photoUrl,
   })
-  res.json(createResponse(result, 'merek'))
+  res.json(createResponse(result, 'lokasi'))
 }

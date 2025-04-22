@@ -58,8 +58,9 @@ type Params = {
   page?: number
   limit?: number
   search?: string
+  infinite?: boolean
 }
-export const readAll = async ({ page, limit, search }: Params) => {
+export const readAll = async ({ page, limit, search, infinite }: Params) => {
   const where: Prisma.CompanyClientWhereInput = {
     AND: [search !== undefined ? { name: { contains: search } } : {}],
   }
@@ -91,6 +92,15 @@ export const readAll = async ({ page, limit, search }: Params) => {
   ])
 
   const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
+
+  if (infinite) {
+    return {
+      data,
+      nextPage: hasNextPage ? page + 1 : undefined,
+    }
+  }
+  
   return {
     data,
     total,

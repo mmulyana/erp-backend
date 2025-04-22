@@ -6,10 +6,12 @@ import {
   updateClient,
   destroyClient,
   readTopClient,
+  readClientsInfinite,
 } from './controller'
 
 const router = Router()
 
+router.get('/data/infinite', readClientsInfinite)
 router.get('/', readClients)
 router.get('/:id', readClient)
 router.post('/', saveClient)

@@ -7,6 +7,7 @@ import { Messages } from '@/utils/constant'
 import db from '@/lib/prisma'
 
 import { Brand } from './schema'
+import { deleteFile } from '@/utils/file'
 
 const select: Prisma.BrandInventorySelect = {
   id: true,
@@ -138,4 +139,13 @@ export const isExist = async (id: string) => {
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
+}
+
+export const destroyPhoto = async (id: string) => {
+  const data = await db.brandInventory.findUnique({ where: { id } })
+  if (data.photoUrl) {
+    await deleteFile(data.photoUrl)
+  }
+
+  await db.brandInventory.update({ where: { id }, data: { photoUrl: null } })
 }

@@ -74,6 +74,23 @@ export const readClients = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'klien'))
 }
 
+export const readClientsInfinite = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const companyId = req.params.companyId
+    ? String(req.params.companyId)
+    : undefined
+
+  const result = await readAll({
+    page,
+    limit,
+    search,
+    companyId,
+    infinite: true,
+  })
+
+  res.json(successResponse(result, 'klien'))
+}
+
 export const readTopClient = async (req: Request, res: Response) => {
   const result = await topClients()
   res.json(successResponse(result, 'top klien'))

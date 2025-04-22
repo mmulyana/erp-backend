@@ -8,7 +8,7 @@ import {
   updateResponse,
 } from '@/utils/response'
 
-import { boardChart, create, destroy, read, update } from './repository'
+import { create, destroy, read, update } from './repository'
 import { BoardSchema } from './schema'
 
 export const saveBoard = async (req: Request, res: Response) => {
@@ -42,10 +42,5 @@ export const destroyBoard = async (req: Request, res: Response) => {
 
 export const readBoards = async (req: Request, res: Response) => {
   const result = await read()
-  res.json(result)
-}
-
-export const readBoardChart = async (req: Request, res: Response) => {
-  const result = await boardChart()
   res.json(result)
 }

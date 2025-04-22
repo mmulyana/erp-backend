@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   deleteInventory,
   getInventories,
+  getInventoriesInfinite,
   getInventory,
   patchInventory,
   postInventory,
@@ -10,7 +11,7 @@ import upload from '@/utils/upload'
 
 const router = Router()
 
-router.get('/data/infinite')
+router.get('/data/infinite', getInventoriesInfinite)
 router.get('/', getInventories)
 router.get('/:id', getInventory)
 router.patch('/:id', upload.single('photoUrl'), patchInventory)
