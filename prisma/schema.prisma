@@ -71,7 +71,7 @@ model Employee {
   deletedAt DateTime?
 
   assignedEmployee AssignedEmployee[]
-  certificates   Certificate[]
+  certificates     Certificate[]
   cashAdvances     CashAdvance[]
   attendances      Attendance[]
   overtimes        Overtime[]
@@ -286,16 +286,15 @@ model CompanyClient {
 
 // Inventory
 model Inventory {
-  id          String  @id @default(uuid()) @db.Uuid()
-  locationId  String? @db.Uuid()
-  brandId     String? @db.Uuid()
-  cratedBy    String? @db.Uuid()
-  name        String  @db.VarChar(50)
-  minimum     Int     @default(1)
-  description String? @db.VarChar(255)
-  measurement String? @db.VarChar(50)
-  category    String  @db.VarChar(50)
-  photoUrl    String  @db.VarChar(100)
+  id                String  @id @default(uuid()) @db.Uuid()
+  locationId        String? @db.Uuid()
+  brandId           String? @db.Uuid()
+  createdBy         String? @db.Uuid()
+  name              String  @db.VarChar(50)
+  minimum           Int     @default(1)
+  description       String? @db.VarChar(255)
+  unitOfMeasurement String? @db.VarChar(50)
+  photoUrl          String?  @db.VarChar(100)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -303,13 +302,10 @@ model Inventory {
 
   location LocationInventory? @relation(fields: [locationId], references: [id])
   brand    BrandInventory?    @relation(fields: [brandId], references: [id])
-  user     User?              @relation(fields: [cratedBy], references: [id])
+  user     User?              @relation(fields: [createdBy], references: [id])
 
   stockLoans  StockLoan[]
   StockLedger StockLedger[]
-
-  @@index([locationId])
-  @@index([brandId])
 }
 
 model StockLoan {
@@ -341,9 +337,9 @@ model StockLedger {
   type           TransactionType
   quantity       Int
   resultQuantity Int
-  note           String          @db.VarChar(255)
+  note           String?          @db.VarChar(255)
   date           DateTime
-  photoUrl       String          @db.VarChar(100)
+  photoUrl       String?          @db.VarChar(100)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

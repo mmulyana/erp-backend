@@ -1,67 +1,125 @@
-import db from '../../../lib/db'
+import { Prisma } from '@prisma/client'
+import { HttpStatusCode } from 'axios'
+
+import { getPaginateParams } from '@/utils/params'
+import { throwError } from '@/utils/error-handler'
+import { Messages } from '@/utils/constant'
+import db from '@/lib/prisma'
+
 import { Location } from './schema'
 
-export default class LocationRepository {
-  create = async (payload: Location) => {
-    await db.location.create({ data: payload })
+const select: Prisma.LocationInventorySelect = {
+  id: true,
+  name: true,
+}
+
+export const create = async (payload: Location & { photoUrl?: string }) => {
+  return db.locationInventory.create({
+    data: {
+      name: payload.name,
+    },
+  })
+}
+
+export const update = async (
+  id: string,
+  payload: Location & { createdBy: string; photoUrl?: string },
+) => {
+  return db.locationInventory.update({
+    where: { id },
+    data: {
+      name: payload.name,
+    },
+  })
+}
+
+export const destroy = async (id: string) => {
+  return db.locationInventory.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+  })
+}
+
+export const read = async (id: string) => {
+  const data = await db.locationInventory.findUnique({ where: { id }, select })
+  return { data }
+}
+
+type readAllParams = {
+  page?: number
+  limit?: number
+  search?: string
+  infinite?: boolean
+}
+
+export const readAll = async ({
+  limit,
+  page,
+  search,
+  infinite,
+}: readAllParams) => {
+  const where: Prisma.LocationInventoryWhereInput = {
+    AND: [
+      search
+        ? {
+            name: { contains: search, mode: 'insensitive' },
+          }
+        : {},
+      {
+        deletedAt: null,
+      },
+    ],
   }
-  update = async (id: number, payload: Location) => {
-    await this.isExist(id)
-    return await db.location.update({
-      data: payload,
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            goods: true,
-          },
-        },
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.locationInventory.findMany({
+      select,
+      where,
+      orderBy: {
+        createdAt: 'desc',
       },
     })
+    return { data }
   }
-  delete = async (id: number) => {
-    await this.isExist(id)
-    await db.location.delete({ where: { id } })
-  }
-  read = async (name?: string) => {
-    const baseQuery = {
-      where: {},
-      include: {
-        _count: {
-          select: {
-            goods: true,
-          },
-        },
-      },
-    }
 
-    if (name) {
-      baseQuery.where = {
-        ...baseQuery.where,
-        OR: [
-          { name: { contains: name.toLowerCase() } },
-          { name: { contains: name.toUpperCase() } },
-          { name: { contains: name } },
-        ],
-      }
-    }
-
-    return await db.location.findMany(baseQuery)
-  }
-  readOne = async (id: number) => {
-    return await db.location.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            goods: true,
-          },
-        },
+  const { skip, take } = getPaginateParams(page, limit)
+  const [data, total] = await Promise.all([
+    db.locationInventory.findMany({
+      where,
+      select,
+      orderBy: {
+        name: 'desc',
       },
-    })
+      skip,
+      take,
+    }),
+    db.locationInventory.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
+
+  if (infinite) {
+    return {
+      data,
+      nextPage: hasNextPage ? page + 1 : undefined,
+    }
   }
-  isExist = async (id: number) => {
-    const data = await db.location.findUnique({ where: { id } })
-    if (!data) throw Error('Lokasi tidak ditemukan')
+
+  return {
+    data,
+    page,
+    limit,
+    total_pages,
+    total,
+  }
+}
+
+export const isExist = async (id: string) => {
+  const data = await db.locationInventory.findUnique({ where: { id } })
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 }

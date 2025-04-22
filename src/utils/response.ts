@@ -29,3 +29,8 @@ export const createResponse = (data?: any, title?: string) => ({
     : 'data berhasil ditambahkan',
   data,
 })
+
+export const customResponse = (data?: any, title?: string) => ({
+  message: title,
+  data,
+})

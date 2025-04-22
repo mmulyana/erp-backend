@@ -1,16 +1,15 @@
 import { HttpStatusCode } from 'axios'
+import { Prisma } from '@prisma/client'
 
 import db from '@/lib/prisma'
 
-import { isValidUUID } from '@/utils/is-valid-uuid'
 import { throwError } from '@/utils/error-handler'
 import { getPaginateParams } from '@/utils/params'
 import { Messages } from '@/utils/constant'
 
-import { CreateAccount, UpdateAccount } from './schema'
-import { Prisma } from '@prisma/client'
+import { Account } from './schema'
 
-export const create = async (data: CreateAccount & { password: string }) => {
+export const create = async (data: Account) => {
   const userData: Prisma.UserCreateInput = {
     username: data.username,
     email: data.email,
@@ -32,9 +31,7 @@ export const create = async (data: CreateAccount & { password: string }) => {
 
 export const update = async (
   id: string,
-  data: UpdateAccount & {
-    deletedAt?: string
-    active?: boolean
+  data: Account & {
     photoUrl?: string
     password?: string
   },
@@ -42,21 +39,30 @@ export const update = async (
   return await db.user.update({ data, where: { id } })
 }
 
-export const findAll = async (
-  page?: number,
-  limit?: number,
-  search?: string,
-  active?: boolean,
-  roleId?: string,
-) => {
+type Params = {
+  page?: number
+  limit?: number
+  search?: string
+  active?: boolean
+  roleId?: string
+  infinite?: boolean
+}
+export const findAll = async ({
+  active,
+  infinite,
+  limit,
+  page,
+  roleId,
+  search,
+}: Params) => {
   const where: Prisma.UserWhereInput = {
     AND: [
       search
         ? {
             OR: [
-              { username: { contains: search } },
-              { email: { contains: search } },
-              { phone: { contains: search } },
+              { username: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+              { phone: { contains: search, mode: 'insensitive' } },
             ],
           }
         : {},
@@ -101,6 +107,14 @@ export const findAll = async (
   ])
 
   const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
+
+  if (infinite) {
+    return {
+      data: users,
+      nextPage: hasNextPage ? page + 1 : undefined,
+    }
+  }
 
   return {
     data: users,
@@ -109,6 +123,16 @@ export const findAll = async (
     limit,
     total_pages,
   }
+}
+export const find = async (id: string) => {
+  const data = await db.user.findUnique({
+    where: { id },
+    include: {
+      role: true,
+    },
+  })
+  delete data.password
+  return { data }
 }
 
 export const findByEmail = async (email: string) => {
@@ -121,23 +145,6 @@ export const findByUsername = async (username: string) => {
 
 export const findByPhone = async (phone: string) => {
   return db.user.findUnique({ where: { phone } })
-}
-
-export const findById = async (id: string) => {
-  return db.user.findUnique({
-    where: { id },
-    include: {
-      role: true,
-      tours: true,
-    },
-  })
-}
-
-export const findRoleById = async (id: string) => {
-  if (!isValidUUID(id)) {
-    return throwError(Messages.InvalidUUID, HttpStatusCode.NotFound)
-  }
-  return db.role.findUnique({ where: { id } })
 }
 
 export const findTourByIdandKey = async (userId: string, key: string) => {
@@ -154,6 +161,22 @@ export const createTour = async (userId: string, key: string) => {
     data: {
       userId,
       key,
+    },
+  })
+}
+
+export const isExist = async (id: string) => {
+  const data = await db.user.findUnique({ where: { id } })
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.BadGateway)
+  }
+}
+
+export const destroy = async (id: string) => {
+  await db.user.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
     },
   })
 }

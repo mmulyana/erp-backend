@@ -1,23 +1,20 @@
 import { Router } from 'express'
-import Validation from '../../../helper/validation'
-import LocationController from './controller'
-import { locationSchema } from './schema'
+import {
+  deleteLocation,
+  getLocation,
+  getLocations,
+  getLocationsInfinite,
+  patchLocation,
+  postLocation,
+} from './controller'
 
-export default class LocationRouter {
-  public router: Router
-  private schema: Validation = new Validation(locationSchema)
-  private controller: LocationController = new LocationController()
+const router = Router()
 
-  constructor() {
-    this.router = Router()
-    this.register()
-  }
+router.get('/data/infinite', getLocationsInfinite)
+router.get('/', getLocations)
+router.get('/:id', getLocation)
+router.patch('/:id', patchLocation)
+router.post('/', postLocation)
+router.delete('/:id', deleteLocation)
 
-  protected register() {
-    this.router.post('/', this.schema.validate, this.controller.createHandler)
-    this.router.patch('/:id', this.schema.validate,this.controller.updateHandler)
-    this.router.delete('/:id', this.controller.deleteHandler)
-    this.router.get('/', this.controller.readHandler)
-    this.router.get('/:id', this.controller.readOneHandler)
-  }
-}
+export default router

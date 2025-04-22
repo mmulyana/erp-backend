@@ -1,38 +1,21 @@
-import RouterWithFile from '../../../helper/router-with-file'
-import Controller from './controller'
-import { Multer } from 'multer'
+import { Router } from 'express'
+import upload from '@/utils/upload'
+import {
+  deleteSupplier,
+  getSupplier,
+  getSuppliers,
+  getSuppliersInfinite,
+  patchSupplier,
+  postSupplier,
+} from './controller'
 
-export default class SupplierRouter extends RouterWithFile {
-  private controller: Controller = new Controller()
+const router = Router()
 
-  constructor(upload: Multer) {
-    super(upload, 'supplier')
-    this.register()
-  }
+router.get('/data/infinite', getSuppliersInfinite)
+router.get('/', getSuppliers)
+router.get('/:id', getSupplier)
+router.patch('/:id', upload.single('photoUrl'), patchSupplier)
+router.post('/', upload.single('photoUrl'), postSupplier)
+router.delete('/:id', deleteSupplier)
 
-  protected register() {
-    this.router.post(
-      '/',
-      this.upload.single('photo'),
-      this.compressImage,
-      // this.createSchema.validate,
-      this.controller.createHandler
-    )
-    this.router.patch(
-      '/:id',
-      this.upload.single('photo'),
-      this.compressImage,
-      // this.updateSchema.validate,
-      this.controller.updateHandler
-    )
-    this.router.patch(
-      '/:id/tags',
-      // this.updateTagSchema.validate,
-      this.controller.updateTagsHandler
-    )
-    this.router.get('/', this.controller.readHandler)
-    this.router.get('/:id', this.controller.readOneHandler)
-    this.router.delete('/:id', this.controller.deleteHandler)
-    this.router.get('/:id/transaction', this.controller.readTransactionHandler)
-  }
-}
+export default router

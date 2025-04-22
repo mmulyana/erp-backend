@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import {
-  // getTotalInYear,
   readCashAdvance,
   readCashAdvances,
   saveCashAdvance,
@@ -20,7 +19,6 @@ router.get('/report/month', getTotalInMonth)
 router.get('/report/day', getTotalInDay)
 router.get('/report/six-month', getReportInLastSixMonths)
 router.get('/report/top-5', getReportBiggestByEmployee)
-// router.get('/data/total', getTotalInYear)
 
 router.get('/', readCashAdvances)
 router.post('/', saveCashAdvance)

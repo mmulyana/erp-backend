@@ -74,11 +74,11 @@ export const getEmployee = async (req: Request, res: Response) => {
 export const getEmployees = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const active = req.query.active ? req.query.active === 'true' : undefined
-  const positionId = req.params.positionId
-    ? String(req.params.positionId)
+  const position = req.params.position
+    ? String(req.params.position)
     : undefined
 
-  const result = await readAll(page, limit, search, positionId, active)
+  const result = await readAll(page, limit, search, position, active)
   res.json(successResponse(result, 'pegawai'))
 }
 export const getEmployeesInfinite = async (req: Request, res: Response) => {

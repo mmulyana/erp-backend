@@ -14,6 +14,8 @@ import cashadvanceRoutes from './hris/cash-advance/router'
 
 import dashboardHrisRoutes from './hris/dashboard/router'
 
+import itemRoutes from './inventory/item/router'
+
 import projectRoutes from './project/project/router'
 import clientRoutes from './project/client/router'
 import companyClientRoutes from './project/company/router'
@@ -26,12 +28,14 @@ route.use('/user', isAuthenticated, userRoutes)
 route.use('/role', isAuthenticated, roleRoutes)
 route.use('/permission', isAuthenticated, permissionRoutes)
 
-route.use('/employee', employeeRoutes)
+route.use('/employee', isAuthenticated, employeeRoutes)
 route.use('/overtime', isAuthenticated, overtimeRoutes)
 route.use('/attendance', isAuthenticated, attendanceRoutes)
 route.use('/cash-advance', isAuthenticated, cashadvanceRoutes)
 
 route.use('/dashboard/hris', isAuthenticated, dashboardHrisRoutes)
+
+route.use('/item', isAuthenticated, itemRoutes)
 
 route.use('/project', isAuthenticated, projectRoutes)
 route.use('/client', isAuthenticated, clientRoutes)

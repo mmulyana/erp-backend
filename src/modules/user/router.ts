@@ -1,33 +1,26 @@
 import { Router } from 'express'
 import {
-  removePhotoUser,
-  removeRoleUser,
-  unactivateUser,
-  createTourUser,
-  activateUser,
-  addPhotoUser,
-  addRoleUser,
-  createUser,
   deleteUser,
-  updateUser,
-  findUsers,
-  findUser,
+  getUser,
+  getUsers,
+  getUsersInfinite,
+  patchResetPassword,
+  patchUser,
+  postTourUser,
+  postUser,
 } from './controller'
 import upload from '@/utils/upload'
 
 const router = Router()
 
-router.get('/', findUsers)
-router.get('/:id', findUser)
-router.post('/', createUser)
-router.patch('/:id', updateUser)
+router.get('/data/infinite', getUsersInfinite)
+router.get('/', getUsers)
+router.get('/:id', getUser)
+router.post('/', upload.single('photoUrl'), postUser)
+router.patch('/:id', upload.single('photoUrl'), patchUser)
 router.delete('/:id', deleteUser)
-router.patch('/:id/activate', activateUser)
-router.patch('/:id/deactivate', unactivateUser)
-router.patch('/:id/role/add', addRoleUser)
-router.patch('/:id/role/remove', removeRoleUser)
-router.patch('/:id/photo/add/:prefix', upload.single('photo'), addPhotoUser)
-router.patch('/:id/photo/remove', removePhotoUser)
-router.post('/:id/tour', createTourUser)
+router.patch('/:id/reset', patchResetPassword)
+
+router.post('/:id/tour', postTourUser)
 
 export default router

@@ -1,158 +1,109 @@
 import { Request, Response } from 'express'
-import { HttpStatusCode } from 'axios'
+import { hash } from 'bcryptjs'
 
+import { checkParamsId, getParams } from '@/utils/params'
+import { errorParse } from '@/utils/error-handler'
 import {
-  AddRoleSchema,
-  CreateAccountSchema,
-  UpdateAccountSchema,
-} from './schema'
-import {
-  activateUserService,
-  addPhotoUserService,
-  addRoleUserService,
-  createUserService,
-  deleteUserService,
-  findUserService,
-  removePhotoUserService,
-  removeRoleUserService,
-  resetPasswordService,
-  saveTourService,
-  unactivateUserService,
-  updateUserService,
-} from './service'
-import { findAll, findRoleById } from './repository'
-
-import {
-  activateResponse,
   createResponse,
+  customResponse,
   deleteResponse,
   successResponse,
-  unactivateResponse,
   updateResponse,
 } from '@/utils/response'
-import { removeEmptyProperties } from '@/utils/remove-empty-object'
-import { errorParse, throwError } from '@/utils/error-handler'
-import { checkParamsId, getParams } from '@/utils/params'
-import { Messages } from '@/utils/constant'
+import {
+  create,
+  createTour,
+  destroy,
+  find,
+  findAll,
+  findTourByIdandKey,
+  isExist,
+  update,
+} from './repository'
+import { AccountSchema } from './schema'
 
-export const findUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const active = req.query.active ? req.query.active === 'true' : undefined
   const roleId = req.query.roleId ? String(req.query.roleId) : undefined
-  if (roleId) {
-    const role = await findRoleById(roleId)
-    if (!role) {
-      return throwError(
-        `Role ini ${Messages.notFound}`,
-        HttpStatusCode.NotFound,
-      )
-    }
-  }
 
-  const result = await findAll(page, limit, search, active, roleId)
-  res.json(successResponse(result))
+  const result = await findAll({ page, limit, search, active, roleId })
+  res.json(successResponse(result, 'users'))
 }
 
-export const createUser = async (req: Request, res: Response) => {
-  const body = removeEmptyProperties(req.body)
+export const getUsersInfinite = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const active = req.query.active ? req.query.active === 'true' : undefined
+  const roleId = req.query.roleId ? String(req.query.roleId) : undefined
 
-  const parsed = CreateAccountSchema.safeParse(body)
+  const result = await findAll({
+    page,
+    limit,
+    search,
+    active,
+    roleId,
+    infinite: true,
+  })
+  res.json(successResponse(result, 'users'))
+}
+
+export const postUser = async (req: Request, res: Response) => {
+  const parsed = AccountSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
-
-  const result = await createUserService(parsed.data)
+  const password = await hash(process.env.DEFAULT_PASSWORD as string, 10)
+  const result = await create({ ...parsed.data, password })
   res.json(successResponse(result, 'user'))
 }
 
-export const updateUser = async (req: Request, res: Response) => {
+export const patchUser = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
+  await isExist(id)
 
-  const body = removeEmptyProperties(req.body)
-
-  const parsed = UpdateAccountSchema.safeParse(body)
+  const parsed = AccountSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
-
-  const result = await updateUserService(id, parsed.data)
+  const password = parsed.data.password
+    ? await hash(parsed.data.password, 10)
+    : undefined
+  const result = await update(id, { ...parsed.data, password })
   res.json(updateResponse(result, 'user'))
 }
 
 export const deleteUser = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
+  await isExist(id)
 
-  await deleteUserService(id)
+  await destroy(id)
   res.json(deleteResponse('user'))
 }
 
-export const activateUser = async (req: Request, res: Response) => {
+export const getUser = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
+  await isExist(id)
 
-  await activateUserService(id)
-  res.json(activateResponse('user'))
-}
-
-export const unactivateUser = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-
-  await unactivateUserService(id)
-  res.json(unactivateResponse('user'))
-}
-
-export const addRoleUser = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-
-  const parsed = AddRoleSchema.safeParse(req.body)
-  if (!parsed.success) {
-    return errorParse(parsed.error)
-  }
-
-  const result = await addRoleUserService(id, parsed.data.roleId)
-  res.json(updateResponse(result, 'user'))
-}
-
-export const removeRoleUser = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-
-  const result = await removeRoleUserService(id)
-  res.json(updateResponse(result, 'user'))
-}
-
-export const addPhotoUser = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-  const file = req.file
-  if (!file) {
-    return throwError(Messages.fileNotSended, HttpStatusCode.BadRequest)
-  }
-
-  const result = await addPhotoUserService(id, file.filename)
-  res.json(updateResponse(result, 'user'))
-}
-
-export const removePhotoUser = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-
-  const result = await removePhotoUserService(id)
-  res.json(updateResponse(result, 'user'))
-}
-
-export const findUser = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-
-  const result = await findUserService(id)
+  const result = await find(id)
   res.json(successResponse(result, 'user'))
 }
 
-export const createTourUser = async (req: Request, res: Response) => {
+export const postTourUser = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
+  const isExist = await findTourByIdandKey(id, req.body.key)
+  if (isExist) {
+    return res.json(customResponse(null, 'Tur sudah ada'))
+  }
 
-  await saveTourService(id, req.body.key)
+  await createTour(id, req.body.key)
   res.json(createResponse('Tur'))
 }
 
-export const resetPasswordUser = async (req: Request, res: Response) => {
+export const patchResetPassword = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
-  await resetPasswordService(id)
+  const password = await hash(process.env.DEFAULT_PASSWORD as string, 10)
+  await update(id, {
+    password,
+  })
   res.json(updateResponse('password user'))
 }

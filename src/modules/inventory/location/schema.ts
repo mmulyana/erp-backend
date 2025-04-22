@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const locationSchema = z.object({
+export const LocationSchema = z.object({
   name: z.string(),
 })
-export type Location = z.infer<typeof locationSchema>
+export type Location = z.infer<typeof LocationSchema>

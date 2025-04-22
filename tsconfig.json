@@ -17,6 +17,7 @@
     "node_modules",
     "dist",
     "jest.config.mjs",
-    "src/modules/inventory",
+    // "src/modules/inventory",
+    "src/modules/project",
   ]
 }
