@@ -50,11 +50,12 @@ export const destroyClient = async (req: Request, res: Response) => {
   await destroy(id)
   res.json(deleteResponse('klien'))
 }
+
 export const readClient = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
-  const result = read(id)
+  const result = await read(id)
   res.json(successResponse(result, 'klien'))
 }
 

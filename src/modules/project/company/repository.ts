@@ -62,7 +62,12 @@ type Params = {
 }
 export const readAll = async ({ page, limit, search, infinite }: Params) => {
   const where: Prisma.CompanyClientWhereInput = {
-    AND: [search !== undefined ? { name: { contains: search } } : {}],
+    AND: [
+      search !== undefined ? { name: { contains: search } } : {},
+      {
+        deletedAt: null,
+      },
+    ],
   }
 
   const include = {
@@ -100,7 +105,7 @@ export const readAll = async ({ page, limit, search, infinite }: Params) => {
       nextPage: hasNextPage ? page + 1 : undefined,
     }
   }
-  
+
   return {
     data,
     total,
@@ -108,6 +113,15 @@ export const readAll = async ({ page, limit, search, infinite }: Params) => {
     limit,
     total_pages,
   }
+}
+
+export const destroyPhoto = async (id: string) => {
+  const data = await db.companyClient.findUnique({ where: { id } })
+  if (data.photoUrl) {
+    await deleteFile(data.photoUrl)
+  }
+
+  await db.companyClient.update({ where: { id }, data: { photoUrl: null } })
 }
 
 export const isExist = async (id: string) => {

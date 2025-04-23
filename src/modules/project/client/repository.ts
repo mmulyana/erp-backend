@@ -36,7 +36,7 @@ export const create = async (payload: Client) => {
       companyId: payload.companyId,
       email: payload.email,
       phone: payload.phone,
-      position: payload.positon,
+      position: payload.position,
     },
   })
 }
@@ -48,7 +48,7 @@ export const update = async (id: string, payload: Client) => {
       companyId: payload.companyId,
       email: payload.email,
       phone: payload.phone,
-      position: payload.positon,
+      position: payload.position,
     },
     where: { id },
   })
@@ -78,6 +78,7 @@ export const readAll = async ({
           }
         : {},
       companyId !== undefined ? { companyId } : {},
+      { deletedAt: null },
     ],
   }
 
@@ -85,6 +86,9 @@ export const readAll = async ({
     const data = await db.client.findMany({
       where,
       include: { company: true },
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
     return { data }
   }
@@ -97,7 +101,7 @@ export const readAll = async ({
       where,
       include: { company: true },
       orderBy: {
-        name: 'asc',
+        createdAt: 'desc',
       },
     }),
     db.client.count({ where }),

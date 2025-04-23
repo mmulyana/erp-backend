@@ -2,7 +2,15 @@ import { Request, Response } from 'express'
 import { CompanySchema } from './schema'
 import { errorParse } from '@/utils/error-handler'
 import { checkParamsId, getParams } from '@/utils/params'
-import { create, destroy, isExist, read, readAll, update } from './repository'
+import {
+  create,
+  destroy,
+  destroyPhoto,
+  isExist,
+  read,
+  readAll,
+  update,
+} from './repository'
 import {
   createResponse,
   deleteResponse,
@@ -10,17 +18,19 @@ import {
   updateResponse,
 } from '@/utils/response'
 
-export const saveCompany = async (req: Request, res: Response) => {
+export const postCompany = async (req: Request, res: Response) => {
   const parsed = CompanySchema.safeParse(req.body)
   if (!parsed) {
     return errorParse(parsed.error)
   }
 
-  const result = await create(parsed.data)
+  const photoUrl = req?.file?.filename || undefined
+
+  const result = await create({ ...parsed.data, photoUrl })
   res.json(createResponse(result, 'Perusahaan baru'))
 }
 
-export const updateCompany = async (req: Request, res: Response) => {
+export const patchCompany = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -29,11 +39,13 @@ export const updateCompany = async (req: Request, res: Response) => {
     return errorParse(parsed.error)
   }
 
-  const result = await update(id, parsed.data)
+  const photoUrl = req?.file?.filename || undefined
+
+  const result = await update(id, { ...parsed.data, photoUrl })
   res.json(updateResponse(result, 'Perusahaan'))
 }
 
-export const destroyCompany = async (req: Request, res: Response) => {
+export const deleteCompany = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -41,21 +53,29 @@ export const destroyCompany = async (req: Request, res: Response) => {
   res.json(deleteResponse('Perusahaan'))
 }
 
-export const readCompany = async (req: Request, res: Response) => {
+export const getCompany = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
   const result = await read(id)
   res.json(successResponse(result, 'Perusahaan'))
 }
 
-export const readCompanies = async (req: Request, res: Response) => {
+export const getCompanies = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const result = await readAll({ page, limit, search })
   res.json(successResponse(result, 'Perusahaan'))
 }
 
-export const readCompaniesInfinite = async (req: Request, res: Response) => {
+export const getCompaniesInfinite = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const result = await readAll({ page, limit, search, infinite: true })
   res.json(successResponse(result, 'Perusahaan'))
+}
+
+export const patchDestroyPhotoCompany = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await destroyPhoto(id)
+  res.json(updateResponse(result, 'merek'))
 }
