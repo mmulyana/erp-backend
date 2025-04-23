@@ -77,5 +77,5 @@ export const patchDestroyPhotoCompany = async (req: Request, res: Response) => {
   await isExist(id)
 
   const result = await destroyPhoto(id)
-  res.json(updateResponse(result, 'merek'))
+  res.json(updateResponse(result, 'Perusahaan'))
 }
