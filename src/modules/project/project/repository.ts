@@ -10,7 +10,7 @@ import { Messages } from '@/utils/constant'
 
 import { Assigned, Project } from './schema'
 
-type Payload = Project & { createdBy: string }
+type Payload = Project
 
 const select: Prisma.ProjectSelect = {
   id: true,
@@ -19,8 +19,18 @@ const select: Prisma.ProjectSelect = {
   archivedAt: true,
   attachments: true,
   boardItems: true,
-  client: true,
-  lead: true,
+  client: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  lead: {
+    select: {
+      id: true,
+      username: true,
+    },
+  },
   endedAt: true,
   startedAt: true,
   netValue: true,
@@ -34,8 +44,6 @@ const select: Prisma.ProjectSelect = {
   createdAt: true,
   updatedAt: true,
   deletedAt: true,
-  user: true,
-  createdBy: true,
 }
 
 type Params = {
@@ -102,11 +110,10 @@ export const create = async (payload: Payload) => {
       clientId: payload.clientId,
       paymentPercentage: payload.paymentPercentage || 0,
       progressPercentage: payload.progressPercentage || 0,
-      createdBy: payload.createdBy,
     },
   })
 
-  return { data }
+  return data
 }
 
 export const destroy = async (id: string) => {
@@ -245,7 +252,7 @@ export const readAll = async ({
       nextPage: hasNextPage ? page + 1 : undefined,
     }
   }
-  
+
   return {
     data,
     total,

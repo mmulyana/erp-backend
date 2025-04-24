@@ -75,7 +75,6 @@ model Employee {
   cashAdvances     CashAdvance[]
   attendances      Attendance[]
   overtimes        Overtime[]
-  projects         Project[]
 }
 
 model Certificate {
@@ -178,7 +177,6 @@ model Project {
   endedAt            DateTime?
   archivedAt         DateTime?
   boardItemsId       String    @unique
-  createdBy          String    @db.Uuid()
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -189,10 +187,9 @@ model Project {
   reports     ProjectReport[]
   stockLoans  StockLoan[]
 
-  lead       User?      @relation(fields: [leadId], references: [id])
   client     Client?    @relation(fields: [clientId], references: [id])
   boardItems BoardItems @relation(fields: [boardItemsId], references: [id])
-  user       Employee?  @relation(fields: [createdBy], references: [id])
+  lead       User?      @relation(fields: [leadId], references: [id])
 }
 
 model AssignedEmployee {
@@ -294,7 +291,7 @@ model Inventory {
   minimum           Int     @default(1)
   description       String? @db.VarChar(255)
   unitOfMeasurement String? @db.VarChar(50)
-  photoUrl          String?  @db.VarChar(100)
+  photoUrl          String? @db.VarChar(100)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -337,9 +334,9 @@ model StockLedger {
   type           TransactionType
   quantity       Int
   resultQuantity Int
-  note           String?          @db.VarChar(255)
+  note           String?         @db.VarChar(255)
   date           DateTime
-  photoUrl       String?          @db.VarChar(100)
+  photoUrl       String?         @db.VarChar(100)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

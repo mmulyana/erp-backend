@@ -8,9 +8,9 @@ export const ProjectSchema = z.object({
   progressPercentage: z.number().optional(),
   paymentPercentage: z.number().optional(),
   netValue: z.bigint().optional(),
-  startedAt: z.string(),
-  endedAt: z.string(),
-  archivedAt: z.string(),
+  startedAt: z.string().optional(),
+  endedAt: z.string().optional(),
+  archivedAt: z.string().optional(),
 })
 export const AssignedSchema = z.object({
   projectId: z.string(),

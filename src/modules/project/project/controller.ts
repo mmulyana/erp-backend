@@ -30,8 +30,7 @@ export const saveProject = async (req: Request, res: Response) => {
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
-
-  const result = await create({ ...parsed.data, createdBy: req.user.id })
+  const result = await create(parsed.data)
   res.json(createResponse(result, 'proyek baru'))
 }
 
@@ -44,7 +43,7 @@ export const updateProject = async (req: Request, res: Response) => {
     return errorParse(parsed.error)
   }
 
-  const result = await update(id, { ...parsed.data, createdBy: req.user.id })
+  const result = await update(id, parsed.data)
   res.json(updateResponse(result, 'proyek'))
 }
 
