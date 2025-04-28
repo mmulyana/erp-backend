@@ -24,6 +24,14 @@ const select: Prisma.InventorySelect = {
     },
   },
   photoUrl: true,
+  user: {
+    select: {
+      id: true,
+      username: true,
+    },
+  },
+
+  createdAt: true,
 }
 
 export const create = async (
@@ -73,7 +81,7 @@ export const destroy = async (id: string) => {
 
 export const read = async (id: string) => {
   const data = await db.inventory.findUnique({ where: { id }, select })
-  return { data }
+  return data
 }
 
 type readAllParams = {
