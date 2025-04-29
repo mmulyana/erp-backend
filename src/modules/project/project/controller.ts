@@ -10,22 +10,21 @@ import {
   isExistAssign,
   read,
   readAll,
-  totalProject,
   update,
   updateAssign,
   updateStatus,
 } from './repository'
 
+import { checkParamsId, getParams } from '@/utils/params'
+import { errorParse } from '@/utils/error-handler'
 import {
   createResponse,
   deleteResponse,
   successResponse,
   updateResponse,
 } from '@/utils/response'
-import { errorParse } from '@/utils/error-handler'
-import { checkParamsId, getParams } from '@/utils/params'
 
-export const saveProject = async (req: Request, res: Response) => {
+export const postProject = async (req: Request, res: Response) => {
   const parsed = ProjectSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
@@ -34,7 +33,7 @@ export const saveProject = async (req: Request, res: Response) => {
   res.json(createResponse(result, 'proyek baru'))
 }
 
-export const updateProject = async (req: Request, res: Response) => {
+export const patchProject = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -47,7 +46,7 @@ export const updateProject = async (req: Request, res: Response) => {
   res.json(updateResponse(result, 'proyek'))
 }
 
-export const destroyProject = async (req: Request, res: Response) => {
+export const deleteProject = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -55,15 +54,15 @@ export const destroyProject = async (req: Request, res: Response) => {
   res.json(deleteResponse('proyek'))
 }
 
-export const readProject = async (req: Request, res: Response) => {
+export const getProject = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
-  const result = read(id)
+  const result = await read(id)
   res.json(successResponse(result, 'proyek'))
 }
 
-export const readProjects = async (req: Request, res: Response) => {
+export const getProjects = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const clientId = req.params.clientId ? String(req.params.clientId) : undefined
   const leadId = req.params.leadId ? String(req.params.leadId) : undefined
@@ -112,7 +111,8 @@ export const readProjects = async (req: Request, res: Response) => {
 
   res.json(successResponse(result, 'proyek'))
 }
-export const readProjectsInfinite = async (req: Request, res: Response) => {
+
+export const getProjectsInfinite = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const result = await readAll({
     page,
@@ -124,7 +124,7 @@ export const readProjectsInfinite = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'proyek'))
 }
 
-export const updateStatusProject = async (req: Request, res: Response) => {
+export const patchStatusProject = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -137,12 +137,7 @@ export const updateStatusProject = async (req: Request, res: Response) => {
   res.json(updateResponse(result, 'status proyek'))
 }
 
-export const readTotalProject = async (req: Request, res: Response) => {
-  const result = await totalProject()
-  res.json(successResponse(result, 'total proyek'))
-}
-
-export const saveAssignEmployeee = async (req: Request, res: Response) => {
+export const postAssignEmployeee = async (req: Request, res: Response) => {
   const parsed = AssignedSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
@@ -151,7 +146,8 @@ export const saveAssignEmployeee = async (req: Request, res: Response) => {
   await createAssign(parsed.data)
   res.json(successResponse(null, 'Penugasan pegawai'))
 }
-export const updateAssignEmployeee = async (req: Request, res: Response) => {
+
+export const patchAssignEmployeee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExistAssign(id)
 
@@ -163,7 +159,8 @@ export const updateAssignEmployeee = async (req: Request, res: Response) => {
   await updateAssign(id, parsed.data)
   res.json(successResponse(null, 'Penugasan pegawai'))
 }
-export const destroyAssignEmployeee = async (req: Request, res: Response) => {
+
+export const deleteAssignEmployeee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExistAssign(id)
 

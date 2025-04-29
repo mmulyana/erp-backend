@@ -13,6 +13,11 @@ const select: Prisma.SupplierSelect = {
   name: true,
   photoUrl: true,
   address: true,
+  phone: true,
+  googleMapUrl: true,
+  email: true,
+
+  createdAt: true,
 }
 
 export const create = async (payload: Supplier & { photoUrl?: string }) => {
@@ -21,6 +26,9 @@ export const create = async (payload: Supplier & { photoUrl?: string }) => {
       name: payload.name,
       photoUrl: payload.photoUrl,
       address: payload.address,
+      email: payload.email,
+      phone: payload.phone,
+      googleMapUrl: payload.googleMapUrl,
     },
   })
 }
@@ -35,6 +43,9 @@ export const update = async (
       name: payload.name,
       photoUrl: payload.photoUrl,
       address: payload.address,
+      email: payload.email,
+      phone: payload.phone,
+      googleMapUrl: payload.googleMapUrl,
     },
   })
 }
@@ -59,10 +70,15 @@ export const read = async (id: string) => {
           price: true,
         },
       },
+      _count: {
+        select: {
+          stockIn: true,
+        },
+      },
     },
   })
 
-  return { data }
+  return data
 }
 
 type readAllParams = {

@@ -1,34 +1,31 @@
 import { Router } from 'express'
 import {
-  readProjects,
-  readProject,
-  saveProject,
-  updateProject,
-  destroyProject,
-  updateStatusProject,
-  readTotalProject,
-  saveAssignEmployeee,
-  updateAssignEmployeee,
-  destroyAssignEmployeee,
-  readProjectsInfinite,
+  deleteAssignEmployeee,
+  deleteProject,
+  getProject,
+  getProjects,
+  getProjectsInfinite,
+  patchAssignEmployeee,
+  patchProject,
+  patchStatusProject,
+  postAssignEmployeee,
+  postProject,
 } from './controller'
 
 const router = Router()
 
-router.get('/data/infinite', readProjectsInfinite)
-router.patch('data/total', readTotalProject)
+router.get('/data/infinite', getProjectsInfinite)
 
-router.get('/', readProjects)
-router.get('/:id', readProject)
-router.post('/', saveProject)
-router.patch('/:id', updateProject)
-router.delete('/:id', destroyProject)
+router.get('/', getProjects)
+router.get('/:id', getProject)
+router.post('/', postProject)
+router.patch('/:id', patchProject)
+router.delete('/:id', deleteProject)
 
-router.patch(':id/status', updateStatusProject)
+router.patch(':id/status', patchStatusProject)
 
-router.post('assign/employee', saveAssignEmployeee)
-router.patch('assign/employee/:id', updateAssignEmployeee)
-router.delete('assign/employee/:id', destroyAssignEmployeee)
-
+router.post('assign/employee', postAssignEmployeee)
+router.patch('assign/employee/:id', patchAssignEmployeee)
+router.delete('assign/employee/:id', deleteAssignEmployeee)
 
 export default router

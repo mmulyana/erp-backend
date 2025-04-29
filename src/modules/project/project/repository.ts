@@ -223,6 +223,9 @@ export const readAll = async ({
     const data = await db.project.findMany({
       where,
       select,
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
 
     return { data }
@@ -237,7 +240,7 @@ export const readAll = async ({
       where,
       select,
       orderBy: {
-        updatedAt: 'asc',
+        createdAt: 'desc',
       },
     }),
     db.project.count({ where }),

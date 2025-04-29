@@ -367,10 +367,13 @@ model StockOut {
 }
 
 model Supplier {
-  id       String  @id @default(uuid()) @db.Uuid()
-  name     String  @db.VarChar(50)
-  address  String? @db.Text()
-  photoUrl String? @db.VarChar(100)
+  id           String  @id @default(uuid()) @db.Uuid()
+  name         String  @db.VarChar(50)
+  address      String? @db.Text()
+  photoUrl     String? @db.VarChar(100)
+  email        String? @db.VarChar(100)
+  phone        String? @db.VarChar(100)
+  googleMapUrl String? @db.VarChar(100)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
