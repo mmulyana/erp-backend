@@ -9,14 +9,15 @@ datasource db {
 
 // Authorization
 model User {
-  id       String  @id @default(uuid()) @db.Uuid()
-  roleId   String? @db.Uuid()
-  username String  @unique @db.VarChar(50)
-  phone    String? @unique @db.VarChar(13)
-  email    String? @unique @db.VarChar(255)
-  active   Boolean @default(true)
-  photoUrl String? @db.VarChar(100)
-  password String  @db.VarChar(255)
+  id         String  @id @default(uuid()) @db.Uuid()
+  roleId     String? @db.Uuid()
+  username   String  @unique @db.VarChar(50)
+  phone      String? @unique @db.VarChar(13)
+  email      String? @unique @db.VarChar(255)
+  active     Boolean @default(true)
+  photoUrl   String? @db.VarChar(100)
+  password   String  @db.VarChar(255)
+  employeeId String? @unique @db.Uuid()
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -33,7 +34,11 @@ model User {
   projects     Project[]
   tours        Tour[]
 
-  role Role? @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  role                    Role?                    @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  employee                Employee?                @relation(fields: [employeeId], references: [id])
+  cashAdvanceTransactions CashAdvanceTransaction[]
+
+  @@map("users")
 }
 
 model Role {
@@ -47,6 +52,8 @@ model Role {
   deletedAt DateTime?
 
   users User[]
+
+  @@map("roles")
 }
 
 // HRIS
@@ -65,6 +72,7 @@ model Employee {
   safetyInductionDate DateTime?
   status              Boolean?  @default(true)
   address             String?   @db.Text()
+  payType             PayType?  @default(daily)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -75,6 +83,14 @@ model Employee {
   cashAdvances     CashAdvance[]
   attendances      Attendance[]
   overtimes        Overtime[]
+  user             User?
+
+  @@map("employees")
+}
+
+enum PayType {
+  monthly
+  daily
 }
 
 model Certificate {
@@ -91,6 +107,8 @@ model Certificate {
   deletedAt DateTime?
 
   employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("certificates")
 }
 
 model Attendance {
@@ -106,6 +124,8 @@ model Attendance {
 
   employee Employee @relation(fields: [employeeId], references: [id])
   user     User     @relation(fields: [createdBy], references: [id])
+
+  @@map("attendances")
 }
 
 enum AttendanceType {
@@ -127,15 +147,18 @@ model Overtime {
 
   employee Employee @relation(fields: [employeeId], references: [id])
   user     User     @relation(fields: [createdBy], references: [id])
+
+  @@map("overtimes")
 }
 
 model CashAdvance {
-  id         String   @id @default(uuid())
-  employeeId String   @db.Uuid()
-  createdBy  String   @db.Uuid()
-  amount     Int      @db.Integer()
+  id         String            @id @default(uuid())
+  employeeId String            @db.Uuid()
+  createdBy  String            @db.Uuid()
+  amount     Int               @db.Integer()
   date       DateTime
-  note       String?  @db.VarChar(255)
+  note       String?           @db.VarChar(255)
+  status     CashAdvanceStatus @default(notYetPaidOff)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -143,6 +166,31 @@ model CashAdvance {
 
   employee Employee @relation(fields: [employeeId], references: [id])
   user     User     @relation(fields: [createdBy], references: [id])
+
+  @@map("cash_advances")
+}
+
+enum CashAdvanceStatus {
+  paidOff
+  notYetPaidOff
+}
+
+model CashAdvanceTransaction {
+  id            String   @id @default(uuid()) @db.Uuid()
+  cashAdvanceId String   @db.Uuid()
+  amount        Int
+  remaining     Int?
+  date          DateTime
+  note          String?
+  createdBy     String   @db.Uuid()
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [createdBy], references: [id])
+
+  @@map("cash_advance_transactions")
 }
 
 // Project
