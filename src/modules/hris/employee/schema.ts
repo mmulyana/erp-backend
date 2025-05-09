@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const EmployeeSchema = z.object({
   fullname: z.string().min(1, { message: 'Nama pegawai tidak boleh kosong' }),
-  position: z.string(),
+  position: z.string().optional(),
   birthDate: z
     .preprocess((val) => {
       if (val === '' || val == null) return null

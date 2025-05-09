@@ -1,16 +1,22 @@
 import { Router } from 'express'
 import {
-  deleteAssignEmployeee,
+  deleteAssignEmployee,
+  deleteAttachment,
   deleteProject,
+  getAssignedEmployee,
+  getAttachments,
   getProject,
   getProjects,
   getProjectsInfinite,
-  patchAssignEmployeee,
+  patchAssignEmployee,
+  patchAttachment,
   patchProject,
   patchStatusProject,
-  postAssignEmployeee,
+  postAssignEmployee,
+  postAttachment,
   postProject,
 } from './controller'
+import upload from '@/utils/upload'
 
 const router = Router()
 
@@ -22,10 +28,19 @@ router.post('/', postProject)
 router.patch('/:id', patchProject)
 router.delete('/:id', deleteProject)
 
-router.patch(':id/status', patchStatusProject)
+router.get('/:id/employee', getAssignedEmployee)
+router.get('/:id/attachment', getAttachments)
 
-router.post('assign/employee', postAssignEmployeee)
-router.patch('assign/employee/:id', patchAssignEmployeee)
-router.delete('assign/employee/:id', deleteAssignEmployeee)
+router.patch('/:id/status', patchStatusProject)
+
+// employee
+router.post('/assign/employee', postAssignEmployee)
+router.patch('/assign/employee/:id', patchAssignEmployee)
+router.delete('/assign/employee/:id', deleteAssignEmployee)
+
+// attachment
+router.post('/data/attachment/:prefix', upload.single('file'), postAttachment)
+router.patch('/data/attachment/:id', upload.single('file'), patchAttachment)
+router.delete('/data/attachment/:id', deleteAttachment)
 
 export default router

@@ -12,15 +12,25 @@ export const ProjectSchema = z.object({
   endedAt: z.string().optional(),
   archivedAt: z.string().optional(),
 })
+
 export const AssignedSchema = z.object({
   projectId: z.string(),
   employeeId: z.string(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
 })
+
 export const StatusSchema = z.object({
-  containrId: z.string(),
+  containerId: z.string(),
+})
+
+export const AttachmentSchema = z.object({
+  type: z.string(),
+  secret: z.coerce.boolean().default(false),
+  name: z.string(),
+  projectId: z.string(),
 })
 
 export type Project = z.infer<typeof ProjectSchema>
 export type Assigned = z.infer<typeof AssignedSchema>
+export type Attachment = z.infer<typeof AttachmentSchema>

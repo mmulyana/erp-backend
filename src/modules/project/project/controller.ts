@@ -1,17 +1,28 @@
 import { Request, Response } from 'express'
 
-import { AssignedSchema, ProjectSchema, StatusSchema } from './schema'
+import {
+  AssignedSchema,
+  AttachmentSchema,
+  ProjectSchema,
+  StatusSchema,
+} from './schema'
 import {
   create,
   createAssign,
+  createAttachment,
   destroy,
   destroyAssign,
+  destroyAttachment,
   isExist,
   isExistAssign,
+  isExistAttachment,
   read,
   readAll,
+  readAssign,
+  readAttachments,
   update,
   updateAssign,
+  updateAttachment,
   updateStatus,
 } from './repository'
 
@@ -133,11 +144,11 @@ export const patchStatusProject = async (req: Request, res: Response) => {
     return errorParse(parsed.error)
   }
 
-  const result = await updateStatus(id, parsed.data.containrId)
+  const result = await updateStatus(id, parsed.data.containerId)
   res.json(updateResponse(result, 'status proyek'))
 }
 
-export const postAssignEmployeee = async (req: Request, res: Response) => {
+export const postAssignEmployee = async (req: Request, res: Response) => {
   const parsed = AssignedSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
@@ -147,7 +158,7 @@ export const postAssignEmployeee = async (req: Request, res: Response) => {
   res.json(successResponse(null, 'Penugasan pegawai'))
 }
 
-export const patchAssignEmployeee = async (req: Request, res: Response) => {
+export const patchAssignEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExistAssign(id)
 
@@ -160,10 +171,78 @@ export const patchAssignEmployeee = async (req: Request, res: Response) => {
   res.json(successResponse(null, 'Penugasan pegawai'))
 }
 
-export const deleteAssignEmployeee = async (req: Request, res: Response) => {
+export const deleteAssignEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExistAssign(id)
 
   await destroyAssign(id)
   res.json(deleteResponse('Penugasan pegawai'))
+}
+
+export const getAssignedEmployee = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await readAssign(id)
+  res.json(successResponse(result, 'Penugasan pegawai'))
+}
+
+// attachment
+export const getAttachments = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const { search } = getParams(req)
+
+  const result = await readAttachments(id, search)
+  res.json(successResponse(result, 'lampiran'))
+}
+
+export const postAttachment = async (req: Request, res: Response) => {
+  console.log('body', req.body)
+  const parsed = AttachmentSchema.safeParse(req.body)
+  console.log(parsed.error)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+
+  const fileUrl = req?.file?.filename || undefined
+  const createdBy = req.user.id
+
+  const result = await createAttachment({
+    ...parsed.data,
+    fileUrl,
+    createdBy,
+  })
+
+  res.json(createResponse(result, 'lampiran'))
+}
+
+export const patchAttachment = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExistAttachment(id)
+
+  const parsed = AttachmentSchema.partial().safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+
+  const fileUrl = req?.file?.filename || undefined
+  const createdBy = req.user.id
+
+  const result = await updateAttachment(id, {
+    ...parsed.data,
+    fileUrl,
+    createdBy,
+  })
+
+  res.json(updateResponse(result, 'lampiran'))
+}
+
+export const deleteAttachment = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExistAttachment(id)
+
+  await destroyAttachment(id)
+  res.json(deleteResponse('lampiran'))
 }

@@ -8,7 +8,7 @@ import { getPaginateParams } from '@/utils/params'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
 
-import { Assigned, Project } from './schema'
+import { Assigned, Attachment, Project } from './schema'
 
 type Payload = Project
 
@@ -77,6 +77,12 @@ export const isExist = async (id: string) => {
 
 export const isExistAssign = async (id: string) => {
   const data = await db.assignedEmployee.findUnique({ where: { id } })
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+  }
+}
+export const isExistAttachment = async (id: string) => {
+  const data = await db.projectAttachment.findUnique({ where: { id } })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
@@ -298,33 +304,48 @@ export const updateStatus = async (id: string, containerId: string) => {
   return { data }
 }
 
-export const totalProject = async () => {
-  const active = await db.project.count({
-    where: {
-      archivedAt: null,
-      deletedAt: null,
-      endedAt: null,
-    },
-  })
-  const done = await db.project.count({
-    where: {
-      deletedAt: null,
-      endedAt: {
-        not: null,
+export const readAssign = async (projectId: string) => {
+  const data = await db.assignedEmployee.findMany({
+    where: { projectId, deletedAt: null },
+    select: {
+      id: true,
+      startDate: true,
+      endDate: true,
+      employee: {
+        select: {
+          id: true,
+          fullname: true,
+          photoUrl: true,
+          position: true,
+        },
       },
     },
   })
-
-  return { active, done }
+  return data
 }
 
 export const createAssign = async (payload: Assigned) => {
+  const isExist = await db.assignedEmployee.findFirst({
+    where: {
+      projectId: payload.projectId,
+      employeeId: payload.employeeId,
+      endDate: null,
+      deletedAt: null,
+    },
+  })
+
+  if (isExist) {
+    return throwError(
+      'Pegawai ini sudah ditambahkan, silangkah akhiri atau hapus data sebelumya',
+      HttpStatusCode.BadRequest,
+    )
+  }
+
   await db.assignedEmployee.create({
     data: {
       projectId: payload.projectId,
       employeeId: payload.employeeId,
-      startDate: new Date(payload.startDate),
-      endDate: new Date(payload.endDate),
+      startDate: payload.startDate ? new Date(payload.startDate) : new Date(),
     },
   })
 }
@@ -336,15 +357,86 @@ export const updateAssign = async (id: string, payload: Assigned) => {
       projectId: payload.projectId,
       employeeId: payload.employeeId,
       startDate: new Date(payload.startDate),
-      endDate: new Date(payload.endDate),
+      endDate: payload.endDate ? new Date(payload.endDate) : null,
     },
   })
 }
 
 export const destroyAssign = async (id: string) => {
-  await db.assignedEmployee.delete({
+  await db.assignedEmployee.update({
     where: {
       id,
     },
+    data: {
+      deletedAt: new Date(),
+    },
   })
+}
+
+// Attachment
+export const readAttachments = async (projectId: string, search?: string) => {
+  const data = await db.projectAttachment.findMany({
+    where: {
+      AND: [
+        { projectId, deletedAt: null },
+        search
+          ? {
+              name: { contains: search, mode: 'insensitive' },
+            }
+          : {},
+      ],
+    },
+  })
+  return data
+}
+
+export const createAttachment = async (
+  payload: Attachment & {
+    fileUrl: string
+    createdBy: string
+  },
+) => {
+  console.log('data', payload)
+  const data = await db.projectAttachment.create({
+    data: {
+      projectId: payload.projectId,
+      name: payload.name,
+      type: payload.type,
+      fileUrl: payload.fileUrl,
+      createdBy: payload.createdBy,
+    },
+  })
+
+  return data
+}
+
+export const updateAttachment = async (
+  id: string,
+  payload: Attachment & {
+    fileUrl: string
+    createdBy: string
+  },
+) => {
+  const data = await db.projectAttachment.update({
+    data: {
+      name: payload.name,
+      type: payload.type,
+      fileUrl: payload.fileUrl,
+      createdBy: payload.createdBy,
+    },
+    where: { id },
+  })
+
+  return data
+}
+
+export const destroyAttachment = async (id: string) => {
+  const data = await db.projectAttachment.update({
+    data: {
+      deletedAt: new Date(),
+    },
+    where: { id },
+  })
+
+  return data
 }
