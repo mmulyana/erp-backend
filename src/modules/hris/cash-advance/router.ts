@@ -1,29 +1,32 @@
 import { Router } from 'express'
 import {
-  readCashAdvance,
-  readCashAdvances,
-  saveCashAdvance,
-  updateCashAdvance,
-  destroyCashAdvance,
-  getTotalInYear,
-  getTotalInMonth,
+  getCashAdvance,
+  getCashAdvances,
+  postCashAdvance,
+  patchCashAdvance,
+  deleteCashAdvance,
   getTotalInDay,
-  getReportInLastSixMonths,
-  getReportBiggestByEmployee,
+  postCashAdvanceTransaction,
+  patchCashAdvanceTransaction,
+  deleteCashAdvanceTransaction,
+  getCashAdvanceTransaction,
+  getCashAdvanceTransactions,
 } from './controller'
 
 const router = Router()
 
-router.get('/report/year', getTotalInYear)
-router.get('/report/month', getTotalInMonth)
 router.get('/report/day', getTotalInDay)
-router.get('/report/six-month', getReportInLastSixMonths)
-router.get('/report/top-5', getReportBiggestByEmployee)
 
-router.get('/', readCashAdvances)
-router.post('/', saveCashAdvance)
-router.get('/:id', readCashAdvance)
-router.patch('/:id', updateCashAdvance)
-router.delete('/:id', destroyCashAdvance)
+router.post('/transaction', postCashAdvanceTransaction)
+router.patch('/transaction/:id', patchCashAdvanceTransaction)
+router.delete('/transaction/:id', deleteCashAdvanceTransaction)
+router.get('/transaction', getCashAdvanceTransactions)
+router.get('/transaction/:id', getCashAdvanceTransaction)
+
+router.get('/', getCashAdvances)
+router.post('/', postCashAdvance)
+router.get('/:id', getCashAdvance)
+router.patch('/:id', patchCashAdvance)
+router.delete('/:id', deleteCashAdvance)
 
 export default router

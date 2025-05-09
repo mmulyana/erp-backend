@@ -34,11 +34,9 @@ model User {
   projects     Project[]
   tours        Tour[]
 
-  role                    Role?                    @relation(fields: [roleId], references: [id], onDelete: SetNull)
-  employee                Employee?                @relation(fields: [employeeId], references: [id])
-  cashAdvanceTransactions CashAdvanceTransaction[]
-  payrollPeriods          PayrollPeriod[]
-  payrolls                Payroll[]
+  role     Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  employee Employee? @relation(fields: [employeeId], references: [id])
+  payrolls Payroll[]
 
   @@map("users")
 }
@@ -86,6 +84,7 @@ model Employee {
   attendances      Attendance[]
   overtimes        Overtime[]
   user             User?
+  payrolls         Payroll[]
 
   @@map("employees")
 }
@@ -184,13 +183,10 @@ model CashAdvanceTransaction {
   remaining     Int?
   date          DateTime
   note          String?
-  createdBy     String   @db.Uuid()
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-
-  user User @relation(fields: [createdBy], references: [id])
 
   @@map("cash_advance_transactions")
 }
@@ -202,13 +198,11 @@ model PayrollPeriod {
   endDate       DateTime
   totalSpending Int          @default(0)
   status        PeriodStatus @default(processing)
-  createdBy     String
+  payType       PayType
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-
-  user User @relation(fields: [createdBy], references: [id])
 
   @@map("payroll_periods")
 }
@@ -223,13 +217,14 @@ model Payroll {
   salary          Int
   overtimeSalary  Int
   status          PayrollStatus @default(draft)
-  createdBy       String
+  createdBy       String        @db.Uuid()
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  user User @relation(fields: [createdBy], references: [id])
+  user     User     @relation(fields: [createdBy], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 
   payrollDeductions PayrollDeduction[]
 

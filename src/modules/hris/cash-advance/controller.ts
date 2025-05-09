@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { CashAdvanceSchema } from './schema'
+import { CashAdvanceSchema, CashAdvanceTransactionSchema } from './schema'
 import {
   successResponse,
   createResponse,
@@ -10,19 +10,20 @@ import { checkParamsId, getParams } from '@/utils/params'
 import { errorParse } from '@/utils/error-handler'
 import {
   create,
+  createTransaction,
   destroy,
+  destroyTransaction,
   findAll,
   findOne,
+  findOneTransaction,
   isExist,
-  reportBiggestByEmployee,
-  reportLastSixMonth,
+  isTransactionExist,
   totalInDay,
-  totalInMonth,
-  totalInYear,
   update,
+  updateTransaction,
 } from './repository'
 
-export const saveCashAdvance = async (req: Request, res: Response) => {
+export const postCashAdvance = async (req: Request, res: Response) => {
   const parsed = CashAdvanceSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
@@ -31,7 +32,7 @@ export const saveCashAdvance = async (req: Request, res: Response) => {
   res.json(createResponse(data, 'kasbon'))
 }
 
-export const updateCashAdvance = async (req: Request, res: Response) => {
+export const patchCashAdvance = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -44,7 +45,7 @@ export const updateCashAdvance = async (req: Request, res: Response) => {
   res.json(updateResponse(result, 'kasbon'))
 }
 
-export const destroyCashAdvance = async (req: Request, res: Response) => {
+export const deleteCashAdvance = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -52,7 +53,7 @@ export const destroyCashAdvance = async (req: Request, res: Response) => {
   res.json(deleteResponse('kasbon'))
 }
 
-export const readCashAdvance = async (req: Request, res: Response) => {
+export const getCashAdvance = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -60,7 +61,7 @@ export const readCashAdvance = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'kasbon'))
 }
 
-export const readCashAdvances = async (req: Request, res: Response) => {
+export const getCashAdvances = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const start_date = req.params.startDate
     ? String(req.params.startDate)
@@ -71,38 +72,74 @@ export const readCashAdvances = async (req: Request, res: Response) => {
   res.json(successResponse(data, 'kasbon'))
 }
 
-export const getTotalInYear = async (req: Request, res: Response) => {
-  const data = await totalInYear(
-    req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
-  )
-  res.json(successResponse(data, 'total dalam setahun'))
-}
-
-export const getTotalInMonth = async (req: Request, res: Response) => {
-  const data = await totalInMonth(
-    req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
-  )
-  res.json(successResponse(data, 'total dalam sebulan'))
-}
-
 export const getTotalInDay = async (req: Request, res: Response) => {
   const data = await totalInDay(
     req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
   )
   res.json(successResponse(data, 'total dalam sehari'))
 }
-export const getReportInLastSixMonths = async (req: Request, res: Response) => {
-  const data = await reportLastSixMonth(
-    req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
-  )
-  res.json(successResponse(data, 'total dalam sehari'))
-}
-export const getReportBiggestByEmployee = async (
+
+// transaction
+export const postCashAdvanceTransaction = async (
   req: Request,
   res: Response,
 ) => {
-  const data = await reportBiggestByEmployee(
-    req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
-  )
-  res.json(successResponse(data, 'total dalam sehari'))
+  const parsed = CashAdvanceTransactionSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+  const data = await createTransaction(parsed.data)
+  res.json(createResponse(data, 'transaksi kasbon'))
+}
+
+export const patchCashAdvanceTransaction = async (
+  req: Request,
+  res: Response,
+) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const parsed = CashAdvanceTransactionSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+
+  const result = await updateTransaction(id, parsed.data)
+  res.json(updateResponse(result, 'transaksi kasbon'))
+}
+
+export const deleteCashAdvanceTransaction = async (
+  req: Request,
+  res: Response,
+) => {
+  const { id } = checkParamsId(req)
+  await isTransactionExist(id)
+
+  await destroyTransaction(id)
+  res.json(deleteResponse('transaksi kasbon'))
+}
+
+export const getCashAdvanceTransaction = async (
+  req: Request,
+  res: Response,
+) => {
+  const { id } = checkParamsId(req)
+  await isTransactionExist(id)
+
+  const result = await findOneTransaction(id)
+  res.json(successResponse(result, 'transaksi kasbon'))
+}
+
+export const getCashAdvanceTransactions = async (
+  req: Request,
+  res: Response,
+) => {
+  const { page, limit, search } = getParams(req)
+  const start_date = req.params.startDate
+    ? String(req.params.startDate)
+    : undefined
+  const end_date = req.params.endDate ? String(req.params.endDate) : undefined
+
+  const data = await findAll(page, limit, search, start_date, end_date)
+  res.json(successResponse(data, 'transaksi kasbon'))
 }
