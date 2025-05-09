@@ -37,6 +37,8 @@ model User {
   role                    Role?                    @relation(fields: [roleId], references: [id], onDelete: SetNull)
   employee                Employee?                @relation(fields: [employeeId], references: [id])
   cashAdvanceTransactions CashAdvanceTransaction[]
+  payrollPeriods          PayrollPeriod[]
+  payrolls                Payroll[]
 
   @@map("users")
 }
@@ -191,6 +193,72 @@ model CashAdvanceTransaction {
   user User @relation(fields: [createdBy], references: [id])
 
   @@map("cash_advance_transactions")
+}
+
+model PayrollPeriod {
+  id            String       @id @default(uuid()) @db.Uuid()
+  name          String
+  startDate     DateTime
+  endDate       DateTime
+  totalSpending Int          @default(0)
+  status        PeriodStatus @default(processing)
+  createdBy     String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [createdBy], references: [id])
+
+  @@map("payroll_periods")
+}
+
+model Payroll {
+  id              String        @id @default(uuid()) @db.Uuid()
+  payrollPeriodId String        @db.Uuid()
+  employeeId      String        @db.Uuid()
+  workDays        Int
+  overtimeHours   Int
+  cashAdvance     Int
+  salary          Int
+  overtimeSalary  Int
+  status          PayrollStatus @default(draft)
+  createdBy       String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [createdBy], references: [id])
+
+  payrollDeductions PayrollDeduction[]
+
+  @@map("payrolls")
+}
+
+model PayrollDeduction {
+  id        String @id @default(uuid()) @db.Uuid
+  payrollId String @db.Uuid
+  name      String @db.VarChar(100)
+  amount    Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  payroll Payroll @relation(fields: [payrollId], references: [id])
+
+  @@map("payroll_deductions")
+}
+
+enum PeriodStatus {
+  processing
+  done
+}
+
+enum PayrollStatus {
+  draft
+  done
 }
 
 // Project
