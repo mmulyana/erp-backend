@@ -4,7 +4,6 @@ import { getParams } from '@/utils/params'
 import { errorParse } from '@/utils/error-handler'
 import {
   createResponse,
-  // deleteResponse,
   successResponse,
   updateResponse,
 } from '@/utils/response'
@@ -12,8 +11,8 @@ import {
 import {
   create,
   readAll,
-  readReportAttendance,
-  totalPerDay,
+  readAttendanceChart,
+  readAttendancePerDay,
   update,
 } from './repository'
 import { AttendanceSchema } from './schema'
@@ -60,19 +59,19 @@ export const readAttendances = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'Kehadiran'))
 }
 
-export const readTotalPerDay = async (req: Request, res: Response) => {
-  const result = await totalPerDay(new Date(req.query.startDate as string))
-  res.json(successResponse(result, 'Total kehadiran'))
+export const getAttendanceChart = async (req: Request, res: Response) => {
+  const startDate = req.query.startDate
+    ? new Date(req.query.startDate as string)
+    : undefined
+  const endDate = req.query.endDate
+    ? new Date(req.query.endDate as string)
+    : undefined
+  const result = await readAttendanceChart({ startDate, endDate })
+  res.json(successResponse(result, 'Laporan absensi'))
 }
-
-export const getReportAttendances = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
-  const result = await readReportAttendance({
-    page,
-    limit,
-    search,
-    startDate: new Date(req.query.startDate as string),
-    endDate: new Date(req.query.endDate as string),
+export const getAttendanceTotal = async (req: Request, res: Response) => {
+  const result = await readAttendancePerDay({
+    startDate: req.query.startDate as string,
   })
-  res.json(successResponse(result, 'Kehadiran'))
+  res.json(successResponse(result, 'Laporan absensi per hari'))
 }

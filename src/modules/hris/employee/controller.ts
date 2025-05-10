@@ -22,6 +22,7 @@ import {
   findCashAdvancesById,
   findChartCashAdvancesById,
   destroyPhoto,
+  findTotalEmployee,
 } from './repository'
 import {
   createResponse,
@@ -74,9 +75,7 @@ export const getEmployee = async (req: Request, res: Response) => {
 export const getEmployees = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const active = req.query.active ? req.query.active === 'true' : undefined
-  const position = req.params.position
-    ? String(req.params.position)
-    : undefined
+  const position = req.params.position ? String(req.params.position) : undefined
 
   const result = await readAll(page, limit, search, position, active)
   res.json(successResponse(result, 'pegawai'))
@@ -149,7 +148,7 @@ export const deleteCertificate = async (req: Request, res: Response) => {
   res.json(deleteResponse('sertifikat pegawai'))
 }
 export const getCertificates = async (req: Request, res: Response) => {
-  const {id} = checkParamsId(req)
+  const { id } = checkParamsId(req)
   await isExist(id)
 
   const { page, limit, search } = getParams(req)
@@ -157,7 +156,7 @@ export const getCertificates = async (req: Request, res: Response) => {
     limit,
     page,
     search,
-    id
+    id,
   })
   res.json(successResponse(result, 'sertifikasi pegawai'))
 }
@@ -226,4 +225,8 @@ export const getChartCashAdvancesById = async (req: Request, res: Response) => {
   const result = await findChartCashAdvancesById(id)
 
   res.json(successResponse(result, 'chart kasbon pegawai'))
+}
+export const getTotalEmployee = async (req: Request, res: Response) => {
+  const result = await findTotalEmployee()
+  res.json(successResponse(result, 'Total pegawai'))
 }

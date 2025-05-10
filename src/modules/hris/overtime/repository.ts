@@ -1,11 +1,19 @@
-import db from '@/lib/prisma'
-import { Overtime } from './schema'
-import { throwError } from '@/utils/error-handler'
-import { HttpStatusCode } from 'axios'
-import { Messages } from '@/utils/constant'
 import { Prisma } from '@prisma/client'
+import { HttpStatusCode } from 'axios'
+import {
+  eachDayOfInterval,
+  endOfDay,
+  startOfDay,
+  formatISO,
+  subDays,
+} from 'date-fns'
+
+import { throwError } from '@/utils/error-handler'
 import { getPaginateParams } from '@/utils/params'
-import { eachDayOfInterval, endOfDay, startOfDay } from 'date-fns'
+import { Messages } from '@/utils/constant'
+import db from '@/lib/prisma'
+
+import { Overtime } from './schema'
 
 type Payload = Overtime & { createdBy: string }
 
@@ -48,7 +56,12 @@ export const update = async (id: string, payload: Payload) => {
 }
 
 export const destroy = async (id: string) => {
-  await db.overtime.delete({ where: { id } })
+  await db.overtime.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+  })
 }
 
 type findAllParams = {
@@ -74,6 +87,7 @@ export const findAll = async ({
             }
           : {},
       ],
+      deletedAt: null,
     },
   }
 
@@ -164,169 +178,53 @@ export const findOne = async (id: string) => {
 }
 
 export const isExist = async (id: string) => {
-  const data = await db.overtime.findUnique({ where: { id } })
+  const data = await db.overtime.findUnique({ where: { id, deletedAt: null } })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 }
 
-export const totalPerDay = async (date: Date) => {
-  const overtimes = await db.overtime.findMany({
-    where: {
-      date: {
-        gte: date,
-        lte: date,
-      },
-    },
-  })
-
-  return {
-    total: overtimes.length,
-  }
+type ChartParams = {
+  startDate?: Date
+  endDate?: Date
 }
 
-type reportParams = {
-  startDate: Date
-  endDate: Date
-  search?: string
-  position?: string
-  page?: number
-  limit?: number
-}
-
-export const readReportOvertime = async ({
+export const readOvertimeChart = async ({
   startDate,
   endDate,
-  search,
-  position,
-  page,
-  limit,
-}: reportParams) => {
-  const start = new Date(startOfDay(new Date(startDate)))
-  const end = new Date(endOfDay(new Date(endDate)))
+}: ChartParams) => {
+  const today = new Date()
+  const start = startDate
+    ? startOfDay(new Date(startDate))
+    : startOfDay(subDays(today, 6))
+  const end = endDate ? endOfDay(new Date(endDate)) : endOfDay(today)
+
   const allDates = eachDayOfInterval({ start, end })
 
-  const whereEmployee: Prisma.EmployeeWhereInput = {
-    deletedAt: null,
-    active: true,
-    fullname: search ? { contains: search, mode: 'insensitive' } : undefined,
-    position: position || undefined,
-  }
-
-  if (page === undefined || limit === undefined) {
-    const employees = await db.employee.findMany({
-      where: whereEmployee,
-      orderBy: { fullname: 'asc' },
-      select: {
-        id: true,
-        fullname: true,
-      },
-    })
-
-    const overtimes = await db.overtime.findMany({
-      where: {
-        deletedAt: null,
-        date: { gte: start, lte: end },
-        employeeId: { in: employees.map((e) => e.id) },
-      },
-      select: {
-        id: true,
-        totalHour: true,
-        date: true,
-        employeeId: true,
-      },
-    })
-
-    const data = employees.map((emp) => {
-      const empOvertime = overtimes.filter((ot) => ot.employeeId === emp.id)
-
-      const overtimeArray: ({ id: string; totalHour: number } | null)[] =
-        allDates.map((date) => {
-          const found = empOvertime.find(
-            (ot) => ot.date.toDateString() === date.toDateString(),
-          )
-          return found ? { id: found.id, totalHour: found.totalHour } : null
-        })
-
-      const total = overtimeArray.reduce(
-        (sum, val) => sum + (val?.totalHour ?? 0),
-        0,
-      )
-
-      return {
-        id: emp.id,
-        fullname: emp.fullname,
-        overtimes: overtimeArray,
-        total,
-      }
-    })
-
-    return { data }
-  }
-
-  const { skip, take } = getPaginateParams(page, limit)
-
-  const [employees, total] = await Promise.all([
-    db.employee.findMany({
-      where: whereEmployee,
-      skip,
-      take,
-      orderBy: { fullname: 'asc' },
-      select: {
-        id: true,
-        fullname: true,
-      },
-    }),
-    db.employee.count({ where: whereEmployee }),
-  ])
-
-  const employeeIds = employees.map((e) => e.id)
-
-  const overtimes = await db.overtime.findMany({
+  const raw = await db.overtime.findMany({
     where: {
-      deletedAt: null,
       date: { gte: start, lte: end },
-      employeeId: { in: employeeIds },
+      deletedAt: null,
     },
     select: {
-      id: true,
-      totalHour: true,
       date: true,
-      employeeId: true,
     },
   })
 
-  const data = employees.map((emp) => {
-    const empOvertime = overtimes.filter((ot) => ot.employeeId === emp.id)
+  const map = new Map<string, number>()
 
-    const overtimeArray: ({ id: string; totalHour: number } | null)[] =
-      allDates.map((date) => {
-        const found = empOvertime.find(
-          (ot) => ot.date.toDateString() === date.toDateString(),
-        )
-        return found ? { id: found.id, totalHour: found.totalHour } : null
-      })
+  for (const item of raw) {
+    const key = formatISO(item.date, { representation: 'date' })
+    map.set(key, (map.get(key) ?? 0) + 1)
+  }
 
-    const total = overtimeArray.reduce(
-      (sum, val) => sum + (val?.totalHour ?? 0),
-      0,
-    )
-
+  const result = allDates.map((date) => {
+    const key = formatISO(date, { representation: 'date' })
     return {
-      id: emp.id,
-      fullname: emp.fullname,
-      overtimes: overtimeArray,
-      total,
+      date: key,
+      total: map.get(key) ?? 0,
     }
   })
 
-  const total_pages = Math.ceil(total / limit)
-
-  return {
-    data,
-    total,
-    page,
-    limit,
-    total_pages,
-  }
+  return result
 }

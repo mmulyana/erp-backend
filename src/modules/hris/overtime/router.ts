@@ -1,23 +1,21 @@
 import { Router } from 'express'
 import {
-  destroyOvertime,
-  getReportOvertimes,
-  readOvertime,
-  readOvertimes,
-  readTotalPerDay,
-  saveOvertime,
-  updateOvertime,
+  deleteOvertime,
+  getOvertimeChart,
+  getOvertime,
+  getOvertimes,
+  postOvertime,
+  patchOvertime,
 } from './controller'
 
 const router = Router()
 
-router.get('/data/total-per-day', readTotalPerDay)
-router.get('/data/report', getReportOvertimes)
+router.get('/report/chart', getOvertimeChart)
 
-router.get('/', readOvertimes)
-router.post('/', saveOvertime)
-router.get('/:id', readOvertime)
-router.patch('/:id', updateOvertime)
-router.delete('/:id', destroyOvertime)
+router.get('/', getOvertimes)
+router.post('/', postOvertime)
+router.get('/:id', getOvertime)
+router.patch('/:id', patchOvertime)
+router.delete('/:id', deleteOvertime)
 
 export default router

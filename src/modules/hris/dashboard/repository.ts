@@ -54,10 +54,11 @@ export const findExpiringCertificates = async ({
 
   const where: Prisma.CertificateWhereInput = {
     expiryDate: {
-      gte: today,
       lte: deadline,
     },
   }
+  // console.log('day', day)
+  // console.log('where', where)
 
   if (page === undefined || limit === undefined) {
     const rawData = await db.certificate.findMany({
@@ -70,7 +71,7 @@ export const findExpiringCertificates = async ({
       ...item,
       expireUntil: differenceInCalendarDays(new Date(item.expiryDate), today),
     }))
-
+    // console.log('data', data)
     return { data }
   }
 

@@ -316,7 +316,7 @@ export const findCertificates = async ({
     employeeId: id,
   }
 
-const select: Prisma.CertificateSelect = {
+  const select: Prisma.CertificateSelect = {
     id: true,
     name: true,
     fileUrl: true,
@@ -602,6 +602,33 @@ export const findChartCashAdvancesById = async (employeeId: string) => {
       total,
     }
   })
+
+  return chartData
+}
+
+export const findTotalEmployee = async () => {
+  const employees = await db.employee.groupBy({
+    by: ['status'],
+    where: {
+      deletedAt: null,
+    },
+    _count: {
+      id: true,
+    },
+  })
+
+  const chartData = [
+    {
+      name: 'Aktif',
+      total: employees.find((e) => e.status === true)?._count.id ?? 0,
+      fill: '#475DEF',
+    },
+    {
+      name: 'Nonaktif',
+      total: employees.find((e) => e.status === false)?._count.id ?? 0,
+      fill: '#D52B42',
+    },
+  ]
 
   return chartData
 }

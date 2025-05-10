@@ -4,8 +4,7 @@ import {
   findAll,
   findOne,
   isExist,
-  readReportOvertime,
-  totalPerDay,
+  readOvertimeChart,
   update,
 } from './repository'
 import { Request, Response } from 'express'
@@ -19,7 +18,7 @@ import {
 import { checkParamsId, getParams } from '@/utils/params'
 import { errorParse } from '@/utils/error-handler'
 
-export const saveOvertime = async (req: Request, res: Response) => {
+export const postOvertime = async (req: Request, res: Response) => {
   const parsed = OvertimeSchema.safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
@@ -29,7 +28,7 @@ export const saveOvertime = async (req: Request, res: Response) => {
   res.json(createResponse(result, 'lembur'))
 }
 
-export const updateOvertime = async (req: Request, res: Response) => {
+export const patchOvertime = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -42,7 +41,7 @@ export const updateOvertime = async (req: Request, res: Response) => {
   res.json(updateResponse(result, 'lembur'))
 }
 
-export const destroyOvertime = async (req: Request, res: Response) => {
+export const deleteOvertime = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -50,7 +49,7 @@ export const destroyOvertime = async (req: Request, res: Response) => {
   res.json(deleteResponse('lembur'))
 }
 
-export const readOvertimes = async (req: Request, res: Response) => {
+export const getOvertimes = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
 
   const result = await findAll({
@@ -62,7 +61,7 @@ export const readOvertimes = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'lembur'))
 }
 
-export const readOvertime = async (req: Request, res: Response) => {
+export const getOvertime = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
@@ -70,20 +69,13 @@ export const readOvertime = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'lembur'))
 }
 
-export const readTotalPerDay = async (req: Request, res: Response) => {
-  const result = await totalPerDay(new Date(req.query.startDate as string))
-  res.json(successResponse(result, 'Total kehadiran'))
-}
-
-export const getReportOvertimes = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
-
-  const result = await readReportOvertime({
-    page,
-    limit,
-    search,
-    startDate: new Date(req.query.startDate as string),
-    endDate: new Date(req.query.endDate as string),
-  })
-  res.json(successResponse(result, 'lembur'))
+export const getOvertimeChart = async (req: Request, res: Response) => {
+  const startDate = req.query.startDate
+    ? new Date(req.query.startDate as string)
+    : undefined
+  const endDate = req.query.endDate
+    ? new Date(req.query.endDate as string)
+    : undefined
+  const result = await readOvertimeChart({ startDate, endDate })
+  res.json(successResponse(result, 'Laporan lembur'))
 }

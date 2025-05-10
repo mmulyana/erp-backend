@@ -13,6 +13,7 @@ import {
   getEmployees,
   getEmployeesInfinite,
   getOvertimesById,
+  getTotalEmployee,
   patchCertificate,
   patchDestroyPhoto,
   patchEmployee,
@@ -23,7 +24,9 @@ import {
 const router = Router()
 
 // employee
+router.get('/data/chart', getTotalEmployee)
 router.get('/data/infinite', getEmployeesInfinite)
+
 // certificate
 router.get('/data/certificate/:id', getCertificate)
 router.patch('/data/certificate/:id', upload.single('file'), patchCertificate)

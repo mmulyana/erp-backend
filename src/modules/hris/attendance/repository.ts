@@ -7,7 +7,15 @@ import { Messages } from '@/utils/constant'
 import db from '@/lib/prisma'
 
 import { Attendance } from './schema'
-import { addDays, differenceInDays, endOfDay, startOfDay } from 'date-fns'
+import {
+  addDays,
+  differenceInDays,
+  endOfDay,
+  startOfDay,
+  eachDayOfInterval,
+  formatISO,
+  subDays,
+} from 'date-fns'
 
 export const isExist = async (id: string) => {
   const data = await db.attendance.findUnique({ where: { id } })
@@ -177,200 +185,102 @@ export const readAll = async ({
   }
 }
 
-export const totalPerDay = async (date: Date) => {
-  const whereEmployee: Prisma.EmployeeWhereInput = {
-    deletedAt: null,
-    active: true,
-  }
-
-  const employees = await db.employee.findMany({
-    where: whereEmployee,
-    select: {
-      id: true,
-      fullname: true,
-      position: true,
-      attendances: {
-        where: {
-          date: {
-            gte: date,
-            lte: date,
-          },
-        },
-        select: {
-          type: true,
-        },
-      },
-    },
-  })
-
-  const data = employees.map((employee) => {
-    const attendance = employee.attendances[0]
-    return {
-      status: attendance?.type ?? null,
-    }
-  })
-
-  const total_presence = data.filter((i) => i.status === 'presence').length
-  const total_absent = data.filter((i) => i.status === 'absent').length
-  const total_notYet = data.filter((i) => !i.status).length
-
-  return {
-    total_presence,
-    total_absent,
-    total_notYet,
-  }
+type ChartParams = {
+  startDate?: Date
+  endDate?: Date
 }
 
-type ReadReportAttendanceParams = {
-  startDate: Date
-  endDate: Date
-  search?: string
-  position?: string
-  page?: number
-  limit?: number
-}
-
-export const readReportAttendance = async ({
+export const readAttendanceChart = async ({
   startDate,
   endDate,
-  search,
-  position,
-  page,
-  limit,
-}: ReadReportAttendanceParams) => {
-  const start = new Date(startOfDay(new Date(startDate)))
-  const end = new Date(endOfDay(new Date(endDate)))
-  const rangeLength = differenceInDays(end, start) + 1
+}: ChartParams) => {
+  const today = new Date()
+  const start = startDate
+    ? startOfDay(new Date(startDate))
+    : startOfDay(subDays(today, 6))
+  const end = endDate ? endOfDay(new Date(endDate)) : endOfDay(today)
 
-  const whereEmployee: Prisma.EmployeeWhereInput = {
-    deletedAt: null,
-    active: true,
-    fullname: search ? { contains: search, mode: 'insensitive' } : undefined,
-    position: position || undefined,
-  }
+  const allDates = eachDayOfInterval({ start, end })
 
-  if (page === undefined || limit === undefined) {
-    const employees = await db.employee.findMany({
-      where: whereEmployee,
-      orderBy: { fullname: 'asc' },
-      select: {
-        id: true,
-        fullname: true,
-      },
-    })
-
-    const allAttendances = await db.attendance.findMany({
-      where: {
-        employeeId: { in: employees.map((e) => e.id) },
-        date: {
-          gte: start,
-          lte: end,
-        },
-      },
-      select: {
-        employeeId: true,
-        date: true,
-        type: true,
-      },
-    })
-
-    const data = employees.map((emp) => {
-      const empAttendance = allAttendances.filter(
-        (att) => att.employeeId === emp.id,
-      )
-
-      const attendanceArray: ('presence' | 'absent' | null)[] = []
-
-      for (let i = 0; i < rangeLength; i++) {
-        const currDate = addDays(start, i)
-        const found = empAttendance.find(
-          (a) => a.date.toDateString() === currDate.toDateString(),
-        )
-        attendanceArray.push(found?.type || null)
-      }
-
-      const present = attendanceArray.filter((x) => x === 'presence').length
-      const absent = attendanceArray.filter((x) => x === 'absent').length
-
-      return {
-        fullname: emp.fullname,
-        attendance: attendanceArray,
-        present,
-        absent,
-      }
-    })
-
-    return { data }
-  }
-
-  const { skip, take } = getPaginateParams(page, limit)
-
-  const [employees, total] = await Promise.all([
-    db.employee.findMany({
-      where: whereEmployee,
-      skip,
-      take,
-      orderBy: { fullname: 'asc' },
-      select: {
-        id: true,
-        fullname: true,
-      },
-    }),
-    db.employee.count({ where: whereEmployee }),
-  ])
-
-  const employeeIds = employees.map((e) => e.id)
-
-  const allAttendances = await db.attendance.findMany({
+  const raw = await db.attendance.findMany({
     where: {
-      employeeId: { in: employeeIds },
-      date: {
-        gte: start,
-        lte: end,
-      },
+      date: { gte: start, lte: end },
+      type: { in: ['presence', 'absent'] },
+      deletedAt: null,
     },
     select: {
-      employeeId: true,
       date: true,
       type: true,
     },
   })
-  // console.log('employeeIds', employeeIds)
-  // console.log('all attendnace', allAttendances)
 
-  const data = employees.map((emp) => {
-    const empAttendance = allAttendances.filter(
-      (att) => att.employeeId === emp.id,
-    )
+  const map = new Map<string, { presence: number; absent: number }>()
 
-    const attendanceArray: ('presence' | 'absent' | null)[] = []
+  for (const item of raw) {
+    const key = formatISO(item.date, { representation: 'date' })
+    if (!map.has(key)) map.set(key, { presence: 0, absent: 0 })
 
-    for (let i = 0; i < rangeLength; i++) {
-      const currDate = addDays(start, i)
-      const found = empAttendance.find(
-        (a) => a.date.toDateString() === currDate.toDateString(),
-      )
-      attendanceArray.push(found?.type || null)
-    }
+    const group = map.get(key)!
+    if (item.type === 'presence') group.presence++
+    else if (item.type === 'absent') group.absent++
+  }
 
-    const present = attendanceArray.filter((x) => x === 'presence').length
-    const absent = attendanceArray.filter((x) => x === 'absent').length
-
+  const result = allDates.map((date) => {
+    const key = formatISO(date, { representation: 'date' })
+    const data = map.get(key)
     return {
-      fullname: emp.fullname,
-      attendance: attendanceArray,
-      present,
-      absent,
+      date: key,
+      presence: data?.presence ?? 0,
+      absent: data?.absent ?? 0,
     }
   })
 
-  const total_pages = Math.ceil(total / limit)
+  return result
+}
+
+export const readAttendancePerDay = async ({
+  startDate,
+}: {
+  startDate?: string
+}) => {
+  const date = startDate ? new Date(startDate) : new Date()
+  const start = startOfDay(date)
+  const end = endOfDay(date)
+
+  const totalEmployee = await db.employee.count({
+    where: {
+      deletedAt: null,
+    },
+  })
+
+  const attendances = await db.attendance.findMany({
+    where: {
+      date: { gte: start, lte: end },
+      deletedAt: null,
+    },
+    select: {
+      employeeId: true,
+      type: true,
+    },
+  })
+
+  // Hitung
+  let presence = 0
+  let absent = 0
+  const recordedEmployeeIds = new Set<string>()
+
+  for (const att of attendances) {
+    recordedEmployeeIds.add(att.employeeId)
+    if (att.type === 'presence') presence++
+    else if (att.type === 'absent') absent++
+  }
+
+  const notYet = totalEmployee - recordedEmployeeIds.size
 
   return {
-    data,
-    total,
-    page,
-    limit,
-    total_pages,
+    presence,
+    absent,
+    notYet,
+    total: totalEmployee,
   }
 }

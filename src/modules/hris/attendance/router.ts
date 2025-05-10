@@ -1,17 +1,17 @@
 import { Router } from 'express'
 import {
-  getReportAttendances,
+  getAttendanceChart,
+  getAttendanceTotal,
   // destroyAttendance,
   readAttendances,
-  readTotalPerDay,
   saveAttendance,
   updateAttendance,
 } from './controller'
 
 const router = Router()
 
-router.get('/total-per-day', readTotalPerDay)
-router.get('/report', getReportAttendances)
+router.get('/report/chart', getAttendanceChart)
+router.get('/report/all', getAttendanceTotal)
 
 router.get('/', readAttendances)
 router.post('/', saveAttendance)
