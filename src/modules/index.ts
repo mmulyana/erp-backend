@@ -18,6 +18,7 @@ import itemRoutes from './inventory/item/router'
 import locationRoutes from './inventory/location/router'
 import brandRoutes from './inventory/brand/router'
 import supplierRoutes from './inventory/supplier/router'
+import stockInRoutes from './inventory/stock-in/router'
 
 import projectRoutes from './project/project/router'
 import clientRoutes from './project/client/router'
@@ -41,6 +42,7 @@ route.use('/item', isAuthenticated, itemRoutes)
 route.use('/location', isAuthenticated, locationRoutes)
 route.use('/brand', isAuthenticated, brandRoutes)
 route.use('/supplier', isAuthenticated, supplierRoutes)
+route.use('/stock-in', isAuthenticated, stockInRoutes)
 
 route.use('/project', isAuthenticated, projectRoutes)
 route.use('/client', isAuthenticated, clientRoutes)
