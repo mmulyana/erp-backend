@@ -18,7 +18,6 @@ const select: Prisma.ProjectSelect = {
   description: true,
   archivedAt: true,
   attachments: true,
-  boardItems: true,
   client: {
     select: {
       id: true,
@@ -89,24 +88,8 @@ export const isExistAttachment = async (id: string) => {
 }
 
 export const create = async (payload: Payload) => {
-  const container = await db.boardContainer.findMany()
-  const lastItem = await db.boardItems.findFirst({
-    where: {
-      containerId: container[0].id,
-    },
-    orderBy: {
-      position: 'desc',
-    },
-  })
-  const position = lastItem ? lastItem.position + 1 : 0
-  const id = `item-${generateUUID()}`
-  await db.boardItems.create({
-    data: { id, position, containerId: container[0].id },
-  })
-
   const data = await db.project.create({
     data: {
-      boardItemsId: id,
       name: payload.name,
       startedAt: payload.startedAt,
       endedAt: payload.endedAt,
@@ -130,7 +113,6 @@ export const destroy = async (id: string) => {
       deletedAt: new Date(),
     },
   })
-  await db.boardItems.delete({ where: { id: project?.boardItemsId } })
 }
 
 export const update = async (id: string, payload: Payload) => {
@@ -185,17 +167,6 @@ export const readAll = async ({
       startedAt ? { startedAt: { gte: new Date(startedAt) } } : {},
       endedAt ? { endedAt: { lte: new Date(endedAt) } } : {},
       archivedAt ? { archivedAt: { equals: new Date(archivedAt) } } : {},
-      status !== undefined
-        ? {
-            boardItems: {
-              container: {
-                name: {
-                  equals: status,
-                },
-              },
-            },
-          }
-        : {},
 
       progress?.percentage !== undefined
         ? {
@@ -269,39 +240,6 @@ export const readAll = async ({
     limit,
     total_pages,
   }
-}
-
-export const updateStatus = async (id: string, containerId: string) => {
-  const data = await db.project.findUnique({
-    where: { id },
-    select: {
-      boardItems: {
-        select: {
-          id: true,
-          containerId: true,
-        },
-      },
-      id: true,
-    },
-  })
-
-  const boardItem = await db.boardItems.findMany({
-    where: { containerId },
-    take: 1,
-    orderBy: {
-      position: 'desc',
-    },
-  })
-
-  await db.boardItems.update({
-    data: {
-      position: !!boardItem.length ? boardItem[0].position + 1 : 0,
-      containerId: containerId,
-    },
-    where: { id: data?.boardItems.id },
-  })
-
-  return { data }
 }
 
 export const readAssign = async (projectId: string) => {

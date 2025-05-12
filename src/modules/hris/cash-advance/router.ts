@@ -5,17 +5,17 @@ import {
   postCashAdvance,
   patchCashAdvance,
   deleteCashAdvance,
-  getTotalInDay,
   postCashAdvanceTransaction,
   patchCashAdvanceTransaction,
   deleteCashAdvanceTransaction,
   getCashAdvanceTransaction,
   getCashAdvanceTransactions,
+  getTotalByMonth,
 } from './controller'
 
 const router = Router()
 
-router.get('/report/day', getTotalInDay)
+router.get('/report/by-month', getTotalByMonth)
 
 router.post('/transaction', postCashAdvanceTransaction)
 router.patch('/transaction/:id', patchCashAdvanceTransaction)

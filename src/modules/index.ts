@@ -22,7 +22,6 @@ import supplierRoutes from './inventory/supplier/router'
 import projectRoutes from './project/project/router'
 import clientRoutes from './project/client/router'
 import companyClientRoutes from './project/company/router'
-import boardRoutes from './project/board/router'
 
 const route = Router()
 
@@ -46,6 +45,5 @@ route.use('/supplier', isAuthenticated, supplierRoutes)
 route.use('/project', isAuthenticated, projectRoutes)
 route.use('/client', isAuthenticated, clientRoutes)
 route.use('/company-client', isAuthenticated, companyClientRoutes)
-route.use('/board', isAuthenticated, boardRoutes)
 
 export default route

@@ -11,6 +11,9 @@ export const ProjectSchema = z.object({
   startedAt: z.string().optional(),
   endedAt: z.string().optional(),
   archivedAt: z.string().optional(),
+  status: z
+    .enum(['NOT_STARTED', 'OFFERING', 'DOING', 'BILLING', 'DONE'])
+    .default('NOT_STARTED'),
 })
 
 export const AssignedSchema = z.object({
@@ -18,10 +21,6 @@ export const AssignedSchema = z.object({
   employeeId: z.string(),
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
-})
-
-export const StatusSchema = z.object({
-  containerId: z.string(),
 })
 
 export const AttachmentSchema = z.object({

@@ -1,4 +1,13 @@
-import { startOfDay, endOfDay, subDays } from 'date-fns'
+import {
+  startOfDay,
+  endOfDay,
+  subDays,
+  startOfMonth,
+  endOfMonth,
+  getDaysInMonth,
+  setDate,
+  subMonths,
+} from 'date-fns'
 import { Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 
@@ -160,52 +169,57 @@ export const findOne = async (id: string) => {
   })
 }
 
-export const totalInDay = async (date: Date) => {
-  const currentStart = startOfDay(date)
-  const currentEnd = endOfDay(date)
+export const findTotalByMonth = async (year: number, monthIndex: number) => {
+  const currentMonthStart = startOfMonth(new Date(year, monthIndex))
+  const currentMonthEnd = endOfMonth(currentMonthStart)
 
-  const lastDayStart = subDays(date, 1)
-  const lastDayEnd = endOfDay(lastDayStart)
+  const previousMonthStart = startOfMonth(subMonths(currentMonthStart, 1))
+  const previousMonthEnd = endOfMonth(previousMonthStart)
 
-  const [currentResult, lastMonthResult] = await Promise.all([
+  const [current, previous] = await Promise.all([
     db.cashAdvance.aggregate({
-      _sum: { amount: true },
       where: {
         deletedAt: null,
         date: {
-          gte: currentStart,
-          lte: currentEnd,
+          gte: currentMonthStart,
+          lte: currentMonthEnd,
         },
+      },
+      _sum: {
+        amount: true,
       },
     }),
     db.cashAdvance.aggregate({
-      _sum: { amount: true },
       where: {
         deletedAt: null,
         date: {
-          gte: lastDayStart,
-          lte: lastDayEnd,
+          gte: previousMonthStart,
+          lte: previousMonthEnd,
         },
+      },
+      _sum: {
+        amount: true,
       },
     }),
   ])
 
-  const currentTotal = currentResult._sum.amount ?? 0
-  const lastTotal = lastMonthResult._sum.amount ?? 0
+  const totalAmount = current._sum.amount ?? 0
+  const prevAmount = previous._sum.amount ?? 0
 
   const percentage =
-    lastTotal === 0
-      ? currentTotal === 0
-        ? 0
-        : 100
-      : Math.round(((currentTotal - lastTotal) / lastTotal) * 100)
+    prevAmount === 0
+      ? totalAmount > 0
+        ? 100
+        : 0
+      : Math.round(((totalAmount - prevAmount) / prevAmount) * 100)
 
   return {
-    total: currentTotal,
-    lastDay: percentage,
+    totalAmount,
+    percentage,
   }
 }
 
+// transaction
 export const createTransaction = async (data: CashAdvanceTransaction) => {
   await db.cashAdvanceTransaction.create({
     data: {

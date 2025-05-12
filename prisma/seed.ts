@@ -6,31 +6,13 @@ dotenv.config()
 
 const prisma = new PrismaClient()
 
-const BOARD_NAMES = ['penawaran', 'dikerjakan', 'penagihan', 'selesai']
-const BOARD_COLORS = ['#DC7A50', '#506FDC', '#4FAAFF', '#2A9D90']
-
 async function main() {
-  const existingBoards = await prisma.boardContainer.findFirst()
   const existingSuperadmin = await prisma.role.findFirst({
     where: { name: 'Superadmin' },
   })
   const existingUser = await prisma.user.findUnique({
     where: { email: process.env.EMAIL },
   })
-
-  if (!existingBoards) {
-    const boardPromises = BOARD_NAMES.map((name, i) =>
-      prisma.boardContainer.create({
-        data: {
-          id: `container-${generateUUID()}`,
-          name: name,
-          color: BOARD_COLORS[i],
-          position: i,
-        },
-      }),
-    )
-    await Promise.all(boardPromises)
-  }
 
   if (!existingSuperadmin) {
     // Create Superadmin role

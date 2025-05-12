@@ -28,15 +28,16 @@ model User {
   cashAdvances CashAdvance[]
   attendances  Attendance[]
   stockLedger  StockLedger[]
-  stockLoans   StockLoan[]
+  loans        Loan[]
   inventories  Inventory[]
   overtimes    Overtime[]
   projects     Project[]
-  tours        Tour[]
 
-  role     Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
-  employee Employee? @relation(fields: [employeeId], references: [id])
+  role     Role?      @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  employee Employee?  @relation(fields: [employeeId], references: [id])
   payrolls Payroll[]
+  StockIn  StockIn[]
+  StockOut StockOut[]
 
   @@map("users")
 }
@@ -257,37 +258,38 @@ enum PayrollStatus {
 }
 
 // Project
-model BoardContainer {
-  id       String @id
-  name     String @unique
-  color    String
-  position Int
+// model BoardContainer {
+//   id       String @id
+//   name     String @unique
+//   color    String
+//   position Int
 
-  items BoardItems[]
-}
+//   items BoardItems[]
+// }
 
-model BoardItems {
-  id          String   @id
-  position    Int
-  containerId String
-  project     Project?
+// model BoardItems {
+//   id          String   @id
+//   position    Int
+//   containerId String
+//   project     Project?
 
-  container BoardContainer @relation(fields: [containerId], references: [id])
-}
+//   container BoardContainer @relation(fields: [containerId], references: [id])
+// }
 
 model Project {
-  id                 String    @id @default(uuid()) @db.Uuid()
-  leadId             String?   @db.Uuid()
-  clientId           String?   @db.Uuid()
-  name               String    @db.VarChar(255)
-  description        String?   @db.VarChar(255)
-  progressPercentage Int       @default(0)
-  paymentPercentage  Int       @default(0)
+  id                 String        @id @default(uuid()) @db.Uuid()
+  leadId             String?       @db.Uuid()
+  clientId           String?       @db.Uuid()
+  name               String        @db.VarChar(255)
+  description        String?       @db.VarChar(255)
+  progressPercentage Int           @default(0)
+  paymentPercentage  Int           @default(0)
   netValue           BigInt?
   startedAt          DateTime?
   endedAt            DateTime?
   archivedAt         DateTime?
-  boardItemsId       String    @unique
+  status             ProjectStatus @default(NOT_STARTED)
+  // boardItemsId       String    @unique
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -296,11 +298,20 @@ model Project {
   attachments ProjectAttachment[]
   employees   AssignedEmployee[]
   reports     ProjectReport[]
-  stockLoans  StockLoan[]
+  loans       Loan[]
 
-  client     Client?    @relation(fields: [clientId], references: [id])
-  boardItems BoardItems @relation(fields: [boardItemsId], references: [id])
-  lead       User?      @relation(fields: [leadId], references: [id])
+  client   Client?    @relation(fields: [clientId], references: [id])
+  // boardItems BoardItems @relation(fields: [boardItemsId], references: [id])
+  lead     User?      @relation(fields: [leadId], references: [id])
+  StockOut StockOut[]
+}
+
+enum ProjectStatus {
+  NOT_STARTED
+  OFFERING
+  DOING
+  BILLING
+  DONE
 }
 
 model AssignedEmployee {
@@ -407,6 +418,8 @@ model Inventory {
   description       String? @db.VarChar(255)
   unitOfMeasurement String? @db.VarChar(50)
   photoUrl          String? @db.VarChar(100)
+  availableStock    Int     @default(0)
+  totalStock        Int     @default(0)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -416,69 +429,123 @@ model Inventory {
   brand    BrandInventory?    @relation(fields: [brandId], references: [id])
   user     User?              @relation(fields: [createdBy], references: [id])
 
-  stockLoans  StockLoan[]
-  StockLedger StockLedger[]
-}
-
-model StockLoan {
-  id             String   @id @default(uuid()) @db.Uuid()
-  projectId      String   @db.Uuid()
-  inventoryId    String   @db.Uuid()
-  createdBy      String   @db.Uuid()
-  quantity       Int
-  resultQuantity Int
-  requestDate    DateTime
-  returnDate     DateTime
-  photoUrl       String   @db.VarChar(100)
-  returnPhotoUrl String   @db.VarChar(100)
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-
-  project   Project   @relation(fields: [projectId], references: [id])
-  inventory Inventory @relation(fields: [inventoryId], references: [id])
-  user      User      @relation(fields: [createdBy], references: [id])
+  loans         Loan[]
+  stockLedgers  StockLedger[]
+  stockInItems  StockInItem[]
+  stockOutItems StockOutItem[]
 }
 
 model StockLedger {
-  id             String          @id @default(uuid()) @db.Uuid()
-  inventoryId    String          @db.Uuid()
-  referenceId    String          @db.Uuid()
-  createdBy      String          @db.Uuid()
-  type           TransactionType
-  quantity       Int
-  resultQuantity Int
-  note           String?         @db.VarChar(255)
-  date           DateTime
-  photoUrl       String?         @db.VarChar(100)
+  id          String          @id @default(uuid()) @db.Uuid()
+  inventoryId String          @db.Uuid()
+  refType     RefType
+  referenceId String          @db.Uuid()
+  createdBy   String          @db.Uuid()
+  type        TransactionType
+  quantity    Int
+  note        String?         @db.VarChar(255)
+  date        DateTime
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  User      User?     @relation(fields: [createdBy], references: [id])
+  user      User?     @relation(fields: [createdBy], references: [id])
   inventory Inventory @relation(fields: [inventoryId], references: [id])
+  Loan      Loan?     @relation(fields: [loanId], references: [id])
+  loanId    String?
+}
 
-  @@index([inventoryId, date])
+enum RefType {
+  STOCK_IN
+  STOCK_OUT
+  LOAN
 }
 
 enum TransactionType {
-  stockIn
-  stockOut
+  IN
+  OUT
+  LOAN
+  RETURNED
 }
 
 model StockIn {
-  id         String @id @db.Uuid()
-  supplierId String @db.Uuid()
-  price      Int
+  id              String   @id @default(uuid()) @db.Uuid()
+  referenceNumber String?
+  supplierId      String?  @db.Uuid()
+  note            String?
+  createdBy       String?  @db.Uuid()
+  date            DateTime
+  photoUrl        String?  @db.VarChar(100)
 
-  supplier Supplier @relation(fields: [supplierId], references: [id])
+  supplier Supplier?     @relation(fields: [supplierId], references: [id])
+  user     User?         @relation(fields: [createdBy], references: [id])
+  items    StockInItem[]
+}
+
+model StockInItem {
+  id         String @id @default(uuid()) @db.Uuid()
+  stockInId  String @db.Uuid()
+  itemId     String @db.Uuid()
+  quantity   Int
+  unitPrice  Int
+  totalPrice Int
+
+  stockIn StockIn   @relation(fields: [stockInId], references: [id])
+  item    Inventory @relation(fields: [itemId], references: [id])
 }
 
 model StockOut {
-  id    String @id @db.Uuid()
-  price Int
+  id        String   @id @default(uuid()) @db.Uuid()
+  note      String?
+  createdBy String?  @db.Uuid()
+  date      DateTime
+  projectId String?  @db.Uuid()
+  photoUrl  String?  @db.VarChar(100)
+
+  user    User?    @relation(fields: [createdBy], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+
+  items StockOutItem[]
+}
+
+model StockOutItem {
+  id         String @id @default(uuid())
+  stockOutId String @db.Uuid()
+  itemId     String @db.Uuid()
+  quantity   Int
+  unitPrice  Int?
+  totalPrice Int?
+
+  stockOut StockOut  @relation(fields: [stockOutId], references: [id])
+  item     Inventory @relation(fields: [itemId], references: [id])
+}
+
+model Loan {
+  id               String     @id @default(uuid())
+  itemId           String     @db.Uuid()
+  borrowerId       String     @db.Uuid()
+  quantityBorrowed Int
+  quantityReturned Int        @default(0)
+  loanDate         DateTime
+  returnDate       DateTime?
+  note             String?
+  status           LoanStatus @default(LOANED)
+  PhotoUrlOut      String?
+  PhotoUrlIn       String?
+
+  item     Inventory @relation(fields: [itemId], references: [id])
+  borrower User      @relation(fields: [borrowerId], references: [id])
+
+  stockLedgers StockLedger[]
+  Project      Project?      @relation(fields: [projectId], references: [id])
+  projectId    String?       @db.Uuid()
+}
+
+enum LoanStatus {
+  LOANED
+  PARTIAL_RETURNED
+  RETURNED
 }
 
 model Supplier {
@@ -506,6 +573,8 @@ model LocationInventory {
   deletedAt DateTime?
 
   inventories Inventory[]
+
+  @@map("inventory_warehouses")
 }
 
 model BrandInventory {
@@ -518,11 +587,6 @@ model BrandInventory {
   deletedAt DateTime?
 
   inventories Inventory[]
-}
 
-model Tour {
-  id     Int    @id @default(autoincrement())
-  key    String
-  userId String @db.Uuid()
-  user   User   @relation(fields: [userId], references: [id])
+  @@map("inventory_brands")
 }

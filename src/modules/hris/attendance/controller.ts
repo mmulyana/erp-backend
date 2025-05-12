@@ -11,6 +11,7 @@ import {
 import {
   create,
   readAll,
+  readAttendanceByDate,
   readAttendanceChart,
   readAttendancePerDay,
   update,
@@ -69,9 +70,16 @@ export const getAttendanceChart = async (req: Request, res: Response) => {
   const result = await readAttendanceChart({ startDate, endDate })
   res.json(successResponse(result, 'Laporan absensi'))
 }
+
 export const getAttendanceTotal = async (req: Request, res: Response) => {
   const result = await readAttendancePerDay({
     startDate: req.query.startDate as string,
   })
   res.json(successResponse(result, 'Laporan absensi per hari'))
+}
+
+export const getAttendanceByDate = async (req: Request, res: Response) => {
+  const date = req.query.date ? new Date(req.query.date as string) : undefined
+  const result = await readAttendanceByDate(date)
+  res.json(successResponse(result, 'Absensi harian'))
 }

@@ -2,12 +2,13 @@ import { Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 import {
   addMonths,
-  differenceInCalendarMonths,
+  getYear,
   eachDayOfInterval,
   endOfDay,
   endOfMonth,
   format,
   getDate,
+  getMonth,
   startOfDay,
   startOfMonth,
   subMonths,
@@ -71,6 +72,7 @@ export const update = async (id: string, data: Payload) => {
   if (data.photoUrl && exist.photoUrl) {
     await deleteFile(exist.photoUrl)
   }
+  console.log('data', data)
 
   return await db.employee.update({
     where: { id },
@@ -376,15 +378,17 @@ export const findCertificate = async (id: string) => {
 // DATA
 export const findAttendanceById = async ({
   employeeId,
-  startDate,
-  endDate,
+  year,
+  startMonth,
+  endMonth,
 }: {
   employeeId: string
-  startDate: Date
-  endDate: Date
+  year: number
+  startMonth: number // 0 - 11
+  endMonth: number // 0 - 11 
 }) => {
-  const start = startOfDay(new Date(startDate))
-  const end = endOfDay(new Date(endDate))
+  const start = startOfMonth(new Date(year, startMonth))
+  const end = endOfMonth(new Date(year, endMonth))
 
   const attendances = await db.attendance.findMany({
     where: {
@@ -401,24 +405,27 @@ export const findAttendanceById = async ({
     },
   })
 
-  // gruping per bulan
-  const totalMonths = differenceInCalendarMonths(end, start) + 1
+  const totalMonths = endMonth - startMonth + 1
 
   const data = Array.from({ length: totalMonths }, (_, i) => {
-    const currentMonth = addMonths(start, i)
-    const month = currentMonth.getMonth()
-    const year = currentMonth.getFullYear()
+    const current = addMonths(start, i)
+    const month = getMonth(current)
+    const year = getYear(current)
 
-    const presence = attendances
-      .filter(
-        (att) =>
-          att.type === 'presence' &&
-          att.date.getFullYear() === year &&
-          att.date.getMonth() === month,
-      )
-      .map((att) => getDate(att.date))
+    const filtered = attendances.filter(
+      (att) => att.date.getFullYear() === year && att.date.getMonth() === month,
+    )
 
-    return { presence }
+    return {
+      month,
+      year,
+      presence: filtered
+        .filter((att) => att.type === 'presence')
+        .map((att) => getDate(att.date)),
+      absent: filtered
+        .filter((att) => att.type === 'absent')
+        .map((att) => getDate(att.date)),
+    }
   })
 
   const allDates = eachDayOfInterval({ start, end })
@@ -629,6 +636,37 @@ export const findTotalEmployee = async () => {
       fill: '#D52B42',
     },
   ]
+
+  return chartData
+}
+
+export const findLastEducation = async () => {
+  const educationGroups = await db.employee.groupBy({
+    by: ['lastEducation'],
+    where: {
+      deletedAt: null,
+    },
+    _count: {
+      _all: true,
+    },
+  })
+
+  const colorMap: Record<string, string> = {
+    sd: '#D52B42',
+    smp: '#475DEF',
+    sma: '#27B5E9',
+    d3: '#10B981',
+    s1: '#6366F1',
+    s2: '#EC4899',
+    s3: '#F97316',
+    default: '#6B7280',
+  }
+
+  const chartData = educationGroups.map((item) => ({
+    name: item.lastEducation ?? 'Tidak diketahui',
+    total: item._count._all,
+    fill: colorMap[item.lastEducation ?? 'default'] ?? colorMap.default,
+  }))
 
   return chartData
 }

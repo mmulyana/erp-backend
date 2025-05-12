@@ -67,12 +67,9 @@ export const read = async (id: string) => {
       stockIn: {
         select: {
           id: true,
-          price: true,
-        },
-      },
-      _count: {
-        select: {
-          stockIn: true,
+          date: true,
+          user: true,
+          photoUrl: true,
         },
       },
     },

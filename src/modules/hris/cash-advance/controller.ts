@@ -16,9 +16,9 @@ import {
   findAll,
   findOne,
   findOneTransaction,
+  findTotalByMonth,
   isExist,
   isTransactionExist,
-  totalInDay,
   update,
   updateTransaction,
 } from './repository'
@@ -72,11 +72,11 @@ export const getCashAdvances = async (req: Request, res: Response) => {
   res.json(successResponse(data, 'kasbon'))
 }
 
-export const getTotalInDay = async (req: Request, res: Response) => {
-  const data = await totalInDay(
-    req.query.startDate ? new Date(req.query.startDate as string) : new Date(),
-  )
-  res.json(successResponse(data, 'total dalam sehari'))
+export const getTotalByMonth = async (req: Request, res: Response) => {
+  const month = req.query.month ? Number(req.query.month) : undefined
+  const year = req.query.year ? Number(req.query.year) : undefined
+  const data = await findTotalByMonth(year, month)
+  res.json(successResponse(data, 'total kasbon bulan ini'))
 }
 
 // transaction

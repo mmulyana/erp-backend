@@ -80,7 +80,6 @@ export const findAll = async ({
     phone: true,
     photoUrl: true,
     role: true,
-    tours: true,
   }
 
   if (page === undefined || limit === undefined) {
@@ -145,24 +144,6 @@ export const findByUsername = async (username: string) => {
 
 export const findByPhone = async (phone: string) => {
   return db.user.findUnique({ where: { phone } })
-}
-
-export const findTourByIdandKey = async (userId: string, key: string) => {
-  return await db.tour.findFirst({
-    where: {
-      userId,
-      key,
-    },
-  })
-}
-
-export const createTour = async (userId: string, key: string) => {
-  await db.tour.create({
-    data: {
-      userId,
-      key,
-    },
-  })
 }
 
 export const isExist = async (id: string) => {

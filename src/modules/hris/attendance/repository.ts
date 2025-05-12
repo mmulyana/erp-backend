@@ -15,7 +15,9 @@ import {
   eachDayOfInterval,
   formatISO,
   subDays,
+  format,
 } from 'date-fns'
+import { id } from 'date-fns/locale'
 
 export const isExist = async (id: string) => {
   const data = await db.attendance.findUnique({ where: { id } })
@@ -283,4 +285,65 @@ export const readAttendancePerDay = async ({
     notYet,
     total: totalEmployee,
   }
+}
+
+export const readAttendanceByDate = async (date: Date) => {
+  const presenceData: { date: string; total: number }[] = []
+  const absentData: { date: string; total: number }[] = []
+
+  for (let i = 3; i >= 0; i--) {
+    const targetDate = subDays(date, i)
+    const start = startOfDay(targetDate)
+    const end = endOfDay(targetDate)
+
+    const [presence, absent] = await Promise.all([
+      db.attendance.count({
+        where: {
+          deletedAt: null,
+          type: 'presence',
+          date: {
+            gte: start,
+            lte: end,
+          },
+        },
+      }),
+      db.attendance.count({
+        where: {
+          deletedAt: null,
+          type: 'absent',
+          date: {
+            gte: start,
+            lte: end,
+          },
+        },
+      }),
+    ])
+
+    const label = format(targetDate, 'd/M/yyyy', { locale: id })
+    presenceData.push({ date: label, total: presence })
+    absentData.push({ date: label, total: absent })
+  }
+
+  const presencePercentage = calculatePercentage(presenceData)
+  const absentPercentage = calculatePercentage(absentData)
+
+  return {
+    presence: {
+      data: presenceData,
+      percentage: presencePercentage,
+    },
+    absent: {
+      data: absentData,
+      percentage: absentPercentage,
+    },
+  }
+}
+
+function calculatePercentage(data: { total: number }[]) {
+  const today = data.at(-1)?.total ?? 0
+  const yesterday = data.at(-2)?.total ?? 0
+
+  if (yesterday === 0) return today > 0 ? 100 : 0
+
+  return Math.round(((today - yesterday) / yesterday) * 100)
 }

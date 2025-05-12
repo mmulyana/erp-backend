@@ -2,17 +2,17 @@ import { HttpStatusCode } from 'axios'
 import { compare } from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
+import { throwError } from '@/utils/error-handler'
+import { isValidUUID } from '@/utils/is-valid-uuid'
+import { Messages } from '@/utils/constant'
+
+import { Login } from './schema'
 import {
   findByEmail,
   findById,
   findByPhone,
   findByUsername,
 } from './repository'
-import { throwError } from '../../utils/error-handler'
-import { Messages } from '../../utils/constant'
-
-import { Login } from './schema'
-import { isValidUUID } from '@/utils/is-valid-uuid'
 
 export const loginService = async (credentials: Login) => {
   const { username, password } = credentials
@@ -63,6 +63,7 @@ export const findMeService = async (id: string) => {
     email: data.email,
     phone: data.phone,
     photoUrl: data.photoUrl,
-    tours: data.tours.map((item) => item.key),
+    role: data.role,
+    permissions: data.role.permissions,
   }
 }

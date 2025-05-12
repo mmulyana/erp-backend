@@ -1,11 +1,13 @@
 import { Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
+import { id } from 'date-fns/locale'
 import {
   eachDayOfInterval,
   endOfDay,
   startOfDay,
   formatISO,
   subDays,
+  format,
 } from 'date-fns'
 
 import { throwError } from '@/utils/error-handler'
@@ -78,16 +80,16 @@ export const findAll = async ({
 }: findAllParams) => {
   const where: Prisma.OvertimeWhereInput = {
     date: startDate,
+    deletedAt: null,
     employee: {
       // deletedAt: null,
-      AND: [
-        search
-          ? {
-              OR: [{ fullname: { contains: search, mode: 'insensitive' } }],
-            }
-          : {},
-      ],
-      deletedAt: null,
+      ...(search && {
+        AND: [
+          {
+            OR: [{ fullname: { contains: search, mode: 'insensitive' } }],
+          },
+        ],
+      }),
     },
   }
 
@@ -95,6 +97,7 @@ export const findAll = async ({
     id: true,
     totalHour: true,
     note: true,
+    deletedAt: true,
     employee: {
       select: {
         fullname: true,
@@ -146,6 +149,7 @@ export const findAll = async ({
     position: item.employee.position ?? '-',
     totalHour: item.totalHour,
     note: item.note ?? '',
+    deletedAt: item.deletedAt,
   }))
 
   const total_pages = Math.ceil(total / limit)
@@ -227,4 +231,44 @@ export const readOvertimeChart = async ({
   })
 
   return result
+}
+
+export const readOvertimeByDate = async (date: Date) => {
+  const result: { date: string; total: number }[] = []
+
+  for (let i = 3; i >= 0; i--) {
+    const target = subDays(date, i)
+    const start = startOfDay(target)
+    const end = endOfDay(target)
+
+    const total = await db.overtime.count({
+      where: {
+        deletedAt: null,
+        date: {
+          gte: start,
+          lte: end,
+        },
+      },
+    })
+
+    result.push({
+      date: format(target, 'd/M/yyyy', { locale: id }),
+      total,
+    })
+  }
+
+  const today = result.at(-1)?.total ?? 0
+  const yesterday = result.at(-2)?.total ?? 0
+
+  const percentage =
+    yesterday === 0
+      ? today > 0
+        ? 100
+        : 0
+      : Math.round(((today - yesterday) / yesterday) * 100)
+
+  return {
+    data: result,
+    percentage,
+  }
 }

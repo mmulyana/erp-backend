@@ -38,6 +38,12 @@ export const EmployeeSchema = z.object({
   address: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
   photoName: z.string().optional(),
+  status: z.preprocess((val) => {
+    if (val === 'true') return true
+    if (val === 'false') return false
+    return val
+  }, z.boolean().nullable().optional()),
+  payType: z.enum(['monthly', 'daily']).default('daily'),
 })
 
 export const CertificationSchema = z.object({
@@ -57,11 +63,6 @@ export const CertificationSchema = z.object({
     }, z.date().nullable())
     .nullable()
     .optional(),
-})
-
-export const StatusTrackSchema = z.object({
-  note: z.string().optional(),
-  status: z.boolean().optional(),
 })
 
 export type Employee = z.infer<typeof EmployeeSchema>

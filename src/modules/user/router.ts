@@ -6,7 +6,6 @@ import {
   getUsersInfinite,
   patchResetPassword,
   patchUser,
-  postTourUser,
   postUser,
 } from './controller'
 import upload from '@/utils/upload'
@@ -20,7 +19,5 @@ router.post('/', upload.single('photoUrl'), postUser)
 router.patch('/:id', upload.single('photoUrl'), patchUser)
 router.delete('/:id', deleteUser)
 router.patch('/:id/reset', patchResetPassword)
-
-router.post('/:id/tour', postTourUser)
 
 export default router

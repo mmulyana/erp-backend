@@ -4,6 +4,7 @@ import {
   findAll,
   findOne,
   isExist,
+  readOvertimeByDate,
   readOvertimeChart,
   update,
 } from './repository'
@@ -78,4 +79,10 @@ export const getOvertimeChart = async (req: Request, res: Response) => {
     : undefined
   const result = await readOvertimeChart({ startDate, endDate })
   res.json(successResponse(result, 'Laporan lembur'))
+}
+
+export const getOvertimeByDate = async (req: Request, res: Response) => {
+  const date = req.query.date ? new Date(req.query.date as string) : undefined
+  const result = await readOvertimeByDate(date)
+  res.json(successResponse(result, 'Lembur harian'))
 }

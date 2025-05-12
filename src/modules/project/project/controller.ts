@@ -1,11 +1,6 @@
 import { Request, Response } from 'express'
 
-import {
-  AssignedSchema,
-  AttachmentSchema,
-  ProjectSchema,
-  StatusSchema,
-} from './schema'
+import { AssignedSchema, AttachmentSchema, ProjectSchema } from './schema'
 import {
   create,
   createAssign,
@@ -23,7 +18,6 @@ import {
   update,
   updateAssign,
   updateAttachment,
-  updateStatus,
 } from './repository'
 
 import { checkParamsId, getParams } from '@/utils/params'
@@ -133,19 +127,6 @@ export const getProjectsInfinite = async (req: Request, res: Response) => {
   })
 
   res.json(successResponse(result, 'proyek'))
-}
-
-export const patchStatusProject = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-  await isExist(id)
-
-  const parsed = StatusSchema.safeParse(req.body)
-  if (!parsed.success) {
-    return errorParse(parsed.error)
-  }
-
-  const result = await updateStatus(id, parsed.data.containerId)
-  res.json(updateResponse(result, 'status proyek'))
 }
 
 export const postAssignEmployee = async (req: Request, res: Response) => {

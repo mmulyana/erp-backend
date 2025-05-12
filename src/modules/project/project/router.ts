@@ -11,7 +11,6 @@ import {
   patchAssignEmployee,
   patchAttachment,
   patchProject,
-  patchStatusProject,
   postAssignEmployee,
   postAttachment,
   postProject,
@@ -30,8 +29,6 @@ router.delete('/:id', deleteProject)
 
 router.get('/:id/employee', getAssignedEmployee)
 router.get('/:id/attachment', getAttachments)
-
-router.patch('/:id/status', patchStatusProject)
 
 // employee
 router.post('/assign/employee', postAssignEmployee)

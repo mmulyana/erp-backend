@@ -12,9 +12,15 @@ export const findByPhone = async (phone: string) => {
 
 export const findById = async (id: string) => {
   return db.user.findUnique({
-    where: { id },
+    where: { id, deletedAt: null },
     include: {
-      tours: true,
+      role: {
+        select: {
+          id: true,
+          name: true,
+          permissions: true,
+        },
+      },
     },
   })
 }

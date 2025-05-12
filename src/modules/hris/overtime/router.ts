@@ -6,11 +6,13 @@ import {
   getOvertimes,
   postOvertime,
   patchOvertime,
+  getOvertimeByDate,
 } from './controller'
 
 const router = Router()
 
 router.get('/report/chart', getOvertimeChart)
+router.get('/report/by-date', getOvertimeByDate)
 
 router.get('/', getOvertimes)
 router.post('/', postOvertime)

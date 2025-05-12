@@ -10,16 +10,7 @@ import {
   successResponse,
   updateResponse,
 } from '@/utils/response'
-import {
-  create,
-  createTour,
-  destroy,
-  find,
-  findAll,
-  findTourByIdandKey,
-  isExist,
-  update,
-} from './repository'
+import { create, destroy, find, findAll, isExist, update } from './repository'
 import { AccountSchema } from './schema'
 
 export const getUsers = async (req: Request, res: Response) => {
@@ -86,17 +77,6 @@ export const getUser = async (req: Request, res: Response) => {
 
   const result = await find(id)
   res.json(successResponse(result, 'user'))
-}
-
-export const postTourUser = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-  const isExist = await findTourByIdandKey(id, req.body.key)
-  if (isExist) {
-    return res.json(customResponse(null, 'Tur sudah ada'))
-  }
-
-  await createTour(id, req.body.key)
-  res.json(createResponse('Tur'))
 }
 
 export const patchResetPassword = async (req: Request, res: Response) => {

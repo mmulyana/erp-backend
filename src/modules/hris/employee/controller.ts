@@ -23,6 +23,7 @@ import {
   findChartCashAdvancesById,
   destroyPhoto,
   findTotalEmployee,
+  findLastEducation,
 } from './repository'
 import {
   createResponse,
@@ -48,6 +49,8 @@ export const postEmployee = async (req: Request, res: Response) => {
 export const patchEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
+
+  console.log('body', req.body)
 
   const parsed = EmployeeSchema.partial().safeParse(req.body)
   if (!parsed.success) {
@@ -173,8 +176,9 @@ export const getAttendancesById = async (req: Request, res: Response) => {
 
   const result = await findAttendanceById({
     employeeId: id,
-    startDate: new Date(req.query.startDate as string),
-    endDate: new Date(req.query.endDate as string),
+    startMonth: Number(req.query.startMonth as string),
+    endMonth: Number(req.query.endMonth as string),
+    year: Number(req.query.year as string),
   })
 
   res.json(successResponse(result, 'absensi pegawai'))
@@ -229,4 +233,8 @@ export const getChartCashAdvancesById = async (req: Request, res: Response) => {
 export const getTotalEmployee = async (req: Request, res: Response) => {
   const result = await findTotalEmployee()
   res.json(successResponse(result, 'Total pegawai'))
+}
+export const getLastEducation = async (req: Request, res: Response) => {
+  const result = await findLastEducation()
+  res.json(successResponse(result, 'Pendidikan terakhir'))
 }
