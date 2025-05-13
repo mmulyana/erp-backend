@@ -38,7 +38,7 @@ export const create = async (
   },
 ) => {
   return await db.$transaction(async (tx) => {
-    // Buat stock in dulu
+    // buat stock in dulu
     const stockIn = await tx.stockIn.create({
       data: {
         referenceNumber: data.referenceNumber,
@@ -53,7 +53,7 @@ export const create = async (
     for (const item of data.items) {
       const totalPrice = item.unitPrice * item.quantity
 
-      // Tambah stock in item
+      // tambah stock in item
       await tx.stockInItem.create({
         data: {
           stockInId: stockIn.id,
@@ -64,7 +64,7 @@ export const create = async (
         },
       })
 
-      // Tambah di ledger
+      // tambah di ledger
       await tx.stockLedger.create({
         data: {
           inventoryId: item.itemId,
@@ -78,7 +78,7 @@ export const create = async (
         },
       })
 
-      // Update stock di inventory
+      // update stock di inventory
       await tx.inventory.update({
         where: { id: item.itemId },
         data: {
