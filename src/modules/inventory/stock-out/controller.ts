@@ -5,9 +5,8 @@ import { createResponse, successResponse } from '@/utils/response'
 import { parseJsonField } from '@/utils'
 
 import { StockOutSchema } from './schema'
-import { create, read, readAll } from './repository'
+import { create, findTotalByMonth, isExist, read, readAll } from './repository'
 import { checkParamsId, getParams } from '@/utils/params'
-import { isExist } from '../item/repository'
 
 export const postStockOut = async (req: Request, res: Response) => {
   req.body.items = parseJsonField(req.body.items)
@@ -47,4 +46,12 @@ export const getStockOuts = async (req: Request, res: Response) => {
     search,
   })
   res.json(successResponse(result, 'stock out'))
+}
+
+export const getTotalByMonth = async (req: Request, res: Response) => {
+  const month = Number(req.query.month) ?? new Date().getMonth()
+  const year = Number(req.query.year) ?? new Date().getFullYear()
+
+  const result = await findTotalByMonth({ monthIndex: month, year })
+  res.json(successResponse(result, 'laporan total per bulan'))
 }

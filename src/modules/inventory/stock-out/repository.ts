@@ -1,10 +1,12 @@
 import { Prisma, RefType, TransactionType } from '@prisma/client'
+import { endOfMonth, startOfMonth, subMonths } from 'date-fns'
 import { HttpStatusCode } from 'axios'
 
 import db from '@/lib/prisma'
 
 import { getPaginateParams } from '@/utils/params'
 import { throwError } from '@/utils/error-handler'
+import { Messages } from '@/utils/constant'
 import { processTotalPrice } from '@/utils'
 import { PaginationParams } from '@/types'
 
@@ -180,4 +182,62 @@ export const create = async (
 
     return stockOut
   })
+}
+
+export const findTotalByMonth = async ({
+  monthIndex,
+  year,
+}: {
+  monthIndex: number // 0 - 11
+  year: number
+}) => {
+  const start = startOfMonth(new Date(year, monthIndex))
+  const end = endOfMonth(start)
+
+  const prevStart = startOfMonth(subMonths(start, 1))
+  const prevEnd = endOfMonth(prevStart)
+
+  const current = await db.stockOutItem.aggregate({
+    where: {
+      stockOut: {
+        date: {
+          gte: start,
+          lte: end,
+        },
+      },
+    },
+    _sum: {
+      totalPrice: true,
+    },
+  })
+
+  const previous = await db.stockOutItem.aggregate({
+    where: {
+      stockOut: {
+        date: {
+          gte: prevStart,
+          lte: prevEnd,
+        },
+      },
+    },
+    _sum: {
+      totalPrice: true,
+    },
+  })
+
+  const currentTotal = current._sum.totalPrice ?? 0
+  const prevTotal = previous._sum.totalPrice ?? 0
+
+  const percentage =
+    prevTotal === 0 ? 100 : ((currentTotal - prevTotal) / prevTotal) * 100
+
+  return {
+    total: currentTotal,
+    percentage: Math.round(percentage * 100) / 100,
+  }
+}
+
+export const isExist = async (id: string) => {
+  const data = await db.stockOut.findUnique({ where: { id } })
+  if (!data) return throwError(Messages.notFound, HttpStatusCode.BadRequest)
 }
