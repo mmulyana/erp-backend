@@ -16,6 +16,7 @@ const select: Prisma.LocationInventorySelect = {
       inventories: true,
     },
   },
+  createdAt: true,
 }
 
 export const create = async (payload: Location & { photoUrl?: string }) => {
@@ -48,7 +49,15 @@ export const destroy = async (id: string) => {
 }
 
 export const read = async (id: string) => {
-  const data = await db.locationInventory.findUnique({ where: { id }, select })
+  const data = await db.locationInventory.findUnique({
+    where: { id },
+    select: {
+      ...select,
+      inventories: {
+        include: { brand: true },
+      },
+    },
+  })
   return { data }
 }
 
