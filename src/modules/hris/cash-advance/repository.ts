@@ -18,7 +18,7 @@ import { Messages } from '@/utils/constant'
 import db from '@/lib/prisma'
 
 import { CashAdvance, CashAdvanceTransaction } from './schema'
-import { recalculateRemaining, updateStatus } from './helper'
+import { checkRemaining, recalculateRemaining, updateStatus } from './helper'
 
 export type FilterCash = {
   fullname?: string
@@ -33,6 +33,7 @@ const select: Prisma.CashAdvanceSelect = {
     select: {
       id: true,
       fullname: true,
+      position: true,
     },
   },
   amount: true,
@@ -40,6 +41,7 @@ const select: Prisma.CashAdvanceSelect = {
   date: true,
   note: true,
   employeeId: true,
+  status: true,
 }
 
 export const isExist = async (id: string) => {
@@ -114,13 +116,7 @@ export const findAll = async (
   if (page === undefined || limit === undefined) {
     const data = await db.cashAdvance.findMany({
       where,
-      include: {
-        employee: {
-          select: {
-            fullname: true,
-          },
-        },
-      },
+      select,
     })
     return { data }
   }
@@ -135,13 +131,7 @@ export const findAll = async (
       where,
       skip,
       take,
-      include: {
-        employee: {
-          select: {
-            fullname: true,
-          },
-        },
-      },
+      select,
     }),
     db.cashAdvance.count({ where }),
   ])
@@ -221,6 +211,8 @@ export const findTotalByMonth = async (year: number, monthIndex: number) => {
 
 // transaction
 export const createTransaction = async (data: CashAdvanceTransaction) => {
+  await checkRemaining(data.cashAdvanceId, data.amount)
+
   await db.cashAdvanceTransaction.create({
     data: {
       amount: data.amount,
@@ -268,6 +260,7 @@ export const findAllTransaction = async (
   search?: string,
   startDate?: string,
   endDate?: string,
+  cashAdvanceId?: string,
 ) => {
   const where: Prisma.CashAdvanceTransactionWhereInput = {
     AND: [
@@ -288,7 +281,7 @@ export const findAllTransaction = async (
             },
           }
         : {},
-      { deletedAt: null },
+      { deletedAt: null, cashAdvanceId },
     ],
   }
 
@@ -304,7 +297,7 @@ export const findAllTransaction = async (
   const [data, total] = await Promise.all([
     db.cashAdvanceTransaction.findMany({
       orderBy: {
-        createdAt: 'desc',
+        createdAt: 'asc',
       },
       where,
       skip,

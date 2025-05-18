@@ -14,6 +14,7 @@ import {
   destroy,
   destroyTransaction,
   findAll,
+  findAllTransaction,
   findOne,
   findOneTransaction,
   findTotalByMonth,
@@ -135,11 +136,19 @@ export const getCashAdvanceTransactions = async (
   res: Response,
 ) => {
   const { page, limit, search } = getParams(req)
-  const start_date = req.params.startDate
-    ? String(req.params.startDate)
+  const start_date = req.query.startDate
+    ? String(req.query.startDate)
     : undefined
-  const end_date = req.params.endDate ? String(req.params.endDate) : undefined
+  const end_date = req.query.endDate ? String(req.query.endDate) : undefined
+  const cashAdvanceId = req.params.id
 
-  const data = await findAll(page, limit, search, start_date, end_date)
+  const data = await findAllTransaction(
+    page,
+    limit,
+    search,
+    start_date,
+    end_date,
+    cashAdvanceId,
+  )
   res.json(successResponse(data, 'transaksi kasbon'))
 }

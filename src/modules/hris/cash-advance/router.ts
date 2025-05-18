@@ -20,12 +20,12 @@ router.get('/report/by-month', getTotalByMonth)
 router.post('/transaction', postCashAdvanceTransaction)
 router.patch('/transaction/:id', patchCashAdvanceTransaction)
 router.delete('/transaction/:id', deleteCashAdvanceTransaction)
-router.get('/transaction', getCashAdvanceTransactions)
 router.get('/transaction/:id', getCashAdvanceTransaction)
 
 router.get('/', getCashAdvances)
 router.post('/', postCashAdvance)
 router.get('/:id', getCashAdvance)
+router.get('/:id/transaction', getCashAdvanceTransactions)
 router.patch('/:id', patchCashAdvance)
 router.delete('/:id', deleteCashAdvance)
 

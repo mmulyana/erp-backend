@@ -72,7 +72,6 @@ export const update = async (id: string, data: Payload) => {
   if (data.photoUrl && exist.photoUrl) {
     await deleteFile(exist.photoUrl)
   }
-  console.log('data', data)
 
   return await db.employee.update({
     where: { id },
@@ -385,7 +384,7 @@ export const findAttendanceById = async ({
   employeeId: string
   year: number
   startMonth: number // 0 - 11
-  endMonth: number // 0 - 11 
+  endMonth: number // 0 - 11
 }) => {
   const start = startOfMonth(new Date(year, startMonth))
   const end = endOfMonth(new Date(year, endMonth))
@@ -663,7 +662,7 @@ export const findLastEducation = async () => {
   }
 
   const chartData = educationGroups.map((item) => ({
-    name: item.lastEducation ?? 'Tidak diketahui',
+    name: item.lastEducation || 'Belum diisi',
     total: item._count._all,
     fill: colorMap[item.lastEducation ?? 'default'] ?? colorMap.default,
   }))

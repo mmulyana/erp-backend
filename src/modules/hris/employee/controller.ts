@@ -50,8 +50,6 @@ export const patchEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
-  console.log('body', req.body)
-
   const parsed = EmployeeSchema.partial().safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)

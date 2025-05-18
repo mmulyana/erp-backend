@@ -31,6 +31,8 @@ export const recalculateRemaining = async (cashAdvanceId: string) => {
       data: { remaining },
     })
   }
+
+  return remaining
 }
 
 export const updateStatus = async (
@@ -43,4 +45,19 @@ export const updateStatus = async (
       status: remaining <= 0 ? 'paidOff' : 'notYetPaidOff',
     },
   })
+}
+
+export const checkRemaining = async (id: string, amount: number) => {
+  const data = await db.cashAdvanceTransaction.findMany({
+    where: { cashAdvanceId: id },
+    orderBy: { createdAt: 'desc' },
+  })
+  if (data.length === 0) return true
+
+  if (data[0].remaining - amount < 0) {
+    return throwError(
+      `Jumlah uang sudah melebihi sisa pembayaran`,
+      HttpStatusCode.BadRequest,
+    )
+  }
 }
