@@ -15,7 +15,7 @@ import cashadvanceRoutes from './hris/cash-advance/router'
 import dashboardHrisRoutes from './hris/dashboard/router'
 
 import itemRoutes from './inventory/item/router'
-import locationRoutes from './inventory/location/router'
+import warehouseRoutes from './inventory/warehouse/router'
 import brandRoutes from './inventory/brand/router'
 import supplierRoutes from './inventory/supplier/router'
 import stockInRoutes from './inventory/stock-in/router'
@@ -40,7 +40,7 @@ route.use('/cash-advance', isAuthenticated, cashadvanceRoutes)
 route.use('/dashboard/hris', isAuthenticated, dashboardHrisRoutes)
 
 route.use('/item', isAuthenticated, itemRoutes)
-route.use('/location', isAuthenticated, locationRoutes)
+route.use('/warehouse', isAuthenticated, warehouseRoutes)
 route.use('/brand', isAuthenticated, brandRoutes)
 route.use('/supplier', isAuthenticated, supplierRoutes)
 route.use('/stock-in', isAuthenticated, stockInRoutes)

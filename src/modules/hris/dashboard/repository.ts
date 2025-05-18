@@ -25,8 +25,8 @@ export const findTotalEmployee = async () => {
 
   const data = {
     all: employees.length,
-    active: employees.filter((i) => i.status).length,
-    nonactive: employees.filter((i) => !i.status).length,
+    active: employees.filter((i) => i.active).length,
+    nonactive: employees.filter((i) => !i.active).length,
   }
   return {
     data,

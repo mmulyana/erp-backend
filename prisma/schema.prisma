@@ -215,7 +215,7 @@ model Payroll {
   overtimeHour   Int
   salary         Int
   overtimeSalary Int
-  paymentType    PaymentType
+  paymentType    PaymentType?
   deduction      Int           @default(0)
   status         PayrollStatus @default(draft)
   note           String?

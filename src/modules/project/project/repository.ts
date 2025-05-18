@@ -16,7 +16,6 @@ const select: Prisma.ProjectSelect = {
   id: true,
   name: true,
   description: true,
-  archivedAt: true,
   attachments: true,
   client: {
     select: {
@@ -30,8 +29,6 @@ const select: Prisma.ProjectSelect = {
       username: true,
     },
   },
-  endedAt: true,
-  startedAt: true,
   netValue: true,
   progressPercentage: true,
   paymentPercentage: true,
@@ -91,8 +88,6 @@ export const create = async (payload: Payload) => {
   const data = await db.project.create({
     data: {
       name: payload.name,
-      startedAt: payload.startedAt,
-      endedAt: payload.endedAt,
       netValue: payload.netValue,
       leadId: payload.leadId,
       description: payload.description,
@@ -120,8 +115,6 @@ export const update = async (id: string, payload: Payload) => {
     where: { id: id },
     data: {
       name: payload.name,
-      startedAt: payload.startedAt,
-      endedAt: payload.endedAt,
       netValue: payload.netValue,
       leadId: payload.leadId,
       description: payload.description,
@@ -148,9 +141,6 @@ export const readAll = async ({
   clientId,
   leadId,
   status,
-  startedAt,
-  endedAt,
-  archivedAt,
   netValue,
   progress,
   payment,
@@ -164,9 +154,7 @@ export const readAll = async ({
       leadId ? { leadId } : {},
       clientId ? { clientId } : {},
       netValue ? { netValue } : {},
-      startedAt ? { startedAt: { gte: new Date(startedAt) } } : {},
-      endedAt ? { endedAt: { lte: new Date(endedAt) } } : {},
-      archivedAt ? { archivedAt: { equals: new Date(archivedAt) } } : {},
+      status ? { status: status as any } : {},
 
       progress?.percentage !== undefined
         ? {

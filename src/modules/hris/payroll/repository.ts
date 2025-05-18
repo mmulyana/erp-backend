@@ -32,7 +32,6 @@ export const createPeriod = async (
         endDate: payload.endDate,
         payType: payload.payType,
         status: payload.status,
-        totalSpending: payload.totalSpending,
       },
     })
 
@@ -50,11 +49,10 @@ export const createPeriod = async (
     })
 
     const payrolls: Prisma.PayrollCreateManyInput[] = employees.map((emp) => ({
-      payrollPeriodId: period.id,
+      periodId: period.id,
       employeeId: emp.id,
-      workDays: 0,
-      overtimeHours: 0,
-      cashAdvance: 0,
+      workDay: 0,
+      overtimeHour: 0,
       salary: emp.salary ?? 0,
       overtimeSalary: emp.overtimeSalary ?? 0,
       createdBy: payload.createdBy,
@@ -162,10 +160,10 @@ export const findAll = async ({
   search,
   limit,
   page,
-  payrollPeriodId,
+  periodId,
   status,
 }: AllParams & {
-  payrollPeriodId?: string
+  periodId?: string
   status?: 'draft' | 'done'
 }) => {
   const payrollFilters: Prisma.PayrollWhereInput[] = []
@@ -186,8 +184,8 @@ export const findAll = async ({
     payrollFilters.push({ status })
   }
 
-  if (payrollPeriodId) {
-    payrollFilters.push({ payrollPeriodId })
+  if (periodId) {
+    payrollFilters.push({ periodId })
   }
 
   const where: Prisma.PayrollWhereInput = {

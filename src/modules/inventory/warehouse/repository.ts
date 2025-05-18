@@ -8,7 +8,7 @@ import db from '@/lib/prisma'
 
 import { Location } from './schema'
 
-const select: Prisma.LocationInventorySelect = {
+const select: Prisma.WarehouseSelect = {
   id: true,
   name: true,
   _count: {
@@ -20,7 +20,7 @@ const select: Prisma.LocationInventorySelect = {
 }
 
 export const create = async (payload: Location & { photoUrl?: string }) => {
-  return db.locationInventory.create({
+  return db.warehouse.create({
     data: {
       name: payload.name,
     },
@@ -31,7 +31,7 @@ export const update = async (
   id: string,
   payload: Location & { createdBy: string; photoUrl?: string },
 ) => {
-  return db.locationInventory.update({
+  return db.warehouse.update({
     where: { id },
     data: {
       name: payload.name,
@@ -40,7 +40,7 @@ export const update = async (
 }
 
 export const destroy = async (id: string) => {
-  return db.locationInventory.update({
+  return db.warehouse.update({
     where: { id },
     data: {
       deletedAt: new Date(),
@@ -49,7 +49,7 @@ export const destroy = async (id: string) => {
 }
 
 export const read = async (id: string) => {
-  const data = await db.locationInventory.findUnique({
+  const data = await db.warehouse.findUnique({
     where: { id },
     select: {
       ...select,
@@ -74,7 +74,7 @@ export const readAll = async ({
   search,
   infinite,
 }: readAllParams) => {
-  const where: Prisma.LocationInventoryWhereInput = {
+  const where: Prisma.WarehouseWhereInput = {
     AND: [
       search
         ? {
@@ -88,7 +88,7 @@ export const readAll = async ({
   }
 
   if (page === undefined || limit === undefined) {
-    const data = await db.locationInventory.findMany({
+    const data = await db.warehouse.findMany({
       select,
       where,
       orderBy: {
@@ -100,7 +100,7 @@ export const readAll = async ({
 
   const { skip, take } = getPaginateParams(page, limit)
   const [data, total] = await Promise.all([
-    db.locationInventory.findMany({
+    db.warehouse.findMany({
       where,
       select,
       orderBy: {
@@ -109,7 +109,7 @@ export const readAll = async ({
       skip,
       take,
     }),
-    db.locationInventory.count({ where }),
+    db.warehouse.count({ where }),
   ])
 
   const total_pages = Math.ceil(total / limit)
@@ -132,7 +132,7 @@ export const readAll = async ({
 }
 
 export const isExist = async (id: string) => {
-  const data = await db.locationInventory.findUnique({ where: { id } })
+  const data = await db.warehouse.findUnique({ where: { id } })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }

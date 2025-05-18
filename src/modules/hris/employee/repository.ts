@@ -110,7 +110,6 @@ export const read = async (id: string) => {
     birthDate: true,
     salary: true,
     overtimeSalary: true,
-    status: true,
     safetyInductionDate: true,
   }
   return await db.employee.findUnique({ where: { id }, select })
@@ -151,7 +150,6 @@ export const readAll = async (
     birthDate: true,
     salary: true,
     overtimeSalary: true,
-    status: true,
   }
 
   if (page === undefined || limit === undefined) {
@@ -220,7 +218,6 @@ export const readAllInfinite = async (
     birthDate: true,
     salary: true,
     overtimeSalary: true,
-    status: true,
   }
 
   const { skip, take } = getPaginateParams(page, limit)
@@ -614,7 +611,7 @@ export const findChartCashAdvancesById = async (employeeId: string) => {
 
 export const findTotalEmployee = async () => {
   const employees = await db.employee.groupBy({
-    by: ['status'],
+    by: ['active'],
     where: {
       deletedAt: null,
     },
@@ -626,12 +623,12 @@ export const findTotalEmployee = async () => {
   const chartData = [
     {
       name: 'Aktif',
-      total: employees.find((e) => e.status === true)?._count.id ?? 0,
+      total: employees.find((e) => e.active === true)?._count.id ?? 0,
       fill: '#475DEF',
     },
     {
       name: 'Nonaktif',
-      total: employees.find((e) => e.status === false)?._count.id ?? 0,
+      total: employees.find((e) => e.active === false)?._count.id ?? 0,
       fill: '#D52B42',
     },
   ]

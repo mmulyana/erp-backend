@@ -11,7 +11,7 @@ const select: Prisma.InventorySelect = {
   name: true,
   description: true,
   minimum: true,
-  location: {
+  warehouse: {
     select: {
       id: true,
       name: true,
@@ -24,12 +24,6 @@ const select: Prisma.InventorySelect = {
     },
   },
   photoUrl: true,
-  user: {
-    select: {
-      id: true,
-      username: true,
-    },
-  },
 
   createdAt: true,
 }
@@ -40,10 +34,9 @@ export const create = async (
   return db.inventory.create({
     data: {
       name: payload.name,
-      createdBy: payload.createdBy,
       minimum: payload.minimum,
       brandId: payload.brandId,
-      locationId: payload.locationId,
+      warehouseId: payload.locationId,
       description: payload.description,
       photoUrl: payload.photoUrl,
       unitOfMeasurement: payload.unitOfMeasurement,
@@ -59,10 +52,9 @@ export const update = async (
     where: { id },
     data: {
       name: payload.name,
-      createdBy: payload.createdBy,
       minimum: payload.minimum,
       brandId: payload.brandId,
-      locationId: payload.locationId,
+      warehouseId: payload.locationId,
       description: payload.description,
       photoUrl: payload.photoUrl,
       unitOfMeasurement: payload.unitOfMeasurement,
