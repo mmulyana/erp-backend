@@ -1,4 +1,4 @@
-import { Prisma, RefType, TransactionType } from '@prisma/client'
+import { Prisma, RefType } from '@prisma/client'
 import { endOfMonth, startOfMonth, subMonths } from 'date-fns'
 import { HttpStatusCode } from 'axios'
 
@@ -80,8 +80,7 @@ export const read = async (id: string) => {
     data: {
       ...data,
       totalPrice: data?.items.reduce(
-        (sum, item) =>
-          sum + (item.totalPrice ?? item.unitPrice * item.quantity),
+        (sum, item) => sum + item.unitPrice * item.quantity,
         0,
       ),
     },
@@ -151,21 +150,18 @@ export const create = async (
           itemId: item.itemId,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          totalPrice,
         },
       })
 
       // tambah di stock ledger
       await tx.stockLedger.create({
         data: {
-          inventoryId: item.itemId,
+          itemId: item.itemId,
           quantity: item.quantity,
-          type: TransactionType.OUT,
-          refType: RefType.STOCK_OUT,
+          type: RefType.STOCK_OUT,
           referenceId: stockOut.id,
           note: `Stock out: ${data.note ?? '-'}`,
           date: data.date,
-          createdBy: data.createdBy,
         },
       })
 
@@ -197,36 +193,42 @@ export const findTotalByMonth = async ({
   const prevStart = startOfMonth(subMonths(start, 1))
   const prevEnd = endOfMonth(prevStart)
 
-  const current = await db.stockOutItem.aggregate({
-    where: {
-      stockOut: {
-        date: {
-          gte: start,
-          lte: end,
+  const [currentItems, previousItems] = await Promise.all([
+    db.stockOutItem.findMany({
+      where: {
+        stockOut: {
+          date: {
+            gte: start,
+            lte: end,
+          },
         },
       },
-    },
-    _sum: {
-      totalPrice: true,
-    },
-  })
-
-  const previous = await db.stockOutItem.aggregate({
-    where: {
-      stockOut: {
-        date: {
-          gte: prevStart,
-          lte: prevEnd,
+      select: {
+        quantity: true,
+        unitPrice: true,
+      },
+    }),
+    db.stockOutItem.findMany({
+      where: {
+        stockOut: {
+          date: {
+            gte: prevStart,
+            lte: prevEnd,
+          },
         },
       },
-    },
-    _sum: {
-      totalPrice: true,
-    },
-  })
+      select: {
+        quantity: true,
+        unitPrice: true,
+      },
+    }),
+  ])
 
-  const currentTotal = current._sum.totalPrice ?? 0
-  const prevTotal = previous._sum.totalPrice ?? 0
+  const calculateTotal = (items: { quantity: number; unitPrice: number }[]) =>
+    items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
+
+  const currentTotal = calculateTotal(currentItems)
+  const prevTotal = calculateTotal(previousItems)
 
   const percentage =
     prevTotal === 0 ? 100 : ((currentTotal - prevTotal) / prevTotal) * 100

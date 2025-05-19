@@ -1,4 +1,4 @@
-import { Prisma, RefType, TransactionType } from '@prisma/client'
+import { Prisma, RefType } from '@prisma/client'
 import { endOfMonth, startOfMonth, subMonths } from 'date-fns'
 import { HttpStatusCode } from 'axios'
 
@@ -52,8 +52,6 @@ export const create = async (
     })
 
     for (const item of data.items) {
-      const totalPrice = item.unitPrice * item.quantity
-
       // tambah stock in item
       await tx.stockInItem.create({
         data: {
@@ -61,21 +59,18 @@ export const create = async (
           itemId: item.itemId,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          totalPrice,
         },
       })
 
       // tambah di ledger
       await tx.stockLedger.create({
         data: {
-          inventoryId: item.itemId,
+          itemId: item.itemId,
           quantity: item.quantity,
-          type: TransactionType.IN,
+          type: RefType.STOCK_IN,
           date: data.date,
           note: `Stock In: ${data.referenceNumber ?? '-'}`,
-          refType: RefType.STOCK_IN,
           referenceId: stockIn.id,
-          createdBy: data.createdBy,
         },
       })
 
@@ -143,8 +138,7 @@ export const read = async (id: string) => {
     data: {
       ...data,
       totalPrice: data.items.reduce(
-        (sum, item) =>
-          sum + (item.totalPrice ?? item.unitPrice * item.quantity),
+        (sum, item) => sum + item.unitPrice * item.quantity,
         0,
       ),
     },
@@ -186,36 +180,42 @@ export const findTotalByMonth = async ({
   const prevStart = startOfMonth(subMonths(start, 1))
   const prevEnd = endOfMonth(prevStart)
 
-  const current = await db.stockInItem.aggregate({
-    where: {
-      stockIn: {
-        date: {
-          gte: start,
-          lte: end,
+  const [currentItems, previousItems] = await Promise.all([
+    db.stockInItem.findMany({
+      where: {
+        stockIn: {
+          date: {
+            gte: start,
+            lte: end,
+          },
         },
       },
-    },
-    _sum: {
-      totalPrice: true,
-    },
-  })
-
-  const previous = await db.stockInItem.aggregate({
-    where: {
-      stockIn: {
-        date: {
-          gte: prevStart,
-          lte: prevEnd,
+      select: {
+        quantity: true,
+        unitPrice: true,
+      },
+    }),
+    db.stockInItem.findMany({
+      where: {
+        stockIn: {
+          date: {
+            gte: prevStart,
+            lte: prevEnd,
+          },
         },
       },
-    },
-    _sum: {
-      totalPrice: true,
-    },
-  })
+      select: {
+        quantity: true,
+        unitPrice: true,
+      },
+    }),
+  ])
 
-  const currentTotal = current._sum.totalPrice ?? 0
-  const prevTotal = previous._sum.totalPrice ?? 0
+  const calculateTotal = (items: { quantity: number; unitPrice: number }[]) =>
+    items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
+
+  const currentTotal = calculateTotal(currentItems)
+  const prevTotal = calculateTotal(previousItems)
 
   const percentage =
     prevTotal === 0 ? 100 : ((currentTotal - prevTotal) / prevTotal) * 100

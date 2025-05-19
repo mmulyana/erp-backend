@@ -11,6 +11,8 @@ import employeeRoutes from './hris/employee/router'
 import overtimeRoutes from './hris/overtime/router'
 import attendanceRoutes from './hris/attendance/router'
 import cashadvanceRoutes from './hris/cash-advance/router'
+import periodRoutes from './hris/payroll-period/router'
+import payrollRoutes from './hris/payroll/router'
 
 import dashboardHrisRoutes from './hris/dashboard/router'
 
@@ -36,6 +38,8 @@ route.use('/employee', isAuthenticated, employeeRoutes)
 route.use('/overtime', isAuthenticated, overtimeRoutes)
 route.use('/attendance', isAuthenticated, attendanceRoutes)
 route.use('/cash-advance', isAuthenticated, cashadvanceRoutes)
+route.use('/payroll-period', isAuthenticated, periodRoutes)
+route.use('/payroll', isAuthenticated, payrollRoutes)
 
 route.use('/dashboard/hris', isAuthenticated, dashboardHrisRoutes)
 
