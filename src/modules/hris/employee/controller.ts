@@ -24,6 +24,7 @@ import {
   destroyPhoto,
   findTotalEmployee,
   findLastEducation,
+  findSummaryById,
 } from './repository'
 import {
   createResponse,
@@ -235,4 +236,23 @@ export const getTotalEmployee = async (req: Request, res: Response) => {
 export const getLastEducation = async (req: Request, res: Response) => {
   const result = await findLastEducation()
   res.json(successResponse(result, 'Pendidikan terakhir'))
+}
+export const getSummaryById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const startDate = req.query.startDate
+    ? new Date(req.query.startDate as string)
+    : undefined
+  const endDate = req.query.endDate
+    ? new Date(req.query.endDate as string)
+    : undefined
+
+  const result = await findSummaryById({
+    id,
+    startDate,
+    endDate,
+  })
+
+  res.json(successResponse(result, 'ringkasan pegawai'))
 }

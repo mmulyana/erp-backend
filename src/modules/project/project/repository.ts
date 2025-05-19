@@ -322,7 +322,7 @@ export const createAttachment = async (
     createdBy: string
   },
 ) => {
-  console.log('data', payload)
+  // console.log('data', payload)
   const data = await db.projectAttachment.create({
     data: {
       projectId: payload.projectId,

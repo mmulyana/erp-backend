@@ -666,3 +666,83 @@ export const findLastEducation = async () => {
 
   return chartData
 }
+
+export const findSummaryById = async ({
+  id,
+  startDate,
+  endDate,
+}: {
+  id: string
+  startDate: Date
+  endDate: Date
+}) => {
+  const [presences, absents] = await Promise.all([
+    db.attendance.findMany({
+      where: {
+        AND: [
+          {
+            employeeId: id,
+            type: 'presence',
+            date: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+        ],
+      },
+    }),
+    db.attendance.findMany({
+      where: {
+        AND: [
+          {
+            employeeId: id,
+            type: 'absent',
+            date: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+        ],
+      },
+    }),
+  ])
+
+  const overtimes = await db.overtime.findMany({
+    where: {
+      AND: [
+        {
+          employeeId: id,
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+      ],
+    },
+  })
+
+  const cashAdvances = await db.cashAdvance.findMany({
+    where: {
+      AND: {
+        employeeId: id,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    },
+  })
+
+  const total = {
+    presence: presences.length,
+    absent: absents.length,
+    overtimes: overtimes.reduce((sum, i) => sum + i.totalHour, 0),
+    cashAdvance: cashAdvances.reduce((sum, i) => sum + i.amount, 0),
+  }
+
+  return {
+    total,
+    overtimes,
+    cashAdvances,
+  }
+}

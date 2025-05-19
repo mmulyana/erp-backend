@@ -180,9 +180,9 @@ export const getAttachments = async (req: Request, res: Response) => {
 }
 
 export const postAttachment = async (req: Request, res: Response) => {
-  console.log('body', req.body)
+  // console.log('body', req.body)
   const parsed = AttachmentSchema.safeParse(req.body)
-  console.log(parsed.error)
+  // console.log(parsed.error)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }

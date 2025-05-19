@@ -1,6 +1,11 @@
 import { getPaginateParams } from '@/utils/params'
 import { Prisma } from '@prisma/client'
 import db from '@/lib/prisma'
+import { throwError } from '@/utils/error-handler'
+import { Messages } from '@/utils/constant'
+import { HttpStatusCode } from 'axios'
+import { Payroll } from './schema'
+import { checkStatusPeriod } from './helper'
 
 type AllParams = {
   page?: number
@@ -33,7 +38,7 @@ const select: Prisma.PayrollSelect = {
 }
 
 // Payroll
-export const findAll = async ({
+export const readAll = async ({
   search,
   limit,
   page,
@@ -74,7 +79,12 @@ export const findAll = async ({
       where,
       select,
     })
-    return { data }
+    const withSalary = data.map((i) => ({
+      ...i,
+      salary:
+        i.workDay * i.salary + i.overtimeHour * i.overtimeSalary - i.deduction,
+    }))
+    return { data: withSalary }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
@@ -94,8 +104,14 @@ export const findAll = async ({
 
   const total_pages = Math.ceil(total / limit)
 
+  const withSalary = data.map((i) => ({
+    ...i,
+    salary:
+      i.workDay * i.salary + i.overtimeHour * i.overtimeSalary - i.deduction,
+  }))
+
   return {
-    data,
+    data: withSalary,
     total,
     page,
     limit,
@@ -103,6 +119,33 @@ export const findAll = async ({
   }
 }
 
-export const findOne = async ({ id }: { id: string }) => {
+export const readOne = async (id: string) => {
   return await db.payroll.findUnique({ where: { id } })
+}
+
+export const isExist = async (id: string) => {
+  const data = await db.payroll.findUnique({ where: { id, deletedAt: null } })
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+  }
+}
+
+export const update = async (id: string, payload: Payroll) => {
+  const data = await db.payroll.update({
+    where: { id },
+    data: {
+      deduction: payload.deduction,
+      note: payload.note,
+      overtimeHour: payload.overtimeHour,
+      workDay: payload.workDay,
+      salary: payload.salary,
+      overtimeSalary: payload.overtimeSalary,
+      paymentType: payload.paymentType,
+      status: payload.status,
+    },
+  })
+
+  await checkStatusPeriod(data.periodId)
+
+  return data
 }

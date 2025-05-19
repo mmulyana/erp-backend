@@ -14,6 +14,7 @@ import {
   getEmployeesInfinite,
   getLastEducation,
   getOvertimesById,
+  getSummaryById,
   getTotalEmployee,
   patchCertificate,
   patchDestroyPhoto,
@@ -37,6 +38,7 @@ router.delete('/data/certificate/:id', deleteCertificate)
 router.get('/', getEmployees)
 router.post('/:prefix', upload.single('photoUrl'), postEmployee)
 router.get('/:id', getEmployee)
+router.get('/:id/summary', getSummaryById)
 router.patch('/:id', upload.single('photoUrl'), patchEmployee)
 router.delete('/:id', deleteEmployee)
 router.patch('/:id/photo', patchDestroyPhoto)

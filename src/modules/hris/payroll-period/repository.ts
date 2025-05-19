@@ -46,7 +46,6 @@ export const create = async (
         overtimeSalary: true,
       },
     })
-    console.log('employees', employees)
 
     const payrolls: Prisma.PayrollCreateManyInput[] = employees.map((emp) => ({
       periodId: period.id,
