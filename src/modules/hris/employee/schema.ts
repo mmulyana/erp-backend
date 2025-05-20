@@ -38,7 +38,7 @@ export const EmployeeSchema = z.object({
   address: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
   photoName: z.string().optional(),
-  status: z.preprocess((val) => {
+  active: z.preprocess((val) => {
     if (val === 'true') return true
     if (val === 'false') return false
     return val

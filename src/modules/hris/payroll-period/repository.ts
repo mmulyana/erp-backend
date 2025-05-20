@@ -4,7 +4,7 @@ import { getPaginateParams } from '@/utils/params'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
 import { HttpStatusCode } from 'axios'
-import { Prisma } from '@prisma/client'
+import { PeriodStatus, Prisma } from '@prisma/client'
 
 type AllParams = {
   page?: number
@@ -88,11 +88,16 @@ export const destroy = async (id: string, payload: PayrollPeriod) => {
 
 export const findAll = async ({
   search,
-  startDate,
-  endDate,
   limit,
   page,
-}: AllParams) => {
+  sortBy = 'createdAt',
+  sortOrder = 'desc',
+  status,
+}: AllParams & {
+  sortBy?: 'createdAt' | 'startDate' | 'endDate'
+  sortOrder?: 'asc' | 'desc'
+  status?: 'processing' | 'closed'
+}) => {
   const where: Prisma.PayrollPeriodWhereInput = {
     AND: [
       search
@@ -104,23 +109,19 @@ export const findAll = async ({
             ],
           }
         : {},
-      startDate && endDate
-        ? {
-            startDate: {
-              gte: new Date(startDate),
-            },
-            endDate: {
-              lte: new Date(endDate),
-            },
-          }
-        : {},
+      status ? { status: status as PeriodStatus } : {},
       { deletedAt: null },
     ],
+  }
+
+  const orderBy: Prisma.PayrollPeriodOrderByWithRelationInput = {
+    [sortBy]: sortOrder,
   }
 
   if (page === undefined || limit === undefined) {
     const data = await db.payrollPeriod.findMany({
       where,
+      orderBy,
     })
 
     const withTotalSpending = await Promise.all(
@@ -163,10 +164,8 @@ export const findAll = async ({
 
   const [data, total] = await Promise.all([
     db.payrollPeriod.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
       where,
+      orderBy,
       skip,
       take,
     }),

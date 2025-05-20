@@ -1,7 +1,16 @@
 import { Router } from 'express'
-import { getPayroll, getPayrolls, patchPayroll } from './controller'
+import {
+  getPayroll,
+  getPayrolls,
+  getProgressByPeriodId,
+  getTotalAmount,
+  patchPayroll,
+} from './controller'
 
 const router = Router()
+
+router.get('/report/total', getTotalAmount)
+router.get('/report/progress/:id', getProgressByPeriodId)
 
 router.get('/', getPayrolls)
 router.get('/:id', getPayroll)

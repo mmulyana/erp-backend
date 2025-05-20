@@ -1,10 +1,14 @@
 import { Router } from 'express'
-import { getPeriod, getPeriods, postPeriod } from './controller'
+import {
+  getPayrollPeriod,
+  getPayrollPeriods,
+  postPayrollPeriod,
+} from './controller'
 
 const router = Router()
 
-router.get('/', getPeriods)
-router.get('/:id', getPeriod)
-router.post('/', postPeriod)
+router.get('/', getPayrollPeriods)
+router.post('/', postPayrollPeriod)
+router.get('/:id', getPayrollPeriod)
 
 export default router

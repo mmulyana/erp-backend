@@ -308,9 +308,27 @@ export const findAllTransaction = async (
 
   const total_pages = Math.ceil(total / limit)
 
+  const allTx = await db.cashAdvanceTransaction.findMany({
+    where,
+    orderBy: { createdAt: 'asc' },
+  })
+
+  const cashAdvance = await db.cashAdvance.findUnique({
+    where: { id: cashAdvanceId ?? '' },
+    select: { amount: true },
+  })
+
+  let runningRemaining = cashAdvance?.amount ?? 0
+  const remainingMap = new Map<string, number>()
+
+  for (const tx of allTx) {
+    runningRemaining -= tx.amount
+    remainingMap.set(tx.id, runningRemaining)
+  }
+
   const converted = data.map((item) => ({
     ...item,
-    date: convertUTCToWIB(item.date),
+    remaining: remainingMap.get(item.id) ?? null,
   }))
 
   return {

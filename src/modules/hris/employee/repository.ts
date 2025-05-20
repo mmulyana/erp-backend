@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { CashAdvanceStatus, Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 import {
   addMonths,
@@ -729,6 +729,7 @@ export const findSummaryById = async ({
           gte: startDate,
           lte: endDate,
         },
+        status: CashAdvanceStatus.notYetPaidOff,
       },
     },
   })

@@ -178,7 +178,6 @@ model CashAdvanceTransaction {
   id            String   @id @default(uuid()) @db.Uuid()
   cashAdvanceId String   @db.Uuid()
   amount        Int
-  remaining     Int?
   date          DateTime
   note          String?
 
@@ -223,6 +222,7 @@ model Payroll {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+  doneAt    DateTime?
 
   user     User     @relation(fields: [createdBy], references: [id])
   employee Employee @relation(fields: [employeeId], references: [id])
@@ -578,9 +578,8 @@ model Supplier {
 }
 
 model Warehouse {
-  id       String  @id @default(uuid()) @db.Uuid()
-  name     String  @db.VarChar(50)
-  photoUrl String? @db.VarChar(100)
+  id   String @id @default(uuid()) @db.Uuid()
+  name String @db.VarChar(50)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

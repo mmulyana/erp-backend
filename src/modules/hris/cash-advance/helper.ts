@@ -14,23 +14,17 @@ export const recalculateRemaining = async (cashAdvanceId: string) => {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 
-  const transactions = await db.cashAdvanceTransaction.findMany({
+  const totalUsed = await db.cashAdvanceTransaction.aggregate({
     where: {
       cashAdvanceId,
       deletedAt: null,
     },
-    orderBy: { createdAt: 'asc' },
+    _sum: {
+      amount: true,
+    },
   })
 
-  let remaining = cashAdvance.amount
-
-  for (const tx of transactions) {
-    remaining -= tx.amount
-    await db.cashAdvanceTransaction.update({
-      where: { id: tx.id },
-      data: { remaining },
-    })
-  }
+  const remaining = cashAdvance.amount - (totalUsed._sum.amount ?? 0)
 
   return remaining
 }
@@ -48,16 +42,33 @@ export const updateStatus = async (
 }
 
 export const checkRemaining = async (id: string, amount: number) => {
-  const data = await db.cashAdvanceTransaction.findMany({
-    where: { cashAdvanceId: id },
-    orderBy: { createdAt: 'desc' },
+  const cashAdvance = await db.cashAdvance.findUnique({
+    where: { id, deletedAt: null },
+    select: { amount: true },
   })
-  if (data.length === 0) return true
 
-  if (data[0].remaining - amount < 0) {
+  if (!cashAdvance) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+  }
+
+  const totalUsed = await db.cashAdvanceTransaction.aggregate({
+    where: { cashAdvanceId: id, deletedAt: null },
+    _sum: {
+      amount: true,
+    },
+  })
+
+  const remaining = cashAdvance.amount - (totalUsed._sum.amount ?? 0)
+  
+  console.log('remaining', remaining)
+  console.log('amount', amount)
+
+  if (amount > remaining) {
     return throwError(
       `Jumlah uang sudah melebihi sisa pembayaran`,
       HttpStatusCode.BadRequest,
     )
   }
+
+  return true
 }
