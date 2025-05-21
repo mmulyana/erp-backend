@@ -8,3 +8,8 @@ export type PaginationParams = {
   page?: number
   limit?: number
 }
+
+export type DateRangeParams = {
+  startDate?: Date
+  endDate?: Date
+}
