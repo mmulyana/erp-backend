@@ -3,12 +3,23 @@ import { HttpStatusCode } from 'axios'
 
 import db from '@/lib/prisma'
 
-import { generateUUID } from '@/utils/generate-uuid'
 import { getPaginateParams } from '@/utils/params'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
 
-import { Assigned, Attachment, Project } from './schema'
+import { Assigned, Attachment, Project, Report } from './schema'
+import { DateRangeParams, PaginationParams } from '@/types'
+import {
+  eachDayOfInterval,
+  endOfDay,
+  endOfMonth,
+  format,
+  formatISO,
+  startOfDay,
+  startOfMonth,
+  subDays,
+  subMonths,
+} from 'date-fns'
 
 type Payload = Project
 
@@ -101,7 +112,6 @@ export const create = async (payload: Payload) => {
 }
 
 export const destroy = async (id: string) => {
-  const project = await db.project.findUnique({ where: { id } })
   await db.project.update({
     where: { id },
     data: {
@@ -365,4 +375,411 @@ export const destroyAttachment = async (id: string) => {
   })
 
   return data
+}
+
+type ReadProjectAttachmentParams = PaginationParams & {
+  type?: string
+  projectId?: string
+  infinite?: boolean
+}
+
+export const readAllProjectAttachments = async ({
+  page,
+  limit,
+  search,
+  type,
+  projectId,
+  infinite,
+}: ReadProjectAttachmentParams) => {
+  const where: Prisma.ProjectAttachmentWhereInput = {
+    AND: [
+      {
+        deletedAt: null,
+      },
+      search
+        ? {
+            name: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          }
+        : {},
+      type
+        ? {
+            type: {
+              equals: type,
+              mode: 'insensitive',
+            },
+          }
+        : {},
+      projectId
+        ? {
+            projectId,
+          }
+        : {},
+    ],
+  }
+
+  const orderBy: Prisma.ProjectAttachmentOrderByWithRelationInput = {
+    createdAt: 'desc',
+  }
+
+  const select: Prisma.ProjectAttachmentSelect = {
+    id: true,
+    name: true,
+    type: true,
+    projectId: true,
+    createdAt: true,
+    updatedAt: true,
+    project: {
+      select: {
+        name: true,
+        id: true,
+      },
+    },
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.projectAttachment.findMany({
+      where,
+      select,
+      orderBy,
+    })
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.projectAttachment.findMany({
+      where,
+      select,
+      orderBy,
+      skip,
+      take,
+    }),
+    db.projectAttachment.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
+
+  if (infinite) {
+    return {
+      data,
+      nextPage: hasNextPage ? page + 1 : undefined,
+    }
+  }
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages,
+  }
+}
+
+export const createReport = async (
+  payload: Report & { createdBy: string; attachments?: string[] },
+) => {
+  const data = await db.projectReport.create({
+    data: {
+      message: payload.message,
+      type: payload.type,
+      projectId: payload.projectId,
+      createdBy: payload.createdBy,
+      attachments: {
+        create: payload.attachments.map((i) => ({
+          photoUrl: i,
+        })),
+      },
+    },
+  })
+  return data
+}
+
+export const readAllProjectReports = async ({
+  page,
+  limit,
+  search,
+  type,
+  projectId,
+  createdBy,
+  sortBy = 'createdAt',
+  sortOrder = 'desc',
+  infinite,
+}: PaginationParams & {
+  type?: string
+  projectId?: string
+  createdBy?: string
+  sortBy?: 'createdAt' | 'updatedAt'
+  sortOrder?: 'asc' | 'desc'
+  infinite?: boolean
+}) => {
+  const where: Prisma.ProjectReportWhereInput = {
+    AND: [
+      // search
+      //   ? {
+      //       OR: [
+      //         {
+      //           message: { contains: search, mode: 'insensitive' },
+      //         },
+      //       ],
+      //     }
+      //   : {},
+      type ? { type } : {},
+      projectId ? { projectId } : {},
+      createdBy ? { createdBy } : {},
+    ],
+  }
+
+  const orderBy: Prisma.ProjectReportOrderByWithRelationInput = {
+    [sortBy]: sortOrder,
+  }
+
+  const select: Prisma.ProjectReportSelect = {
+    id: true,
+    _count: {
+      select: {
+        attachments: true,
+        comments: true,
+      },
+    },
+    attachments: true,
+    createdBy: true,
+    createdAt: true,
+    message: true,
+    type: true,
+    project: {
+      select: {
+        name: true,
+        id: true,
+      },
+    },
+    projectId: true,
+    user: {
+      select: {
+        id: true,
+        username: true,
+        photoUrl: true,
+      },
+    },
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+  if (page === undefined || limit === undefined) {
+    const data = await db.projectReport.findMany({
+      where,
+      orderBy,
+      select,
+      take,
+    })
+    return { data }
+  }
+
+  const [data, total] = await Promise.all([
+    db.projectReport.findMany({
+      where,
+      orderBy,
+      skip,
+      take,
+      select,
+    }),
+    db.projectReport.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
+
+  if (infinite) {
+    return {
+      data,
+      nextPage: hasNextPage ? page + 1 : undefined,
+    }
+  }
+
+  return {
+    data,
+    page,
+    limit,
+    total,
+    total_pages,
+  }
+}
+
+export const readProjectReportChart = async ({
+  startDate,
+  endDate,
+}: DateRangeParams) => {
+  const today = new Date()
+  const start = startDate
+    ? startOfDay(new Date(startDate))
+    : startOfDay(subDays(today, 6))
+  const end = endDate ? endOfDay(new Date(endDate)) : endOfDay(today)
+
+  const allDates = eachDayOfInterval({ start, end })
+
+  const raw = await db.projectReport.findMany({
+    where: {
+      createdAt: {
+        gte: start,
+        lte: end,
+      },
+      deletedAt: null,
+    },
+    select: {
+      createdAt: true,
+    },
+  })
+
+  const map = new Map<string, number>()
+
+  for (const item of raw) {
+    const key = formatISO(item.createdAt, { representation: 'date' })
+    map.set(key, (map.get(key) ?? 0) + 1)
+  }
+
+  const result = allDates.map((date) => {
+    const key = formatISO(date, { representation: 'date' })
+    return {
+      date: key,
+      total: map.get(key) ?? 0,
+    }
+  })
+
+  return result
+}
+
+export const readProjectStatusChart = async ({
+  year,
+  monthIndex,
+}: {
+  year?: number
+  monthIndex?: number
+}) => {
+  const today = new Date()
+  const y = year ?? today.getFullYear()
+  const m = monthIndex ?? today.getMonth()
+
+  const start = startOfMonth(new Date(y, m))
+  const end = endOfMonth(new Date(y, m))
+
+  const raw = await db.project.groupBy({
+    by: ['status'],
+    where: {
+      deletedAt: null,
+      createdAt: {
+        gte: start,
+        lte: end,
+      },
+    },
+    _count: {
+      _all: true,
+    },
+  })
+
+  const statusMap: Record<string, { name: string; fill: string }> = {
+    OFFERING: { name: 'Penawaran', fill: '#A36DFF' },
+    DOING: { name: 'Sedang dikerjakan', fill: '#2B5BD5' },
+    BILLING: { name: 'Penagihan', fill: '#27B5E9' },
+    DONE: { name: 'Selesai', fill: '#47AF97' },
+    NOT_STARTED: { name: 'Sedang dikerjakan', fill: '#2B5BD5' },
+  }
+
+  const chartData = raw.map((item) => ({
+    name: statusMap[item.status]?.name || item.status,
+    total: item._count._all,
+    fill: statusMap[item.status]?.fill || '#CCCCCC',
+  }))
+
+  return chartData
+}
+
+export const readTotalRevenue = async ({
+  year,
+  monthIndex,
+}: {
+  year?: number
+  monthIndex?: number
+}) => {
+  const today = new Date()
+
+  const y = year ?? today.getFullYear()
+  const m = monthIndex ?? today.getMonth()
+
+  const currentDate = new Date(y, m)
+  const prevDate = subMonths(currentDate, 1)
+
+  const start = startOfMonth(currentDate)
+  const end = endOfMonth(currentDate)
+  const prevStart = startOfMonth(prevDate)
+  const prevEnd = endOfMonth(prevDate)
+
+  const buildWhere = (start: Date, end: Date) => {
+    const where: any = {
+      deletedAt: null,
+      createdAt: {
+        gte: start,
+        lte: end,
+      },
+    }
+
+    where.status = 'DONE'
+
+    return where
+  }
+
+  const [currentAgg, previousAgg] = await Promise.all([
+    db.project.aggregate({
+      _sum: { netValue: true },
+      where: buildWhere(start, end),
+    }),
+    typeof year === 'number' && typeof monthIndex === 'number'
+      ? db.project.aggregate({
+          _sum: { netValue: true },
+          where: buildWhere(prevStart, prevEnd),
+        })
+      : Promise.resolve({ _sum: { netValue: null } }),
+  ])
+
+  const currentRaw = currentAgg._sum.netValue ?? 0
+  const previousRaw = previousAgg._sum.netValue ?? 0
+
+  const current =
+    typeof currentRaw === 'bigint' ? Number(currentRaw) : currentRaw
+  const previous =
+    typeof previousRaw === 'bigint' ? Number(previousRaw) : previousRaw
+
+  const percentage =
+    previous === 0
+      ? current === 0
+        ? 0
+        : 100
+      : ((current - previous) / previous) * 100
+
+  return {
+    current,
+    previous,
+    percentage: Math.round(percentage * 100) / 100,
+  }
+}
+
+export const readEstimateRevenue = async () => {
+  const result = await db.project.aggregate({
+    _sum: { netValue: true },
+    where: {
+      deletedAt: null,
+      status: {
+        not: 'DONE',
+      },
+    },
+  })
+
+  const raw = result._sum.netValue ?? 0
+  const total = typeof raw === 'bigint' ? Number(raw) : raw
+
+  return {
+    total,
+  }
 }

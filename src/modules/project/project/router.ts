@@ -5,21 +5,36 @@ import {
   deleteProject,
   getAssignedEmployee,
   getAttachments,
+  getEstimateRevenue,
   getProject,
+  getProjectAttachments,
+  getProjectReportChart,
+  getProjectReports,
   getProjects,
   getProjectsInfinite,
+  getProjectStatusChart,
+  getTotalNetValue,
   patchAssignEmployee,
   patchAttachment,
   patchProject,
   postAssignEmployee,
   postAttachment,
   postProject,
+  postReport,
 } from './controller'
 import upload from '@/utils/upload'
 
 const router = Router()
 
 router.get('/data/infinite', getProjectsInfinite)
+router.get('/data/attachments', getProjectAttachments)
+router.get('/data/report', getProjectReports)
+router.get('/data/report-chart', getProjectReportChart)
+router.get('/data/status-chart', getProjectStatusChart)
+router.get('/data/total-revenue', getTotalNetValue)
+router.get('/data/estimate-revenue', getEstimateRevenue)
+
+router.post('/report', upload.array('photoUrl', 10), postReport)
 
 router.get('/', getProjects)
 router.get('/:id', getProject)

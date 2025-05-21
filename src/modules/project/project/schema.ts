@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { TypeOf, z } from 'zod'
 
 export const ProjectSchema = z.object({
   name: z.string().min(1, 'Nama proyek tidak boleh kosong'),
@@ -30,6 +30,14 @@ export const AttachmentSchema = z.object({
   projectId: z.string(),
 })
 
+export const ReportSchema = z.object({
+  projectId: z.string(),
+  message: z.string(),
+  date: z.coerce.date(),
+  type: z.string(),
+})
+
 export type Project = z.infer<typeof ProjectSchema>
 export type Assigned = z.infer<typeof AssignedSchema>
 export type Attachment = z.infer<typeof AttachmentSchema>
+export type Report = z.infer<typeof ReportSchema>

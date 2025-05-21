@@ -1,10 +1,16 @@
 import { Request, Response } from 'express'
 
-import { AssignedSchema, AttachmentSchema, ProjectSchema } from './schema'
+import {
+  AssignedSchema,
+  AttachmentSchema,
+  ProjectSchema,
+  ReportSchema,
+} from './schema'
 import {
   create,
   createAssign,
   createAttachment,
+  createReport,
   destroy,
   destroyAssign,
   destroyAttachment,
@@ -13,8 +19,14 @@ import {
   isExistAttachment,
   read,
   readAll,
+  readAllProjectAttachments,
+  readAllProjectReports,
   readAssign,
   readAttachments,
+  readEstimateRevenue,
+  readProjectReportChart,
+  readProjectStatusChart,
+  readTotalRevenue,
   update,
   updateAssign,
   updateAttachment,
@@ -226,4 +238,100 @@ export const deleteAttachment = async (req: Request, res: Response) => {
 
   await destroyAttachment(id)
   res.json(deleteResponse('lampiran'))
+}
+
+export const getProjectAttachments = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const projectId = req.query.projectId
+    ? String(req.query.projectId)
+    : undefined
+  const type = req.query.type ? String(req.query.type) : undefined
+  const infinite = req.query.infinite ? Boolean(req.query.infinite) : undefined
+
+  const result = await readAllProjectAttachments({
+    page,
+    limit,
+    search,
+    projectId,
+    type,
+    infinite,
+  })
+  res.json(successResponse(result, 'Lampiran'))
+}
+
+export const postReport = async (req: Request, res: Response) => {
+  const parsed = ReportSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+
+  const files = req.files as Express.Multer.File[] | undefined
+  const attachments = files?.map((i) => i.filename) || []
+
+  const result = await createReport({
+    ...parsed.data,
+    createdBy: req.user.id,
+    attachments,
+  })
+
+  res.json(createResponse(result, 'Laporan'))
+}
+
+export const getProjectReports = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const projectId = req.query.projectId
+    ? String(req.query.projectId)
+    : undefined
+  const type = req.query.type ? String(req.query.type) : undefined
+  const infinite = req.query.infinite ? Boolean(req.query.infinite) : undefined
+
+  const result = await readAllProjectReports({
+    page,
+    limit,
+    search,
+    projectId,
+    type,
+    infinite,
+  })
+  res.json(successResponse(result, 'Laporan'))
+}
+
+export const getProjectReportChart = async (req: Request, res: Response) => {
+  const startDate = req.query.startDate
+    ? new Date(req.query.startDate as string)
+    : undefined
+  const endDate = req.query.endDate
+    ? new Date(req.query.endDate as string)
+    : undefined
+  const result = await readProjectReportChart({
+    startDate,
+    endDate,
+  })
+  res.json(successResponse(result, 'Bagan laporan'))
+}
+export const getProjectStatusChart = async (req: Request, res: Response) => {
+  const year = req.query.year ? Number(req.query.year as string) : undefined
+  const monthIndex = req.query.month
+    ? Number(req.query.month as string)
+    : undefined
+  const result = await readProjectStatusChart({
+    year,
+    monthIndex,
+  })
+  res.json(successResponse(result, 'Bagan status proyek'))
+}
+export const getTotalNetValue = async (req: Request, res: Response) => {
+  const year = req.query.year ? Number(req.query.year as string) : undefined
+  const monthIndex = req.query.month
+    ? Number(req.query.month as string)
+    : undefined
+  const result = await readTotalRevenue({
+    year,
+    monthIndex,
+  })
+  res.json(successResponse(result, 'Pendapatan'))
+}
+export const getEstimateRevenue = async (req: Request, res: Response) => {
+  const result = await readEstimateRevenue()
+  res.json(successResponse(result, 'Estimasi pendapatan'))
 }
