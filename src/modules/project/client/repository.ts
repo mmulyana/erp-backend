@@ -132,12 +132,24 @@ export const read = async (id: string) => {
   })
 }
 
-export const topClients = async () => {
+export const readClientRank = async ({
+  limit = 10,
+  sortOrder = 'desc',
+}: {
+  limit?: number
+  sortOrder: 'asc' | 'desc'
+}) => {
   const data = await db.client.findMany({
     select: {
       id: true,
       name: true,
       position: true,
+      company: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       _count: {
         select: {
           project: { where: { deletedAt: null } },
@@ -145,28 +157,10 @@ export const topClients = async () => {
       },
     },
     orderBy: {
-      project: { _count: 'desc' },
+      project: { _count: sortOrder },
     },
-    take: 5,
+    take: limit,
   })
 
-  const clients = data
-    .filter((item) => !!item._count.project)
-    .map((item) => ({
-      clientId: item.id,
-      clientName: item.name,
-      count: item._count.project,
-    }))
-
-  const colors = ['#2A9D90', '#3B82F6', '#10B981', '#F59E0B', '#EF4444']
-
-  const chartData: ChartData[] = clients.map((item, index) => ({
-    client: item.clientName.toLowerCase(),
-    count: item.count,
-    fill: colors[index],
-  }))
-
-  return {
-    chartData,
-  }
+  return data
 }
