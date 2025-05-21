@@ -36,6 +36,13 @@ const select: Prisma.PayrollSelect = {
   salary: true,
   status: true,
   workDay: true,
+  doneAt: true,
+  period: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
 }
 
 // Payroll
