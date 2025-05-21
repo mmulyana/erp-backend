@@ -7,7 +7,7 @@ import {
   isExist,
   read,
   readAll,
-  topClients,
+  readClientRank,
   update,
 } from './repository'
 
@@ -92,7 +92,14 @@ export const readClientsInfinite = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'klien'))
 }
 
-export const readTopClient = async (req: Request, res: Response) => {
-  const result = await topClients()
-  res.json(successResponse(result, 'top klien'))
+export const getClientRank = async (req: Request, res: Response) => {
+  const { limit } = getParams(req)
+  const sortOrder = req.query.sortOrder
+    ? String(req.query.sortOrder)
+    : undefined
+  const result = await readClientRank({
+    sortOrder: sortOrder as 'asc' | 'desc',
+    limit,
+  })
+  res.json(successResponse(result, 'rangking klien'))
 }
