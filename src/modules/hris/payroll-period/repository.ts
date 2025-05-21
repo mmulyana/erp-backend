@@ -86,17 +86,19 @@ export const destroy = async (id: string, payload: PayrollPeriod) => {
   return data
 }
 
-export const findAll = async ({
+export const readAll = async ({
   search,
   limit,
   page,
   sortBy = 'createdAt',
   sortOrder = 'desc',
   status,
+  infinite = false,
 }: AllParams & {
   sortBy?: 'createdAt' | 'startDate' | 'endDate'
   sortOrder?: 'asc' | 'desc'
   status?: 'processing' | 'closed'
+  infinite?: boolean
 }) => {
   const where: Prisma.PayrollPeriodWhereInput = {
     AND: [
@@ -207,6 +209,15 @@ export const findAll = async ({
 
   const total_pages = Math.ceil(total / limit)
 
+  const hasNextPage = page * limit < total
+
+  if (infinite) {
+    return {
+      data: withTotalSpending,
+      nextPage: hasNextPage ? page + 1 : undefined,
+    }
+  }
+
   return {
     data: withTotalSpending,
     total,
@@ -216,7 +227,7 @@ export const findAll = async ({
   }
 }
 
-export const findOne = async (id: string) => {
+export const read = async (id: string) => {
   return await db.payrollPeriod.findUnique({
     where: { id },
   })
