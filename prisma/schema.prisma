@@ -201,6 +201,7 @@ model PayrollPeriod {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+  payrolls  Payroll[]
 
   @@map("payroll_periods")
 }
@@ -224,8 +225,9 @@ model Payroll {
   deletedAt DateTime?
   doneAt    DateTime?
 
-  user     User     @relation(fields: [createdBy], references: [id])
-  employee Employee @relation(fields: [employeeId], references: [id])
+  period   PayrollPeriod @relation(fields: [periodId], references: [id])
+  user     User          @relation(fields: [createdBy], references: [id])
+  employee Employee      @relation(fields: [employeeId], references: [id])
 
   @@map("payrolls")
 }
@@ -257,10 +259,10 @@ model Project {
   status             ProjectStatus    @default(NOT_STARTED)
   deadlineAt         DateTime?
   priority           ProjectPriority?
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  deletedAt          DateTime?
+  doneAt             DateTime?
 
   attachments ProjectAttachment[]
   employees   AssignedEmployee[]
@@ -329,8 +331,7 @@ model ProjectReport {
   projectId String     @db.Uuid()
   createdBy String     @db.Uuid()
   message   String     @db.VarChar(255)
-  date      DateTime
-  type      ReportType
+  type      String
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -343,12 +344,6 @@ model ProjectReport {
   comments    ReportComment[]
 
   @@map("project_reports")
-}
-
-enum ReportType {
-  UPDATE
-  ALERT
-  ETC
 }
 
 model ReportAttachment {
