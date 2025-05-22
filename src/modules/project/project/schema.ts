@@ -8,12 +8,10 @@ export const ProjectSchema = z.object({
   progressPercentage: z.number().optional(),
   paymentPercentage: z.number().optional(),
   netValue: z.bigint().optional(),
-  startedAt: z.string().optional(),
-  endedAt: z.string().optional(),
-  archivedAt: z.string().optional(),
   status: z
     .enum(['NOT_STARTED', 'OFFERING', 'DOING', 'BILLING', 'DONE'])
     .default('NOT_STARTED'),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('LOW'),
 })
 
 export const AssignedSchema = z.object({

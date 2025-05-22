@@ -268,10 +268,10 @@ model Project {
   employees   AssignedEmployee[]
   reports     ProjectReport[]
   loans       Loan[]
+  stockOut    StockOut[]
 
-  client   Client?    @relation(fields: [clientId], references: [id])
-  lead     User?      @relation(fields: [leadId], references: [id])
-  stockOut StockOut[]
+  client Client? @relation(fields: [clientId], references: [id])
+  lead   User?   @relation(fields: [leadId], references: [id])
 
   @@map("projects")
 }
@@ -327,10 +327,10 @@ model ProjectAttachment {
 }
 
 model ProjectReport {
-  id        String     @id @default(uuid()) @db.Uuid()
-  projectId String     @db.Uuid()
-  createdBy String     @db.Uuid()
-  message   String     @db.VarChar(255)
+  id        String @id @default(uuid()) @db.Uuid()
+  projectId String @db.Uuid()
+  createdBy String @db.Uuid()
+  message   String @db.VarChar(255)
   type      String
 
   createdAt DateTime  @default(now())

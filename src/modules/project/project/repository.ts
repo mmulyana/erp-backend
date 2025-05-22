@@ -13,7 +13,6 @@ import {
   eachDayOfInterval,
   endOfDay,
   endOfMonth,
-  format,
   formatISO,
   startOfDay,
   startOfMonth,
@@ -28,6 +27,10 @@ const select: Prisma.ProjectSelect = {
   name: true,
   description: true,
   attachments: true,
+  priority: true,
+  doneAt: true,
+  deadlineAt: true,
+  status: true,
   client: {
     select: {
       id: true,
@@ -60,18 +63,6 @@ type Params = {
   clientId?: string
   leadId?: string
   status?: string
-  startedAt?: string
-  endedAt?: string
-  archivedAt?: string
-  netValue?: number
-  progress?: {
-    percentage?: number
-    option: '==' | '<=' | '>='
-  }
-  payment?: {
-    percentage?: number
-    option: '==' | '<=' | '>='
-  }
   infinite?: boolean
 }
 
@@ -105,6 +96,8 @@ export const create = async (payload: Payload) => {
       clientId: payload.clientId,
       paymentPercentage: payload.paymentPercentage || 0,
       progressPercentage: payload.progressPercentage || 0,
+      priority: payload.priority,
+      status: payload.status,
     },
   })
 
@@ -151,9 +144,6 @@ export const readAll = async ({
   clientId,
   leadId,
   status,
-  netValue,
-  progress,
-  payment,
   infinite,
 }: Params) => {
   const where: Prisma.ProjectWhereInput = {
@@ -163,34 +153,7 @@ export const readAll = async ({
         : {},
       leadId ? { leadId } : {},
       clientId ? { clientId } : {},
-      netValue ? { netValue } : {},
       status ? { status: status as any } : {},
-
-      progress?.percentage !== undefined
-        ? {
-            progressPercentage:
-              progress.option === '=='
-                ? { equals: progress.percentage }
-                : progress.option === '<='
-                  ? { lte: progress.percentage }
-                  : progress.option === '>='
-                    ? { gte: progress.percentage }
-                    : {},
-          }
-        : {},
-
-      payment?.percentage !== undefined
-        ? {
-            paymentPercentage:
-              payment.option === '=='
-                ? { equals: payment.percentage }
-                : payment.option === '<='
-                  ? { lte: payment.percentage }
-                  : payment.option === '>='
-                    ? { gte: payment.percentage }
-                    : {},
-          }
-        : {},
     ],
   }
 

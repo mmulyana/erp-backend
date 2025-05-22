@@ -84,26 +84,6 @@ export const getProjects = async (req: Request, res: Response) => {
   const clientId = req.params.clientId ? String(req.params.clientId) : undefined
   const leadId = req.params.leadId ? String(req.params.leadId) : undefined
   const status = req.params.status ? String(req.params.status) : undefined
-  const startedAt = req.params.startedAt
-    ? String(req.params.startedAt)
-    : undefined
-  const endedAt = req.params.endedAt ? String(req.params.endedAt) : undefined
-  const archivedAt = req.params.archivedAt
-    ? String(req.params.archivedAt)
-    : undefined
-  const netValue = req.params.netValue ? Number(req.params.netValue) : undefined
-  const progressPercentage = req.params.progressPercentage
-    ? Number(req.params.progressPercentage)
-    : undefined
-  const progressOption = req.params.progressOption
-    ? String(req.params.progressOption)
-    : undefined
-  const paymentPercentage = req.params.paymentPercentage
-    ? Number(req.params.paymentPercentage)
-    : undefined
-  const paymentOption = req.params.paymentOption
-    ? String(req.params.paymentOption)
-    : undefined
 
   const result = await readAll({
     page,
@@ -112,18 +92,6 @@ export const getProjects = async (req: Request, res: Response) => {
     clientId,
     leadId,
     status,
-    startedAt,
-    endedAt,
-    archivedAt,
-    netValue,
-    progress: {
-      percentage: progressPercentage,
-      option: progressOption as any,
-    },
-    payment: {
-      percentage: paymentPercentage,
-      option: paymentOption as any,
-    },
   })
 
   res.json(successResponse(result, 'proyek'))
