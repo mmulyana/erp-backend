@@ -31,6 +31,8 @@ const select: Prisma.ProjectSelect = {
   doneAt: true,
   deadlineAt: true,
   status: true,
+  leadId: true,
+  clientId: true,
   client: {
     select: {
       id: true,
@@ -90,7 +92,7 @@ export const create = async (payload: Payload) => {
   const data = await db.project.create({
     data: {
       name: payload.name,
-      netValue: payload.netValue,
+      netValue: payload.netValue || 0,
       leadId: payload.leadId,
       description: payload.description,
       clientId: payload.clientId,
@@ -124,6 +126,10 @@ export const update = async (id: string, payload: Payload) => {
       clientId: payload.clientId,
       progressPercentage: payload.progressPercentage,
       paymentPercentage: payload.paymentPercentage,
+      deadlineAt: payload.deadlineAt,
+      doneAt: payload.doneAt,
+      status: payload.status,
+      priority: payload.priority,
     },
     select: {
       id: true,
@@ -394,6 +400,7 @@ export const readAllProjectAttachments = async ({
     projectId: true,
     createdAt: true,
     updatedAt: true,
+    fileUrl: true,
     project: {
       select: {
         name: true,
@@ -643,11 +650,11 @@ export const readProjectStatusChart = async ({
   })
 
   const statusMap: Record<string, { name: string; fill: string }> = {
-    OFFERING: { name: 'Penawaran', fill: '#A36DFF' },
+    OFFERING: { name: 'Penawaran', fill: '#D52B61' },
     DOING: { name: 'Sedang dikerjakan', fill: '#2B5BD5' },
     BILLING: { name: 'Penagihan', fill: '#27B5E9' },
     DONE: { name: 'Selesai', fill: '#47AF97' },
-    NOT_STARTED: { name: 'Sedang dikerjakan', fill: '#2B5BD5' },
+    NOT_STARTED: { name: 'Sedang dikerjakan', fill: '#565659' },
   }
 
   const chartData = raw.map((item) => ({

@@ -255,7 +255,7 @@ model Project {
   description        String?          @db.VarChar(255)
   progressPercentage Int              @default(0)
   paymentPercentage  Int              @default(0)
-  netValue           BigInt?
+  netValue           Int
   status             ProjectStatus    @default(NOT_STARTED)
   deadlineAt         DateTime?
   priority           ProjectPriority?

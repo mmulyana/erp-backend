@@ -7,17 +7,9 @@ import { throwError } from '@/utils/error-handler'
 import { Client } from './schema'
 
 import db from '@/lib/prisma'
+import { PaginationParams } from '@/types'
 
-type ChartData = {
-  client: string
-  count: number
-  fill?: string | null
-}
-
-type Params = {
-  page?: number
-  limit?: number
-  search?: string
+type Params = PaginationParams & {
   companyId?: string
   infinite?: boolean
 }
@@ -82,10 +74,30 @@ export const readAll = async ({
     ],
   }
 
+  const select: Prisma.ClientSelect = {
+    id: true,
+    name: true,
+    position: true,
+    email: true,
+    phone: true,
+    company: {
+      select: {
+        id: true,
+        name: true,
+        photoUrl: true,
+      },
+    },
+    _count: {
+      select: {
+        project: true,
+      },
+    },
+  }
+
   if (page === undefined || limit === undefined) {
     const data = await db.client.findMany({
       where,
-      include: { company: true },
+      select,
       orderBy: {
         createdAt: 'desc',
       },
@@ -99,7 +111,7 @@ export const readAll = async ({
       skip,
       take,
       where,
-      include: { company: true },
+      select,
       orderBy: {
         createdAt: 'desc',
       },

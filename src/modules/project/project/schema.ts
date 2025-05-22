@@ -1,17 +1,19 @@
-import { TypeOf, z } from 'zod'
+import { z } from 'zod'
 
 export const ProjectSchema = z.object({
   name: z.string().min(1, 'Nama proyek tidak boleh kosong'),
-  leadId: z.string().optional(),
-  clientId: z.string().optional(),
-  description: z.string().optional(),
+  leadId: z.string().nullable().optional(),
+  clientId: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
   progressPercentage: z.number().optional(),
   paymentPercentage: z.number().optional(),
-  netValue: z.bigint().optional(),
+  netValue: z.number().nullable().optional(),
   status: z
     .enum(['NOT_STARTED', 'OFFERING', 'DOING', 'BILLING', 'DONE'])
     .default('NOT_STARTED'),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('LOW'),
+  deadlineAt: z.coerce.date().nullable().optional(),
+  doneAt: z.coerce.date().nullable().optional(),
 })
 
 export const AssignedSchema = z.object({
@@ -31,7 +33,6 @@ export const AttachmentSchema = z.object({
 export const ReportSchema = z.object({
   projectId: z.string(),
   message: z.string(),
-  date: z.coerce.date(),
   type: z.string(),
 })
 

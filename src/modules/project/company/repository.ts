@@ -92,6 +92,19 @@ export const readAll = async ({ page, limit, search, infinite }: Params) => {
       orderBy: {
         name: 'asc',
       },
+      select: {
+        _count: {
+          select: {
+            employees: true,
+          },
+        },
+        id: true,
+        name: true,
+        email: true,
+        address: true,
+        phone: true,
+        photoUrl: true,
+      },
     }),
     db.companyClient.count({ where }),
   ])
