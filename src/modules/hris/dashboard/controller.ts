@@ -7,8 +7,6 @@ import {
   findExpiringSafetyInduction,
   findExpiringCertificates,
   findTotalEmployee,
-  findEmployeePosition,
-  findEmployeeEducation,
 } from './repository'
 
 export const getTotal = async (req: Request, res: Response) => {
@@ -41,14 +39,4 @@ export const getExpiringSafetyInduction = async (
   })
 
   res.json(successResponse(result, 'safety induction kadaluwarsa'))
-}
-
-export const getEmployeePosition = async (req: Request, res: Response) => {
-  const result = await findEmployeePosition()
-  res.json(successResponse(result, 'chart jabatan pegawai'))
-}
-
-export const getEmployeeEducation = async (req: Request, res: Response) => {
-  const result = await findEmployeeEducation()
-  res.json(successResponse(result, 'chart jabatan pegawai'))
 }

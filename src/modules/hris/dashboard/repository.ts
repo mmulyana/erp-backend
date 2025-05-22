@@ -9,11 +9,10 @@ import { Prisma } from '@prisma/client'
 
 import { getPaginateParams } from '@/utils/params'
 import db from '@/lib/prisma'
+import { PaginationParams } from '@/types'
 
-type ExpiringParams = {
+type ExpiringParams = PaginationParams & {
   day: number
-  page?: number
-  limit?: number
 }
 
 export const findTotalEmployee = async () => {
@@ -179,37 +178,4 @@ export const findExpiringSafetyInduction = async ({
     limit,
     total_pages: Math.ceil(total / limit),
   }
-}
-export const findEmployeePosition = async () => {
-  const result = await db.employee.groupBy({
-    by: ['position'],
-    _count: {
-      position: true,
-    },
-    orderBy: {
-      position: 'asc',
-    },
-  })
-
-  return result.map((item) => ({
-    position: item.position,
-    employee: item._count.position,
-  }))
-}
-
-export const findEmployeeEducation = async () => {
-  const result = await db.employee.groupBy({
-    by: ['lastEducation'],
-    _count: {
-      lastEducation: true,
-    },
-    orderBy: {
-      lastEducation: 'asc',
-    },
-  })
-
-  return result.map((item) => ({
-    name: item.lastEducation,
-    total: item._count.lastEducation,
-  }))
 }
