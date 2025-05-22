@@ -1,6 +1,14 @@
 import { checkParamsId, getParams } from '@/utils/params'
 import { Request, Response } from 'express'
-import { create, destroy, isExist, read, readAll, update } from './repository'
+import {
+  create,
+  destroy,
+  isExist,
+  read,
+  readAll,
+  readStatusChart,
+  update,
+} from './repository'
 import {
   createResponse,
   deleteResponse,
@@ -80,4 +88,9 @@ export const postInventory = async (req: Request, res: Response) => {
     photoUrl,
   })
   res.json(createResponse(result, 'inventory'))
+}
+
+export const getStatusChart = async (req: Request, res: Response) => {
+  const result = await readStatusChart()
+  res.json(successResponse(result, 'Bagan status'))
 }

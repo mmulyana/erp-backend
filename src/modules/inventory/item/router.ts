@@ -4,6 +4,7 @@ import {
   getInventories,
   getInventoriesInfinite,
   getInventory,
+  getStatusChart,
   patchInventory,
   postInventory,
 } from './controller'
@@ -12,6 +13,8 @@ import upload from '@/utils/upload'
 const router = Router()
 
 router.get('/data/infinite', getInventoriesInfinite)
+router.get('/data/status', getStatusChart)
+
 router.get('/', getInventories)
 router.get('/:id', getInventory)
 router.patch('/:id', upload.single('photoUrl'), patchInventory)

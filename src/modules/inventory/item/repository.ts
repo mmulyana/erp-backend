@@ -152,3 +152,36 @@ export const isExist = async (id: string) => {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 }
+
+export const readStatusChart = async () => {
+  const result = await db.$queryRawUnsafe<any[]>(`
+    SELECT
+      status AS name,
+      COUNT(*) AS total
+    FROM (
+      SELECT
+        CASE
+          WHEN "totalStock" > "minimum" THEN 'tersedia'
+          WHEN "totalStock" <= "minimum" AND "totalStock" > 0 THEN 'hampir habis'
+          WHEN "totalStock" = 0 THEN 'habis'
+        END AS status
+      FROM "inventories"
+      WHERE "deletedAt" IS NULL
+    ) AS grouped
+    GROUP BY status
+  `)
+
+  const colorMap: Record<string, string> = {
+    tersedia: '#47AF97',
+    'hampir habis': '#EE682F',
+    habis: '#D52B42',
+  }
+
+  const data = result.map((item) => ({
+    name: item.name,
+    total: Number(item.total),
+    fill: colorMap[item.name] ?? '#a3a3a3',
+  }))
+
+  return data
+}
