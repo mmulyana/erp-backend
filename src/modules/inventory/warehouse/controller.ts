@@ -9,7 +9,15 @@ import {
   updateResponse,
 } from '@/utils/response'
 
-import { create, destroy, isExist, read, readAll, update } from './repository'
+import {
+  create,
+  destroy,
+  isExist,
+  read,
+  readAll,
+  readTotal,
+  update,
+} from './repository'
 import { LocationSchema } from './schema'
 
 export const getLocation = async (req: Request, res: Response) => {
@@ -81,4 +89,9 @@ export const postLocation = async (req: Request, res: Response) => {
     photoUrl,
   })
   res.json(createResponse(result, 'lokasi'))
+}
+
+export const getTotal = async (req: Request, res: Response) => {
+  const result = await readTotal()
+  res.json(successResponse(result, 'Barang hampir habis'))
 }

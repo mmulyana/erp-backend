@@ -9,7 +9,15 @@ import {
   updateResponse,
 } from '@/utils/response'
 
-import { create, destroy, isExist, read, readAll, update } from './repository'
+import {
+  create,
+  destroy,
+  isExist,
+  read,
+  readAll,
+  readTotal,
+  update,
+} from './repository'
 import { SupplierSchema } from './schema'
 
 export const getSupplier = async (req: Request, res: Response) => {
@@ -80,4 +88,9 @@ export const postSupplier = async (req: Request, res: Response) => {
     photoUrl,
   })
   res.json(createResponse(result, 'supplier'))
+}
+
+export const getTotal = async (req: Request, res: Response) => {
+  const result = await readTotal()
+  res.json(successResponse(result, 'Barang hampir habis'))
 }

@@ -3,10 +3,13 @@ import { Request, Response } from 'express'
 import {
   create,
   destroy,
+  findSupplierByItemId,
   isExist,
   read,
   readAll,
+  readLowStock,
   readStatusChart,
+  readTotal,
   update,
 } from './repository'
 import {
@@ -65,7 +68,15 @@ export const patchInventory = async (req: Request, res: Response) => {
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
-  const photoUrl = req?.file?.filename || undefined
+  let photoUrl: string | null | undefined = undefined
+
+  if (req.file?.filename) {
+    photoUrl = req.file.filename
+  } else if (parsed.data.photoUrl === 'null') {
+    photoUrl = null
+  } else if (parsed.data.photoUrl !== undefined) {
+    photoUrl = parsed.data.photoUrl
+  }
 
   const result = await update(id, {
     ...parsed.data,
@@ -93,4 +104,22 @@ export const postInventory = async (req: Request, res: Response) => {
 export const getStatusChart = async (req: Request, res: Response) => {
   const result = await readStatusChart()
   res.json(successResponse(result, 'Bagan status'))
+}
+
+export const getLowStock = async (req: Request, res: Response) => {
+  const result = await readLowStock()
+  res.json(successResponse(result, 'Barang hampir habis'))
+}
+
+export const getTotal = async (req: Request, res: Response) => {
+  const result = await readTotal()
+  res.json(successResponse(result, 'Barang hampir habis'))
+}
+
+export const getSupplierById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await findSupplierByItemId(id)
+  res.json(successResponse(result, 'supplier barang'))
 }
