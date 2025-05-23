@@ -8,8 +8,8 @@ export const getParams = (req: Request) => {
   const page = getQueryParam(req.query, 'page', 'number')
   const limit = getQueryParam(req.query, 'limit', 'number')
   const search = getQueryParam(req.query, 'search', 'string')
-  const sortBy = getQueryParam(req.query, 'sortBy', 'string')
-  const sortOrder = getQueryParam(req.query, 'sortOrder', 'string')
+  const sortBy = getQueryParam(req.query, 'sortBy', 'string') as any
+  const sortOrder = getQueryParam(req.query, 'sortOrder', 'string') as any
   const createdBy = getQueryParam(req.query, 'createdBy', 'string')
 
   return { page, limit, search, sortBy, sortOrder, createdBy }
