@@ -43,7 +43,10 @@ export const create = async (
     const stockIn = await tx.stockIn.create({
       data: {
         referenceNumber: data.referenceNumber,
-        supplierId: data.supplierId,
+        supplierId:
+          data.supplierId && data.supplierId !== ''
+            ? data.supplierId
+            : undefined,
         note: data.note,
         createdBy: data.createdBy,
         date: data.date,

@@ -1,11 +1,12 @@
+import { Prisma } from '@prisma/client'
+import { HttpStatusCode } from 'axios'
+
+import { throwError } from '@/utils/error-handler'
+import { getPaginateParams } from '@/utils/params'
 import { deleteFile } from '@/utils/file'
 import db from '@/lib/prisma'
 
 import { Company } from './schema'
-import { throwError } from '@/utils/error-handler'
-import { HttpStatusCode } from 'axios'
-import { Prisma } from '@prisma/client'
-import { getPaginateParams } from '@/utils/params'
 
 type Payload = Company & { photoUrl?: string }
 

@@ -537,9 +537,11 @@ model Loan {
   returnDate       DateTime?
   note             String?
   status           LoanStatus @default(LOANED)
-  PhotoUrlOut      String?
-  PhotoUrlIn       String?
+  photoUrlOut      String?
+  photoUrlIn       String?
   projectId        String     @db.Uuid()
+
+  createdAt DateTime @default(now())
 
   item     Inventory @relation(fields: [inventoryId], references: [id])
   borrower User      @relation(fields: [borrowerId], references: [id])

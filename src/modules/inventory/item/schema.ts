@@ -8,7 +8,7 @@ export const ItemSchema = z.object({
   description: z.string().optional(),
   unitOfMeasurement: z.string().optional(),
   category: z.string().nullable().optional(),
-  photoUrl: z.string().nullable(),
+  photoUrl: z.any(),
 })
 
 export type Item = z.infer<typeof ItemSchema>
