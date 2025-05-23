@@ -51,12 +51,7 @@ export const destroy = async (id: string) => {
 export const read = async (id: string) => {
   const data = await db.warehouse.findUnique({
     where: { id },
-    select: {
-      ...select,
-      inventories: {
-        include: { brand: true },
-      },
-    },
+    select,
   })
   return { data }
 }

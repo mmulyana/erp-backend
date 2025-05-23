@@ -52,13 +52,6 @@ export const read = async (id: string) => {
     select: {
       ...select,
       _count: { select: { inventories: true } },
-      inventories: {
-        select: {
-          id: true,
-          photoUrl: true,
-          name: true,
-        },
-      },
     },
   })
   return { data }
