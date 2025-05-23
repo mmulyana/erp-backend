@@ -4,6 +4,7 @@ import {
   getLocation,
   getLocations,
   getLocationsInfinite,
+  getTotal,
   patchLocation,
   postLocation,
 } from './controller'
@@ -11,6 +12,8 @@ import {
 const router = Router()
 
 router.get('/data/infinite', getLocationsInfinite)
+router.get('/data/total', getTotal)
+
 router.get('/', getLocations)
 router.get('/:id', getLocation)
 router.patch('/:id', patchLocation)

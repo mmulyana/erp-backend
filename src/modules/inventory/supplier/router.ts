@@ -5,6 +5,7 @@ import {
   getSupplier,
   getSuppliers,
   getSuppliersInfinite,
+  getTotal,
   patchSupplier,
   postSupplier,
 } from './controller'
@@ -12,6 +13,8 @@ import {
 const router = Router()
 
 router.get('/data/infinite', getSuppliersInfinite)
+router.get('/data/total', getTotal)
+
 router.get('/', getSuppliers)
 router.get('/:id', getSupplier)
 router.patch('/:id', upload.single('photoUrl'), patchSupplier)
