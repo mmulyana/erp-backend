@@ -90,7 +90,7 @@ export const read = async (id: string) => {
     ...result,
     status: generateStatus(result.totalStock, result.minimum),
   }
-  return { data }
+  return data
 }
 
 export const readAll = async ({

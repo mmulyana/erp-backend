@@ -53,7 +53,7 @@ export const read = async (id: string) => {
     where: { id },
     select,
   })
-  return { data }
+  return data
 }
 
 type readAllParams = {
@@ -127,7 +127,7 @@ export const readAll = async ({
 }
 
 export const isExist = async (id: string) => {
-  const data = await db.warehouse.findUnique({ where: { id } })
+  const data = await db.warehouse.findUnique({ where: { id, deletedAt: null } })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
