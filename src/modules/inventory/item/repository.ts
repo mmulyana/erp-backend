@@ -6,6 +6,7 @@ import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
 import { HttpStatusCode } from 'axios'
 import { checkPhotoUrl, generateStatus } from './helper'
+import { PaginationParams } from '@/types'
 
 const select: Prisma.InventorySelect = {
   id: true,
@@ -92,19 +93,22 @@ export const read = async (id: string) => {
   return { data }
 }
 
-type readAllParams = {
-  page?: number
-  limit?: number
-  search?: string
-  infinite?: boolean
-}
-
 export const readAll = async ({
   limit,
   page,
   search,
   infinite,
-}: readAllParams) => {
+  brandId,
+  warehouseId,
+  sortBy,
+  sortOrder,
+}: PaginationParams & {
+  infinite?: boolean
+  brandId?: string
+  warehouseId?: string
+  sortBy?: string
+  sortOrder?: string
+}) => {
   const where: Prisma.InventoryWhereInput = {
     AND: [
       search
@@ -112,19 +116,23 @@ export const readAll = async ({
             name: { contains: search, mode: 'insensitive' },
           }
         : {},
+      brandId ? { brandId } : {},
+      warehouseId ? { warehouseId } : {},
       {
         deletedAt: null,
       },
     ],
   }
 
+  const orderBy: Prisma.InventoryOrderByWithRelationInput = {
+    [sortBy || 'createdAt']: (sortOrder as 'asc' | 'desc') || 'desc',
+  }
+
   if (page === undefined || limit === undefined) {
     const data = await db.inventory.findMany({
       select,
       where,
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     })
     return {
       data: data.map((i) => ({
@@ -140,9 +148,7 @@ export const readAll = async ({
     db.inventory.findMany({
       where,
       select,
-      orderBy: {
-        name: 'desc',
-      },
+      orderBy,
       skip,
       take,
     }),
@@ -161,6 +167,7 @@ export const readAll = async ({
       nextPage: hasNextPage ? page + 1 : undefined,
     }
   }
+
   return {
     data: data.map((i) => ({
       ...i,
