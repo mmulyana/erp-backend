@@ -154,3 +154,7 @@ export const isExist = async (id: string) => {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 }
+
+export const readTotal = async () => {
+  return db.supplier.count({ where: { deletedAt: null } })
+}
