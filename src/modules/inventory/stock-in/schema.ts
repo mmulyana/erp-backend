@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const StockInSchema = z.object({
   referenceNumber: z.string().optional(),
-  supplierId: z.string().uuid().optional(),
+  supplierId: z.string().nullable().optional(),
   note: z.string().optional(),
   date: z.coerce.date(),
   items: z
