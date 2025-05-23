@@ -5,6 +5,7 @@ import { getPaginateParams } from '@/utils/params'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
 import { HttpStatusCode } from 'axios'
+import { checkPhotoUrl, generateStatus } from './helper'
 
 const select: Prisma.InventorySelect = {
   id: true,
@@ -24,7 +25,14 @@ const select: Prisma.InventorySelect = {
     },
   },
   photoUrl: true,
+  totalStock: true,
+  availableStock: true,
+  brandId: true,
+  category: true,
+  unitOfMeasurement: true,
+  warehouseId: true,
 
+  updatedAt: true,
   createdAt: true,
 }
 
@@ -36,28 +44,32 @@ export const create = async (
       name: payload.name,
       minimum: payload.minimum,
       brandId: payload.brandId,
-      warehouseId: payload.locationId,
+      warehouseId: payload.warehouseId,
       description: payload.description,
       photoUrl: payload.photoUrl,
       unitOfMeasurement: payload.unitOfMeasurement,
+      category: payload.category,
     },
   })
 }
 
 export const update = async (
   id: string,
-  payload: Item & { createdBy: string; photoUrl?: string },
+  payload: Item & { createdBy: string; photoUrl?: string | null },
 ) => {
+  await checkPhotoUrl(id, payload.photoUrl)
+
   return db.inventory.update({
     where: { id },
     data: {
       name: payload.name,
       minimum: payload.minimum,
       brandId: payload.brandId,
-      warehouseId: payload.locationId,
+      warehouseId: payload.warehouseId,
       description: payload.description,
       photoUrl: payload.photoUrl,
       unitOfMeasurement: payload.unitOfMeasurement,
+      category: payload.category,
     },
   })
 }
@@ -72,8 +84,12 @@ export const destroy = async (id: string) => {
 }
 
 export const read = async (id: string) => {
-  const data = await db.inventory.findUnique({ where: { id }, select })
-  return data
+  const result = await db.inventory.findUnique({ where: { id }, select })
+  const data = {
+    ...result,
+    status: generateStatus(result.totalStock, result.minimum),
+  }
+  return { data }
 }
 
 type readAllParams = {
@@ -110,7 +126,12 @@ export const readAll = async ({
         createdAt: 'desc',
       },
     })
-    return { data }
+    return {
+      data: data.map((i) => ({
+        ...i,
+        status: generateStatus(i.totalStock, i.minimum),
+      })),
+    }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
@@ -133,12 +154,18 @@ export const readAll = async ({
 
   if (infinite) {
     return {
-      data,
+      data: data.map((i) => ({
+        ...i,
+        status: generateStatus(i.totalStock, i.minimum),
+      })),
       nextPage: hasNextPage ? page + 1 : undefined,
     }
   }
   return {
-    data,
+    data: data.map((i) => ({
+      ...i,
+      status: generateStatus(i.totalStock, i.minimum),
+    })),
     page,
     limit,
     total_pages,
@@ -184,4 +211,52 @@ export const readStatusChart = async () => {
   }))
 
   return data
+}
+
+export const readLowStock = async () => {
+  const inventories = await db.inventory.findMany({
+    where: {
+      deletedAt: null,
+      totalStock: {
+        lte: db.inventory.fields.minimum,
+      },
+    },
+    select,
+  })
+
+  return inventories.filter((item) => item.totalStock <= item.minimum)
+}
+
+export const readTotal = async () => {
+  return db.inventory.count({ where: { deletedAt: null } })
+}
+
+export const findSupplierByItemId = async (itemId: string) => {
+  const result = await db.$queryRawUnsafe<
+    {
+      supplierId: string | null
+      name: string | null
+      photoUrl: string | null
+      stockInId: string
+      date: string
+    }[]
+  >(
+    `
+    SELECT DISTINCT ON (s.id)
+      s.id AS "supplierId",
+      s.name AS "name",
+      s."photoUrl" AS "photoUrl",
+      si.id AS "stockInId",
+      si.date AS "date"
+    FROM "stock_in_items" AS sii
+    JOIN "stock_in" AS si ON sii."stockInId" = si.id
+    JOIN "suppliers" AS s ON si."supplierId" = s.id
+    WHERE sii."itemId" = $1::uuid
+      AND s."deletedAt" IS NULL
+    ORDER BY s.id, si.date DESC
+    `,
+    itemId,
+  )
+
+  return result
 }
