@@ -33,13 +33,30 @@ const select: Prisma.StockOutSelect = {
   },
 }
 
-export const readAll = async ({ page, limit, search }: PaginationParams) => {
+export const readAll = async ({
+  page,
+  limit,
+  search,
+  createdBy,
+  projectId,
+  sortBy,
+  sortOrder,
+}: PaginationParams & {
+  createdBy?: string
+  projectId?: string
+  sortBy?: 'date' | 'createdAt'
+  sortOrder?: 'asc' | 'desc'
+}) => {
   const where: Prisma.StockOutWhereInput = {
-    AND: [search ? { note: { contains: search, mode: 'insensitive' } } : {}],
+    AND: [
+      search ? { note: { contains: search, mode: 'insensitive' } } : {},
+      createdBy ? { createdBy } : {},
+      projectId ? { projectId } : {},
+    ],
   }
 
   const orderBy: Prisma.StockOutOrderByWithRelationInput = {
-    createdAt: 'desc',
+    [sortBy || 'createdAt']: sortOrder || 'desc',
   }
 
   if (page === undefined || limit === undefined) {
