@@ -1,3 +1,4 @@
+import { endOfMonth, startOfMonth } from 'date-fns'
 import { Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 
@@ -196,4 +197,46 @@ export const isExist = async (id: string) => {
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
+}
+
+export const findStatusByMonth = async ({
+  monthIndex,
+  year,
+}: {
+  monthIndex: number // ingat index bulan 0-11
+  year: number
+}) => {
+  const start = startOfMonth(new Date(year, monthIndex, 1))
+  const end = endOfMonth(start)
+
+  const result = await db.loan.groupBy({
+    by: ['status'],
+    where: {
+      requestDate: {
+        gte: start,
+        lte: end,
+      },
+    },
+    _count: {
+      _all: true,
+    },
+  })
+
+  const option: Record<string, { fill: string; name: string }> = {
+    LOANED: {
+      fill: '#EE682F',
+      name: 'Dipinjam',
+    },
+    RETURNED: {
+      fill: '#475DEF',
+      name: 'Dikembalikan',
+    },
+    PARTIAL_RETURNED: { fill: '#D52B42', name: 'Belum lengkap' },
+  }
+
+  return result.map((item) => ({
+    name: option[item.status].name,
+    total: item._count._all,
+    fill: option[item.status].fill,
+  }))
 }
