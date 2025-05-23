@@ -2,12 +2,17 @@ import { Request } from 'express'
 import { throwError } from './error-handler'
 import { Messages } from './constant'
 import { HttpStatusCode } from 'axios'
+import { getQueryParam } from '.'
 
 export const getParams = (req: Request) => {
-  const page = req.query.page ? Number(req.query.page) : undefined
-  const limit = req.query.limit ? Number(req.query.limit) : undefined
-  const search = req.query.search ? String(req.query.search) : undefined
-  return { page, limit, search }
+  const page = getQueryParam(req.query, 'page', 'number')
+  const limit = getQueryParam(req.query, 'limit', 'number')
+  const search = getQueryParam(req.query, 'search', 'string')
+  const sortBy = getQueryParam(req.query, 'sortBy', 'string')
+  const sortOrder = getQueryParam(req.query, 'sortOrder', 'string')
+  const createdBy = getQueryParam(req.query, 'createdBy', 'string')
+
+  return { page, limit, search, sortBy, sortOrder, createdBy }
 }
 
 export const getPaginateParams = (page: number, limit: number) => {

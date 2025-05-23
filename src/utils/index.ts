@@ -22,3 +22,24 @@ export const processTotalPrice = (
     ),
   }))
 }
+
+export function getQueryParam<T extends 'string' | 'number'>(
+  query: any,
+  key: string,
+  type: T,
+): T extends 'string' ? string | undefined : number | undefined {
+  const value = query[key]
+
+  if (type === 'string') {
+    return (
+      typeof value === 'string' && value.trim() !== '' ? value : undefined
+    ) as any
+  }
+
+  if (type === 'number') {
+    const num = Number(value)
+    return !isNaN(num) ? (num as any) : undefined
+  }
+
+  return undefined as any
+}

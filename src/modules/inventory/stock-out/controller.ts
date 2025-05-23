@@ -2,13 +2,15 @@ import { Request, Response } from 'express'
 
 import { errorParse } from '@/utils/error-handler'
 import { createResponse, successResponse } from '@/utils/response'
-import { parseJsonField } from '@/utils'
+import { getQueryParam, parseJsonField } from '@/utils'
 
 import { StockOutSchema } from './schema'
 import { create, findTotalByMonth, isExist, read, readAll } from './repository'
 import { checkParamsId, getParams } from '@/utils/params'
 
 export const postStockOut = async (req: Request, res: Response) => {
+  // console.log('_________')
+  // console.log('req.body', req.body)
   req.body.items = parseJsonField(req.body.items)
 
   const parsed = StockOutSchema.safeParse({
@@ -18,10 +20,13 @@ export const postStockOut = async (req: Request, res: Response) => {
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
+  // console.log('_________')
+  // console.log('parsed.data', parsed.data)
 
   const photoUrl = req.file?.filename
   const data = await create({
     ...parsed.data,
+    projectId: parsed.data.projectId,
     createdBy: req.user.id,
     photoUrl,
   })
@@ -38,12 +43,17 @@ export const getStockOut = async (req: Request, res: Response) => {
 }
 
 export const getStockOuts = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
+  const { page, limit, search, sortBy, sortOrder, createdBy } = getParams(req)
+  const projectId = getQueryParam(req.query, 'projectId', 'string')
 
   const result = await readAll({
     limit,
     page,
     search,
+    sortBy,
+    sortOrder,
+    createdBy,
+    projectId,
   })
   res.json(successResponse(result, 'stock out'))
 }

@@ -18,8 +18,10 @@ import {
   successResponse,
   updateResponse,
 } from '@/utils/response'
-import { ItemSchema } from './schema'
 import { errorParse } from '@/utils/error-handler'
+import { getQueryParam } from '@/utils'
+
+import { ItemSchema } from './schema'
 
 export const getInventory = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
@@ -30,12 +32,18 @@ export const getInventory = async (req: Request, res: Response) => {
 }
 
 export const getInventories = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
+  const brandId = getQueryParam(req.query, 'brandId', 'string')
+  const warehouseId = getQueryParam(req.query, 'warehouseId', 'string')
 
   const result = await readAll({
     limit,
     page,
     search,
+    sortBy,
+    sortOrder,
+    brandId,
+    warehouseId,
   })
   res.json(successResponse(result, 'inventory'))
 }
