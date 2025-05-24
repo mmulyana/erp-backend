@@ -1,10 +1,23 @@
 import { Request, Response } from 'express'
-import { LoanSchema } from './schema'
+
+import { checkParamsId, getParams } from '@/utils/params'
 import { errorParse } from '@/utils/error-handler'
-import { create, findStatusByMonth, readAll } from './repository'
-import { createResponse, successResponse } from '@/utils/response'
-import { getParams } from '@/utils/params'
 import { getQueryParam } from '@/utils'
+import {
+  createResponse,
+  successResponse,
+  updateResponse,
+} from '@/utils/response'
+
+import { LoanSchema } from './schema'
+import {
+  create,
+  findStatusByMonth,
+  isExist,
+  read,
+  readAll,
+  update,
+} from './repository'
 
 export const postLoan = async (req: Request, res: Response) => {
   const parsed = LoanSchema.safeParse(req.body)
@@ -15,7 +28,7 @@ export const postLoan = async (req: Request, res: Response) => {
   const result = await create({
     ...parsed.data,
     borrowerId: req.user.id,
-    photoUrlIn: photoInFiles?.map((i) => i.filename).join(','),
+    photoUrlIn: photoInFiles?.map((i) => i.filename).join('|'),
   })
 
   res.json(createResponse(result, 'Peminjaman'))
@@ -42,6 +55,14 @@ export const getLoans = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'peminjaman'))
 }
 
+export const getLoan = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await read(id)
+  res.json(successResponse(result, 'peminjaman'))
+}
+
 export const getStatusByMonth = async (req: Request, res: Response) => {
   const monthIndex = getQueryParam(req.query, 'month', 'number')
   const year = getQueryParam(req.query, 'year', 'number')
@@ -52,4 +73,32 @@ export const getStatusByMonth = async (req: Request, res: Response) => {
   })
 
   res.json(successResponse(result, 'Status peminjaman perbulan'))
+}
+
+export const patchLoan = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const parsed = LoanSchema.partial().safeParse(req.body)
+  if (!parsed.success) return errorParse(parsed.error)
+
+  const payload = parsed.data
+
+  let photoUrl: string | null | undefined = undefined
+
+  if (req.file?.filename) {
+    photoUrl = req.file.filename
+  } else if (parsed.data.photoUrlIn !== undefined) {
+    photoUrl = parsed.data.photoUrlIn
+  } else {
+    photoUrl = null
+  }
+
+  const result = await update(id, {
+    note: payload.note,
+    photoUrlIn: photoUrl,
+    requestDate: payload.requestDate,
+  })
+
+  res.json(updateResponse(result, 'Peminjaman'))
 }
