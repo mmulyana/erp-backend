@@ -7,8 +7,8 @@ export const LoanSchema = z.object({
   requestDate: z.coerce.date(),
   returnedDate: z.coerce.date().nullable().optional(),
   note: z.string().optional(),
-  photoUrlOut: z.string().optional(),
-  photoUrlIn: z.string().optional(),
+  photoUrlOut: z.any(),
+  photoUrlIn: z.any(),
   projectId: z.string(),
 })
 
