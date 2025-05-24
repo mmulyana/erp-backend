@@ -80,10 +80,10 @@ export const patchInventory = async (req: Request, res: Response) => {
 
   if (req.file?.filename) {
     photoUrl = req.file.filename
-  } else if (parsed.data.photoUrl === 'null') {
-    photoUrl = null
   } else if (parsed.data.photoUrl !== undefined) {
     photoUrl = parsed.data.photoUrl
+  } else {
+    photoUrl = null
   }
 
   const result = await update(id, {
