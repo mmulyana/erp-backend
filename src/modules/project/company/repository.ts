@@ -3,11 +3,11 @@ import { HttpStatusCode } from 'axios'
 
 import { throwError } from '@/utils/error-handler'
 import { getPaginateParams } from '@/utils/params'
+import { PaginationParams } from '@/types'
 import { deleteFile } from '@/utils/file'
 import db from '@/lib/prisma'
 
 import { Company } from './schema'
-import { PaginationParams } from '@/types'
 
 type Payload = Company & { photoUrl?: string }
 
