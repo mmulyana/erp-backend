@@ -8,7 +8,7 @@ import { Messages } from '@/utils/constant'
 import { PaginationParams } from '@/types'
 import db from '@/lib/prisma'
 
-import { checkPhotoUrlIn } from './helper'
+import { checkPhotoUrlIn, checkPhotoUrlOut } from './helper'
 import { Loan } from './schema'
 
 const select: Prisma.LoanSelect = {
@@ -29,6 +29,7 @@ const select: Prisma.LoanSelect = {
       id: true,
       name: true,
       photoUrl: true,
+      unitOfMeasurement: true,
     },
   },
   borrower: {
@@ -241,4 +242,84 @@ export const findStatusByMonth = async ({
     total: item._count._all,
     fill: option[item.status].fill,
   }))
+}
+
+export const returnLoan = async (
+  id: string,
+  payload: {
+    returnedQuantity?: number
+    returnDate: Date
+    photoUrl?: string
+  },
+) => {
+  const { returnDate, returnedQuantity, photoUrl } = payload
+  await checkPhotoUrlOut(id, photoUrl)
+
+  return db.$transaction(async (tx) => {
+    const loan = await tx.loan.findUnique({
+      where: { id },
+      select: {
+        inventoryId: true,
+        returnedQuantity: true,
+        requestQuantity: true,
+        status: true,
+      },
+    })
+
+    if (!loan) {
+      return throwError(Messages.notFound, HttpStatusCode.NotFound)
+    }
+
+    let totalReturned = loan.returnedQuantity
+    let status = loan.status
+
+    if (returnedQuantity !== undefined) {
+      totalReturned += returnedQuantity
+
+      if (totalReturned > loan.requestQuantity) {
+        return throwError(
+          'Jumlah pengembalian melebihi jumlah yang dipinjam',
+          HttpStatusCode.BadRequest,
+        )
+      }
+
+      status =
+        totalReturned === loan.requestQuantity ? 'RETURNED' : 'PARTIAL_RETURNED'
+
+      // ubah inventori
+      await tx.inventory.update({
+        where: { id: loan.inventoryId },
+        data: {
+          availableStock: {
+            increment: returnedQuantity,
+          },
+        },
+      })
+
+      // buat ledger
+      await tx.stockLedger.create({
+        data: {
+          itemId: loan.inventoryId,
+          type: 'RETURNED',
+          referenceId: id,
+          quantity: returnedQuantity,
+          date: returnDate,
+        },
+      })
+    }
+
+    const data = await tx.loan.update({
+      where: { id },
+      data: {
+        ...(returnedQuantity !== undefined && {
+          returnedQuantity: totalReturned,
+          status,
+        }),
+        returnDate,
+        photoUrlOut: photoUrl,
+      },
+    })
+
+    return data
+  })
 }
