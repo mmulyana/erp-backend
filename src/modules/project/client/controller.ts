@@ -11,14 +11,15 @@ import {
   update,
 } from './repository'
 
+import { checkParamsId, getParams } from '@/utils/params'
+import { errorParse } from '@/utils/error-handler'
+import { getQueryParam } from '@/utils'
 import {
   createResponse,
   deleteResponse,
   successResponse,
   updateResponse,
 } from '@/utils/response'
-import { errorParse } from '@/utils/error-handler'
-import { checkParamsId, getParams } from '@/utils/params'
 
 export const saveClient = async (req: Request, res: Response) => {
   const parsed = ClientSchema.safeParse(req.body)
@@ -60,16 +61,15 @@ export const readClient = async (req: Request, res: Response) => {
 }
 
 export const readClients = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
-  const companyId = req.params.companyId
-    ? String(req.params.companyId)
-    : undefined
+  const { page, limit, search, sortOrder } = getParams(req)
+  const companyId = getQueryParam(req.query, 'companyId', 'string')
 
   const result = await readAll({
     page,
     limit,
     search,
     companyId,
+    sortOrder,
   })
 
   res.json(successResponse(result, 'klien'))
@@ -77,9 +77,7 @@ export const readClients = async (req: Request, res: Response) => {
 
 export const readClientsInfinite = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
-  const companyId = req.params.companyId
-    ? String(req.params.companyId)
-    : undefined
+  const companyId = getQueryParam(req.query, 'companyId', 'string')
 
   const result = await readAll({
     page,
@@ -93,10 +91,8 @@ export const readClientsInfinite = async (req: Request, res: Response) => {
 }
 
 export const getClientRank = async (req: Request, res: Response) => {
-  const { limit } = getParams(req)
-  const sortOrder = req.query.sortOrder
-    ? String(req.query.sortOrder)
-    : undefined
+  const { limit, sortOrder } = getParams(req)
+
   const result = await readClientRank({
     sortOrder: sortOrder as 'asc' | 'desc',
     limit,

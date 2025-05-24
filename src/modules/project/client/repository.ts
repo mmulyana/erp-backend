@@ -61,7 +61,10 @@ export const readAll = async ({
   search,
   companyId,
   infinite,
-}: Params) => {
+  sortOrder,
+}: Params & {
+  sortOrder?: 'asc' | 'desc'
+}) => {
   let where: Prisma.ClientWhereInput = {
     AND: [
       search !== undefined
@@ -94,27 +97,28 @@ export const readAll = async ({
     },
   }
 
+  const orderBy = {
+    createdAt: sortOrder ?? 'desc',
+  }
+
   if (page === undefined || limit === undefined) {
     const data = await db.client.findMany({
       where,
       select,
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     })
     return { data }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
+
   const [data, total] = await Promise.all([
     db.client.findMany({
       skip,
       take,
       where,
       select,
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     }),
     db.client.count({ where }),
   ])
@@ -128,6 +132,7 @@ export const readAll = async ({
       nextPage: hasNextPage ? page + 1 : undefined,
     }
   }
+
   return {
     data,
     total,
