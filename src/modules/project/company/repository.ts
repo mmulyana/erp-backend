@@ -7,6 +7,7 @@ import { deleteFile } from '@/utils/file'
 import db from '@/lib/prisma'
 
 import { Company } from './schema'
+import { PaginationParams } from '@/types'
 
 type Payload = Company & { photoUrl?: string }
 
@@ -54,13 +55,16 @@ export const read = async (id: string) => {
   })
 }
 
-type Params = {
-  page?: number
-  limit?: number
-  search?: string
+export const readAll = async ({
+  page,
+  limit,
+  search,
+  infinite,
+  sortOrder,
+}: PaginationParams & {
   infinite?: boolean
-}
-export const readAll = async ({ page, limit, search, infinite }: Params) => {
+  sortOrder?: 'asc' | 'desc'
+}) => {
   const where: Prisma.CompanyClientWhereInput = {
     AND: [
       search !== undefined ? { name: { contains: search } } : {},
@@ -74,10 +78,15 @@ export const readAll = async ({ page, limit, search, infinite }: Params) => {
     employees: true,
   }
 
+  const orderBy = {
+    createdAt: sortOrder ?? 'asc',
+  }
+
   if (page === undefined || limit === undefined) {
     const data = await db.companyClient.findMany({
       where,
       include,
+      orderBy,
     })
     return { data }
   }
@@ -89,9 +98,7 @@ export const readAll = async ({ page, limit, search, infinite }: Params) => {
       skip,
       take,
       where,
-      orderBy: {
-        name: 'asc',
-      },
+      orderBy,
       select: {
         _count: {
           select: {

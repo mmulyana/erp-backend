@@ -31,7 +31,6 @@ export const patchCompany = async (req: Request, res: Response) => {
     return errorParse(parsed.error)
   }
 
-  console.log('filename', req?.file?.filename)
   const photoUrl = req?.file?.filename || parsed.data.photoUrl || null
 
   const result = await update(id, { ...parsed.data, photoUrl })
@@ -54,8 +53,8 @@ export const getCompany = async (req: Request, res: Response) => {
 }
 
 export const getCompanies = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
-  const result = await readAll({ page, limit, search })
+  const { page, limit, search, sortOrder } = getParams(req)
+  const result = await readAll({ page, limit, search, sortOrder })
   res.json(successResponse(result, 'Perusahaan'))
 }
 
