@@ -151,7 +151,12 @@ export const readAll = async ({
   leadId,
   status,
   infinite,
-}: Params) => {
+  sortBy,
+  sortOrder,
+}: Params & {
+  sortBy?: 'createdAt' | 'doneAt'
+  sortOrder?: 'asc' | 'desc'
+}) => {
   const where: Prisma.ProjectWhereInput = {
     AND: [
       search
@@ -163,13 +168,15 @@ export const readAll = async ({
     ],
   }
 
+  const orderBy: Prisma.ProjectOrderByWithRelationInput = {
+    [sortBy ?? 'createdAt']: sortOrder ?? 'desc',
+  }
+
   if (page === undefined || limit === undefined) {
     const data = await db.project.findMany({
       where,
       select,
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     })
 
     return { data }
@@ -183,9 +190,7 @@ export const readAll = async ({
       take,
       where,
       select,
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     }),
     db.project.count({ where }),
   ])
