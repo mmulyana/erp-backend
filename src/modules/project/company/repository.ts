@@ -23,12 +23,11 @@ export const create = async (payload: Payload) => {
 }
 
 export const update = async (id: string, data: Payload) => {
-  if (data.photoUrl) {
-    const data = await db.companyClient.findUnique({ where: { id } })
-    if (data?.photoUrl) {
-      deleteFile(data.photoUrl)
-    }
+  const exist = await db.companyClient.findUnique({ where: { id } })
+  if (exist.photoUrl !== data.photoUrl) {
+    await deleteFile(exist.photoUrl)
   }
+
   return await db.companyClient.update({
     data,
     where: { id },
@@ -127,15 +126,6 @@ export const readAll = async ({ page, limit, search, infinite }: Params) => {
     limit,
     total_pages,
   }
-}
-
-export const destroyPhoto = async (id: string) => {
-  const data = await db.companyClient.findUnique({ where: { id } })
-  if (data.photoUrl) {
-    await deleteFile(data.photoUrl)
-  }
-
-  await db.companyClient.update({ where: { id }, data: { photoUrl: null } })
 }
 
 export const isExist = async (id: string) => {

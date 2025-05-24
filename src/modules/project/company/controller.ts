@@ -2,15 +2,7 @@ import { Request, Response } from 'express'
 import { CompanySchema } from './schema'
 import { errorParse } from '@/utils/error-handler'
 import { checkParamsId, getParams } from '@/utils/params'
-import {
-  create,
-  destroy,
-  destroyPhoto,
-  isExist,
-  read,
-  readAll,
-  update,
-} from './repository'
+import { create, destroy, isExist, read, readAll, update } from './repository'
 import {
   createResponse,
   deleteResponse,
@@ -39,7 +31,8 @@ export const patchCompany = async (req: Request, res: Response) => {
     return errorParse(parsed.error)
   }
 
-  const photoUrl = req?.file?.filename || undefined
+  console.log('filename', req?.file?.filename)
+  const photoUrl = req?.file?.filename || parsed.data.photoUrl || null
 
   const result = await update(id, { ...parsed.data, photoUrl })
   res.json(updateResponse(result, 'Perusahaan'))
@@ -70,12 +63,4 @@ export const getCompaniesInfinite = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const result = await readAll({ page, limit, search, infinite: true })
   res.json(successResponse(result, 'Perusahaan'))
-}
-
-export const patchDestroyPhotoCompany = async (req: Request, res: Response) => {
-  const { id } = checkParamsId(req)
-  await isExist(id)
-
-  const result = await destroyPhoto(id)
-  res.json(updateResponse(result, 'Perusahaan'))
 }

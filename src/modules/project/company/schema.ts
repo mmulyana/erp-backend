@@ -5,5 +5,6 @@ export const CompanySchema = z.object({
   email: z.string().optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
+  photoUrl: z.any(),
 })
 export type Company = z.infer<typeof CompanySchema>
