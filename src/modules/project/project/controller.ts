@@ -40,6 +40,7 @@ import {
   successResponse,
   updateResponse,
 } from '@/utils/response'
+import { getQueryParam } from '@/utils'
 
 export const postProject = async (req: Request, res: Response) => {
   const parsed = ProjectSchema.safeParse(req.body)
@@ -80,10 +81,10 @@ export const getProject = async (req: Request, res: Response) => {
 }
 
 export const getProjects = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
-  const clientId = req.params.clientId ? String(req.params.clientId) : undefined
-  const leadId = req.params.leadId ? String(req.params.leadId) : undefined
-  const status = req.params.status ? String(req.params.status) : undefined
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
+  const clientId = getQueryParam(req.query, 'clientId', 'string')
+  const leadId = getQueryParam(req.query, 'leadId', 'string')
+  const status = getQueryParam(req.query, 'status', 'string')
 
   const result = await readAll({
     page,
@@ -92,6 +93,8 @@ export const getProjects = async (req: Request, res: Response) => {
     clientId,
     leadId,
     status,
+    sortBy,
+    sortOrder,
   })
 
   res.json(successResponse(result, 'proyek'))
