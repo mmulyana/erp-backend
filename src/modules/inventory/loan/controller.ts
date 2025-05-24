@@ -9,13 +9,14 @@ import {
   updateResponse,
 } from '@/utils/response'
 
-import { LoanSchema } from './schema'
+import { LoanSchema, ReturnLoanSchema } from './schema'
 import {
   create,
   findStatusByMonth,
   isExist,
   read,
   readAll,
+  returnLoan,
   update,
 } from './repository'
 
@@ -101,4 +102,28 @@ export const patchLoan = async (req: Request, res: Response) => {
   })
 
   res.json(updateResponse(result, 'Peminjaman'))
+}
+
+export const patchReturnLoan = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+
+  const parsed = ReturnLoanSchema.safeParse(req.body)
+  if (!parsed.success) return errorParse(parsed.error)
+
+  let photoUrl: string | null | undefined = undefined
+
+  if (req.file?.filename) {
+    photoUrl = req.file.filename
+  } else if (parsed.data.photoUrlOut !== undefined) {
+    photoUrl = parsed.data.photoUrlOut
+  } else {
+    photoUrl = null
+  }
+  const result = await returnLoan(id, {
+    photoUrl,
+    returnDate: parsed.data.returnDate,
+    returnedQuantity: parsed.data.returnedQuantity,
+  })
+
+  res.json(updateResponse(result, 'Pengembalian pinjaman'))
 }
