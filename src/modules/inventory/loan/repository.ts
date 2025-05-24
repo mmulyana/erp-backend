@@ -8,6 +8,7 @@ import { Messages } from '@/utils/constant'
 import { PaginationParams } from '@/types'
 import db from '@/lib/prisma'
 
+import { checkPhotoUrlIn } from './helper'
 import { Loan } from './schema'
 
 const select: Prisma.LoanSelect = {
@@ -186,6 +187,7 @@ export const create = async (payload: Loan & { borrowerId: string }) => {
 }
 
 export const update = async (id: string, payload: Partial<Loan>) => {
+  await checkPhotoUrlIn(id, payload.photoUrlIn)
   return db.loan.update({
     where: { id },
     data: payload,
