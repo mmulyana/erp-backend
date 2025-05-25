@@ -15,8 +15,9 @@ import {
   destroyAssign,
   destroyAttachment,
   isExist,
-  isExistAssign,
-  isExistAttachment,
+  isAssignExist,
+  isAttachmentExist,
+  isReportExist,
   read,
   readAll,
   readAllProjectAttachments,
@@ -26,6 +27,7 @@ import {
   readEstimateRevenue,
   readProjectReportChart,
   readProjectStatusChart,
+  readReportById,
   readTotalRevenue,
   update,
   updateAssign,
@@ -124,7 +126,7 @@ export const postAssignEmployee = async (req: Request, res: Response) => {
 
 export const patchAssignEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
-  await isExistAssign(id)
+  await isAssignExist(id)
 
   const parsed = AssignedSchema.safeParse(req.body)
   if (!parsed.success) {
@@ -137,7 +139,7 @@ export const patchAssignEmployee = async (req: Request, res: Response) => {
 
 export const deleteAssignEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
-  await isExistAssign(id)
+  await isAssignExist(id)
 
   await destroyAssign(id)
   res.json(deleteResponse('Penugasan pegawai'))
@@ -184,7 +186,7 @@ export const postAttachment = async (req: Request, res: Response) => {
 
 export const patchAttachment = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
-  await isExistAttachment(id)
+  await isAttachmentExist(id)
 
   const parsed = AttachmentSchema.partial().safeParse(req.body)
   if (!parsed.success) {
@@ -205,7 +207,7 @@ export const patchAttachment = async (req: Request, res: Response) => {
 
 export const deleteAttachment = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
-  await isExistAttachment(id)
+  await isAttachmentExist(id)
 
   await destroyAttachment(id)
   res.json(deleteResponse('lampiran'))
@@ -248,13 +250,19 @@ export const postReport = async (req: Request, res: Response) => {
   res.json(createResponse(result, 'Laporan'))
 }
 
+export const getReport = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isReportExist(id)
+
+  const result = await readReportById(id)
+  res.json(successResponse(result, 'Detail Laporan'))
+}
+
 export const getProjectReports = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
-  const projectId = req.query.projectId
-    ? String(req.query.projectId)
-    : undefined
-  const type = req.query.type ? String(req.query.type) : undefined
-  const infinite = req.query.infinite ? Boolean(req.query.infinite) : undefined
+  const projectId = getQueryParam(req.query, 'projectId', 'string')
+  const infinite = getQueryParam(req.query, 'infinite', 'boolean')
+  const type = getQueryParam(req.query, 'type', 'string')
 
   const result = await readAllProjectReports({
     page,
@@ -268,23 +276,19 @@ export const getProjectReports = async (req: Request, res: Response) => {
 }
 
 export const getProjectReportChart = async (req: Request, res: Response) => {
-  const startDate = req.query.startDate
-    ? new Date(req.query.startDate as string)
-    : undefined
-  const endDate = req.query.endDate
-    ? new Date(req.query.endDate as string)
-    : undefined
+  const startDate = getQueryParam(req.query, 'startDate', 'string')
+  const endDate = getQueryParam(req.query, 'endDate', 'string')
+
   const result = await readProjectReportChart({
-    startDate,
-    endDate,
+    startDate: startDate ? new Date(startDate) : undefined,
+    endDate: endDate ? new Date(endDate) : undefined,
   })
   res.json(successResponse(result, 'Bagan laporan'))
 }
 export const getProjectStatusChart = async (req: Request, res: Response) => {
   const year = req.query.year ? Number(req.query.year as string) : undefined
-  const monthIndex = req.query.month
-    ? Number(req.query.month as string)
-    : undefined
+  const monthIndex = getQueryParam(req.query, 'month', 'number')
+
   const result = await readProjectStatusChart({
     year,
     monthIndex,
@@ -293,9 +297,8 @@ export const getProjectStatusChart = async (req: Request, res: Response) => {
 }
 export const getTotalNetValue = async (req: Request, res: Response) => {
   const year = req.query.year ? Number(req.query.year as string) : undefined
-  const monthIndex = req.query.month
-    ? Number(req.query.month as string)
-    : undefined
+  const monthIndex = getQueryParam(req.query, 'month', 'number')
+
   const result = await readTotalRevenue({
     year,
     monthIndex,
