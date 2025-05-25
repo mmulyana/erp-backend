@@ -2,7 +2,10 @@ import 'module-alias/register'
 import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
+import http from 'http'
+import { Server } from 'socket.io'
 
+import { commentSocketHandler } from './modules/project/comment'
 import { errorHandler } from './utils/error-handler'
 import setupSwagger from './lib/swagger'
 import route from './modules'
@@ -13,6 +16,23 @@ const PORT = Number(process.env.REST_PORT) || 5000
 const HOST = process.env.HOST || 'localhost'
 
 const app = express()
+const server = http.createServer(app)
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+})
+
+io.on('connection', (socket) => {
+  console.log('client connected:', socket.id)
+
+  commentSocketHandler(socket)
+
+  socket.on('disconnect', () => {
+    console.log('client disconnected:', socket.id)
+  })
+})
 
 app.use(cors())
 app.use(express.static('public'))
@@ -32,7 +52,7 @@ app.use(async (req, res, next) => {
 
 app.use(errorHandler)
 
-app.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, () => {
   console.log(`Server is running at http://${HOST}:${PORT}`)
 })
 
