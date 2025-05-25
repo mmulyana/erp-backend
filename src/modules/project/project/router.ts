@@ -18,6 +18,7 @@ import {
   patchAssignEmployee,
   patchAttachment,
   patchProject,
+  patchReport,
   postAssignEmployee,
   postAttachment,
   postProject,
@@ -37,6 +38,7 @@ router.get('/data/estimate-revenue', getEstimateRevenue)
 
 router.get('/report/:id', getReport)
 router.post('/report', upload.array('photoUrl', 10), postReport)
+router.patch('/report/:id', upload.array('photoUrl', 10), patchReport)
 
 router.get('/', getProjects)
 router.get('/:id', getProject)
