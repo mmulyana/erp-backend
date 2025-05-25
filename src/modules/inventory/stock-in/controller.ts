@@ -13,6 +13,7 @@ import {
 } from './repository'
 import { StockInSchema } from './schema'
 import { checkParamsId, getParams } from '@/utils/params'
+import { getQueryParam } from '@/utils'
 
 export const postStockIn = async (req: Request, res: Response) => {
   const rawItems = req.body.items
@@ -81,12 +82,17 @@ export const getStockIn = async (req: Request, res: Response) => {
 }
 
 export const getStockIns = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
+  const { page, limit, search, createdBy, sortBy, sortOrder } = getParams(req)
+  const supplierId = getQueryParam(req.query, 'supplierId', 'string')
 
   const result = await readAll({
     limit,
     page,
     search,
+    createdBy,
+    sortBy,
+    sortOrder,
+    supplierId,
   })
   res.json(successResponse(result, 'stock in'))
 }
