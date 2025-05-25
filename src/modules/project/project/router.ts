@@ -13,6 +13,7 @@ import {
   getProjects,
   getProjectsInfinite,
   getProjectStatusChart,
+  getReport,
   getTotalNetValue,
   patchAssignEmployee,
   patchAttachment,
@@ -34,6 +35,7 @@ router.get('/data/status-chart', getProjectStatusChart)
 router.get('/data/total-revenue', getTotalNetValue)
 router.get('/data/estimate-revenue', getEstimateRevenue)
 
+router.get('/report/:id', getReport)
 router.post('/report', upload.array('photoUrl', 10), postReport)
 
 router.get('/', getProjects)
