@@ -14,7 +14,13 @@ const select: Prisma.BrandInventorySelect = {
   name: true,
   photoUrl: true,
 
-  createdAt: true
+  createdAt: true,
+
+  _count: {
+    select: {
+      inventories: true,
+    },
+  },
 }
 
 export const create = async (payload: Brand & { photoUrl?: string }) => {
