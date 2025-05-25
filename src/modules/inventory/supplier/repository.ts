@@ -7,6 +7,7 @@ import { Messages } from '@/utils/constant'
 import db from '@/lib/prisma'
 
 import { Supplier } from './schema'
+import { PaginationParams } from '@/types'
 
 const select: Prisma.SupplierSelect = {
   id: true,
@@ -78,19 +79,14 @@ export const read = async (id: string) => {
   return data
 }
 
-type readAllParams = {
-  page?: number
-  limit?: number
-  search?: string
-  infinite?: boolean
-}
-
 export const readAll = async ({
   limit,
   page,
   search,
   infinite,
-}: readAllParams) => {
+}: PaginationParams & {
+  infinite?: boolean
+}) => {
   const where: Prisma.SupplierWhereInput = {
     AND: [
       search
