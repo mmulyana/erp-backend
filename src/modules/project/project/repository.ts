@@ -509,6 +509,35 @@ export const createReport = async (
   return data
 }
 
+export const updateReport = async (
+  payload: Partial<Report> & {
+    id: string
+    deleteAttachments?: string[]
+    attachments?: string[]
+  },
+) => {
+  const updated = await db.projectReport.update({
+    where: { id: payload.id },
+    data: {
+      message: payload.message,
+      type: payload.type,
+      projectId: payload.projectId,
+      attachments: {
+        deleteMany: {
+          id: {
+            in: payload.deleteAttachments || [],
+          },
+        },
+        create: payload.attachments?.map((url) => ({
+          photoUrl: url,
+        })),
+      },
+    },
+  })
+
+  return updated
+}
+
 export const readAllProjectReports = async ({
   page,
   limit,
@@ -665,7 +694,7 @@ export const readProjectStatusChart = async ({
     DOING: { name: 'Sedang dikerjakan', fill: '#2B5BD5' },
     BILLING: { name: 'Penagihan', fill: '#27B5E9' },
     DONE: { name: 'Selesai', fill: '#47AF97' },
-    NOT_STARTED: { name: 'Sedang dikerjakan', fill: '#565659' },
+    NOT_STARTED: { name: 'Blm dimulai', fill: '#565659' },
   }
 
   const chartData = raw.map((item) => ({
