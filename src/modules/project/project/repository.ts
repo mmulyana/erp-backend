@@ -58,31 +58,62 @@ const select: Prisma.ProjectSelect = {
   deletedAt: true,
 }
 
-type Params = {
-  page?: number
-  limit?: number
-  search?: string
-  clientId?: string
-  leadId?: string
-  status?: string
-  infinite?: boolean
+const selectReport: Prisma.ProjectReportSelect = {
+  id: true,
+  _count: {
+    select: {
+      attachments: true,
+      comments: true,
+    },
+  },
+  attachments: true,
+  createdBy: true,
+  createdAt: true,
+  message: true,
+  type: true,
+  project: {
+    select: {
+      name: true,
+      id: true,
+    },
+  },
+  projectId: true,
+  user: {
+    select: {
+      id: true,
+      username: true,
+      photoUrl: true,
+    },
+  },
 }
 
 export const isExist = async (id: string) => {
-  const data = await db.project.findUnique({ where: { id } })
+  const data = await db.project.findUnique({ where: { id, deletedAt: null } })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 }
 
-export const isExistAssign = async (id: string) => {
-  const data = await db.assignedEmployee.findUnique({ where: { id } })
+export const isAssignExist = async (id: string) => {
+  const data = await db.assignedEmployee.findUnique({
+    where: { id, deletedAt: null },
+  })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 }
-export const isExistAttachment = async (id: string) => {
-  const data = await db.projectAttachment.findUnique({ where: { id } })
+export const isAttachmentExist = async (id: string) => {
+  const data = await db.projectAttachment.findUnique({
+    where: { id, deletedAt: null },
+  })
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+  }
+}
+export const isReportExist = async (id: string) => {
+  const data = await db.projectReport.findUnique({
+    where: { id, deletedAt: null },
+  })
   if (!data) {
     return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
@@ -153,7 +184,11 @@ export const readAll = async ({
   infinite,
   sortBy,
   sortOrder,
-}: Params & {
+}: PaginationParams & {
+  clientId?: string
+  leadId?: string
+  status?: string
+  infinite?: boolean
   sortBy?: 'createdAt' | 'doneAt'
   sortOrder?: 'asc' | 'desc'
 }) => {
@@ -513,41 +548,12 @@ export const readAllProjectReports = async ({
     [sortBy]: sortOrder,
   }
 
-  const select: Prisma.ProjectReportSelect = {
-    id: true,
-    _count: {
-      select: {
-        attachments: true,
-        comments: true,
-      },
-    },
-    attachments: true,
-    createdBy: true,
-    createdAt: true,
-    message: true,
-    type: true,
-    project: {
-      select: {
-        name: true,
-        id: true,
-      },
-    },
-    projectId: true,
-    user: {
-      select: {
-        id: true,
-        username: true,
-        photoUrl: true,
-      },
-    },
-  }
-
   const { skip, take } = getPaginateParams(page, limit)
   if (page === undefined || limit === undefined) {
     const data = await db.projectReport.findMany({
       where,
       orderBy,
-      select,
+      select: selectReport,
       take,
     })
     return { data }
@@ -559,7 +565,7 @@ export const readAllProjectReports = async ({
       orderBy,
       skip,
       take,
-      select,
+      select: selectReport,
     }),
     db.projectReport.count({ where }),
   ])
@@ -757,4 +763,11 @@ export const readEstimateRevenue = async () => {
   return {
     total,
   }
+}
+
+export const readReportById = async (id: string) => {
+  return await db.projectReport.findUnique({
+    where: { id },
+    select: selectReport,
+  })
 }
