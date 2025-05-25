@@ -32,6 +32,7 @@ import {
   update,
   updateAssign,
   updateAttachment,
+  updateReport,
 } from './repository'
 
 import { checkParamsId, getParams } from '@/utils/params'
@@ -43,6 +44,7 @@ import {
   updateResponse,
 } from '@/utils/response'
 import { getQueryParam } from '@/utils'
+import { z } from 'zod'
 
 export const postProject = async (req: Request, res: Response) => {
   const parsed = ProjectSchema.safeParse(req.body)
@@ -215,11 +217,9 @@ export const deleteAttachment = async (req: Request, res: Response) => {
 
 export const getProjectAttachments = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
-  const projectId = req.query.projectId
-    ? String(req.query.projectId)
-    : undefined
-  const type = req.query.type ? String(req.query.type) : undefined
-  const infinite = req.query.infinite ? Boolean(req.query.infinite) : undefined
+  const projectId = getQueryParam(req.query, 'projectId', 'string')
+  const type = getQueryParam(req.query, 'type', 'string')
+  const infinite = getQueryParam(req.query, 'infinite', 'boolean')
 
   const result = await readAllProjectAttachments({
     page,
@@ -248,6 +248,38 @@ export const postReport = async (req: Request, res: Response) => {
   })
 
   res.json(createResponse(result, 'Laporan'))
+}
+
+export const patchReport = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isReportExist(id)
+
+  if (
+    req.body.deleteAttachments &&
+    !Array.isArray(req.body.deleteAttachments)
+  ) {
+    req.body.deleteAttachments = [req.body.deleteAttachments]
+  }
+  const parsed = ReportSchema.extend({
+    deleteAttachments: z.string().array().optional(),
+  })
+    .partial()
+    .safeParse(req.body)
+
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+
+  const files = req.files as Express.Multer.File[] | undefined
+  const attachments = files?.map((i) => i.filename) || []
+
+  const result = await updateReport({
+    ...parsed.data,
+    attachments,
+    id,
+  })
+
+  res.json(updateResponse(result, 'Laporan'))
 }
 
 export const getReport = async (req: Request, res: Response) => {
@@ -286,7 +318,7 @@ export const getProjectReportChart = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'Bagan laporan'))
 }
 export const getProjectStatusChart = async (req: Request, res: Response) => {
-  const year = req.query.year ? Number(req.query.year as string) : undefined
+  const year = getQueryParam(req.query, 'year', 'number')
   const monthIndex = getQueryParam(req.query, 'month', 'number')
 
   const result = await readProjectStatusChart({
@@ -296,7 +328,7 @@ export const getProjectStatusChart = async (req: Request, res: Response) => {
   res.json(successResponse(result, 'Bagan status proyek'))
 }
 export const getTotalNetValue = async (req: Request, res: Response) => {
-  const year = req.query.year ? Number(req.query.year as string) : undefined
+  const year = getQueryParam(req.query, 'year', 'number')
   const monthIndex = getQueryParam(req.query, 'month', 'number')
 
   const result = await readTotalRevenue({
