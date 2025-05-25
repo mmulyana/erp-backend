@@ -1,17 +1,18 @@
+import { endOfMonth, startOfMonth, subMonths } from 'date-fns'
+import { HttpStatusCode } from 'axios'
+
+import { PaginationParams } from '@/types'
+
 import { getPaginateParams } from '@/utils/params'
-import { Prisma } from '@prisma/client'
-import db from '@/lib/prisma'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
-import { HttpStatusCode } from 'axios'
-import { Payroll } from './schema'
-import { checkStatusPeriod } from './helper'
-import { endOfMonth, startOfMonth, subMonths } from 'date-fns'
+import { Prisma } from '@prisma/client'
+import db from '@/lib/prisma'
 
-type AllParams = {
-  page?: number
-  limit?: number
-  search?: string
+import { checkStatusPeriod } from './helper'
+import { Payroll } from './schema'
+
+type AllParams = PaginationParams & {
   startDate?: string
   endDate?: string
 }
