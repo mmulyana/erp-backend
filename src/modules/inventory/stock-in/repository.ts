@@ -1,11 +1,12 @@
-import { Prisma, RefType } from '@prisma/client'
 import { endOfMonth, startOfMonth, subMonths } from 'date-fns'
+import { Prisma, RefType } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
+
+import { PaginationParams } from '@/types'
 
 import { getPaginateParams } from '@/utils/params'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
-import { PaginationParams } from '@/types'
 import db from '@/lib/prisma'
 
 import { processTotalPrice } from './helper'
@@ -95,13 +96,30 @@ export const create = async (
   })
 }
 
-export const readAll = async ({ page, limit, search }: PaginationParams) => {
+export const readAll = async ({
+  page,
+  limit,
+  search,
+  createdBy,
+  supplierId,
+  sortBy = 'createdAt',
+  sortOrder = 'desc',
+}: PaginationParams & {
+  createdBy?: string
+  supplierId?: string
+  sortBy?: 'createdAt' | 'date'
+  sortOrder?: 'asc' | 'desc'
+}) => {
   const where: Prisma.StockInWhereInput = {
-    AND: [search ? { note: { contains: search, mode: 'insensitive' } } : {}],
+    AND: [
+      search ? { note: { contains: search, mode: 'insensitive' } } : {},
+      createdBy ? { createdBy } : {},
+      supplierId ? { supplierId } : {},
+    ],
   }
 
-  const orderBy: Prisma.StockInOrderByWithRelationInput = {
-    createdAt: 'desc',
+  const orderBy = {
+    [sortBy]: sortOrder,
   }
 
   if (page === undefined || limit === undefined) {
