@@ -11,6 +11,7 @@ import db from '@/lib/prisma'
 
 import { processTotalPrice } from './helper'
 import { StockIn } from './schema'
+import { deleteFile } from '@/utils/file'
 
 const select: Prisma.StockInSelect = {
   id: true,
@@ -22,6 +23,7 @@ const select: Prisma.StockInSelect = {
     },
   },
   note: true,
+  photoUrl: true,
   referenceNumber: true,
   supplier: true,
   supplierId: true,
@@ -170,6 +172,11 @@ export const update = async (
   id: string,
   payload: Partial<StockIn & { photoUrl?: string }>,
 ) => {
+  const exist = await db.stockIn.findUnique({ where: { id } })
+  if (exist.photoUrl !== payload.photoUrl) {
+    await deleteFile(exist.photoUrl)
+  }
+
   const data = await db.stockIn.update({
     where: { id },
     data: {
@@ -180,7 +187,7 @@ export const update = async (
       referenceNumber: payload.referenceNumber,
     },
   })
-  return { data }
+  return data
 }
 
 export const isExist = async (id: string) => {
