@@ -1,5 +1,5 @@
-import { Prisma, RefType } from '@prisma/client'
 import { endOfMonth, startOfMonth, subMonths } from 'date-fns'
+import { Prisma, RefType } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 
 import db from '@/lib/prisma'
@@ -9,6 +9,7 @@ import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
 import { processTotalPrice } from '@/utils'
 import { PaginationParams } from '@/types'
+import { deleteFile } from '@/utils/file'
 
 import { StockOut } from './schema'
 
@@ -189,12 +190,39 @@ export const create = async (
           availableStock: {
             decrement: item.quantity,
           },
+          totalStock: {
+            decrement: item.quantity,
+          },
         },
       })
     }
 
     return stockOut
   })
+}
+
+export const update = async (
+  id: string,
+  payload: StockOut & {
+    photoUrl?: string | null
+  },
+) => {
+  const exist = await db.stockOut.findUnique({ where: { id } })
+  if (exist.photoUrl !== payload.photoUrl) {
+    await deleteFile(exist.photoUrl)
+  }
+
+  const data = await db.stockOut.update({
+    where: { id },
+    data: {
+      date: payload.date,
+      note: payload.note,
+      photoUrl: payload.photoUrl,
+      projectId: payload.projectId
+    },
+  })
+
+  return data
 }
 
 export const findTotalByMonth = async ({
