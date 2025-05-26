@@ -54,7 +54,7 @@ export const patchStockIn = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
-  const parsed = StockInSchema.safeParse({
+  const parsed = StockInSchema.partial().safeParse({
     ...req.body,
     date: req.body.date,
   })
@@ -62,15 +62,22 @@ export const patchStockIn = async (req: Request, res: Response) => {
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
+  let photoUrl: string | null | undefined = undefined
 
-  const photoUrl = req.file?.filename || undefined
+  if (req.file?.filename) {
+    photoUrl = req.file.filename
+  } else if (parsed.data.photoUrl !== undefined) {
+    photoUrl = parsed.data.photoUrl
+  } else {
+    photoUrl = null
+  }
 
   const result = await update(id, {
     ...parsed.data,
     photoUrl,
   })
 
-  res.json(successResponse(result, 'Stok masuk berhasil diperbarui.'))
+  res.json(successResponse(result, 'Stok masuk'))
 }
 
 export const getStockIn = async (req: Request, res: Response) => {
