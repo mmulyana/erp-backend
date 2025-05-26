@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { id } from 'date-fns/locale'
 import {
   eachDayOfInterval,
@@ -8,9 +9,8 @@ import {
 } from 'date-fns'
 
 import { DateRangeParams, PaginationParams } from '@/types'
-import db from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
 import { getPaginateParams } from '@/utils/params'
+import db from '@/lib/prisma'
 
 export const readChart = async ({ startDate, endDate }: DateRangeParams) => {
   const start = startOfDay(startDate)
@@ -115,4 +115,91 @@ export const readTable = async ({
   const total_pages = Math.ceil(total / limit)
 
   return { data, page, limit, total_pages, total }
+}
+
+export const readAll = async ({
+  limit,
+  page,
+  search,
+  itemId,
+  sortOrder,
+  sortBy,
+  type,
+}: PaginationParams & {
+  itemId?: string
+  sortBy?: 'date' | 'createdAt'
+  sortOrder?: 'desc' | 'asc'
+  type?: Prisma.EnumRefTypeFilter
+}) => {
+  const where: Prisma.StockLedgerWhereInput = {
+    AND: [
+      search
+        ? {
+            inventory: {
+              name: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          }
+        : {},
+      itemId ? { itemId } : {},
+      type ? { type } : {},
+    ],
+  }
+
+  const select: Prisma.StockLedgerSelect = {
+    id: true,
+    inventory: {
+      select: {
+        id: true,
+        name: true,
+        photoUrl: true,
+      },
+    },
+    createdAt: true,
+    date: true,
+    itemId: true,
+    note: true,
+    quantity: true,
+    referenceId: true,
+    type: true,
+  }
+
+  const orderBy: Prisma.StockLedgerOrderByWithAggregationInput = {
+    [sortBy || 'createdAt']: sortOrder || 'desc',
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.stockLedger.findMany({
+      select,
+      where,
+      orderBy,
+    })
+
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+  const [data, total] = await Promise.all([
+    db.stockLedger.findMany({
+      where,
+      select,
+      orderBy,
+      skip,
+      take,
+    }),
+    db.stockLedger.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
+
+  return {
+    data,
+    page,
+    limit,
+    total_pages,
+    total,
+  }
 }
