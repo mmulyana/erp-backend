@@ -4,6 +4,7 @@ import {
   getStockOut,
   getStockOuts,
   getTotalByMonth,
+  patchStockOut,
   postStockOut,
 } from './controller'
 
@@ -14,5 +15,6 @@ router.get('/report/per-month', getTotalByMonth)
 router.post('/', upload.single('photoUrl'), postStockOut)
 router.get('/', getStockOuts)
 router.get('/:id', getStockOut)
+router.patch('/:id', upload.single('photoUrl'), patchStockOut)
 
 export default router
