@@ -4,10 +4,11 @@ import { HttpStatusCode } from 'axios'
 import { getPaginateParams } from '@/utils/params'
 import { throwError } from '@/utils/error-handler'
 import { Messages } from '@/utils/constant'
+import { deleteFile } from '@/utils/file'
 import db from '@/lib/prisma'
 
 import { Brand } from './schema'
-import { deleteFile } from '@/utils/file'
+import { PaginationParams } from '@/types'
 
 const select: Prisma.BrandInventorySelect = {
   id: true,
@@ -65,19 +66,14 @@ export const read = async (id: string) => {
   return data
 }
 
-type readAllParams = {
-  page?: number
-  limit?: number
-  search?: string
-  infinite?: boolean
-}
-
 export const readAll = async ({
   limit,
   page,
   search,
   infinite,
-}: readAllParams) => {
+}: PaginationParams & {
+  infinite?: boolean
+}) => {
   const where: Prisma.BrandInventoryWhereInput = {
     AND: [
       search
