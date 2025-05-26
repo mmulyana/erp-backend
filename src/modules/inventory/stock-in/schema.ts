@@ -5,6 +5,7 @@ export const StockInSchema = z.object({
   supplierId: z.string().nullable().optional(),
   note: z.string().optional(),
   date: z.coerce.date(),
+  photoUrl: z.any(),
   items: z
     .array(
       z.object({
