@@ -5,8 +5,16 @@ import { createResponse, successResponse } from '@/utils/response'
 import { getQueryParam, parseJsonField } from '@/utils'
 
 import { StockOutSchema } from './schema'
-import { create, findTotalByMonth, isExist, read, readAll } from './repository'
+import {
+  create,
+  findTotalByMonth,
+  isExist,
+  read,
+  readAll,
+  update,
+} from './repository'
 import { checkParamsId, getParams } from '@/utils/params'
+import { z } from 'zod'
 
 export const postStockOut = async (req: Request, res: Response) => {
   // console.log('_________')
@@ -17,9 +25,9 @@ export const postStockOut = async (req: Request, res: Response) => {
     ...req.body,
     date: req.body.date,
   })
-  if (!parsed.success) {
-    return errorParse(parsed.error)
-  }
+
+  if (!parsed.success) return errorParse(parsed.error)
+
   // console.log('_________')
   // console.log('parsed.data', parsed.data)
 
@@ -32,6 +40,40 @@ export const postStockOut = async (req: Request, res: Response) => {
   })
 
   return res.json(createResponse(data, 'Stok keluar'))
+}
+
+export const patchStockOut = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const parsed = StockOutSchema.extend({
+    photoUrl: z.any(),
+  })
+    .partial()
+    .safeParse({
+      ...req.body,
+      date: req.body.date,
+    })
+
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+  let photoUrl: string | null | undefined = undefined
+
+  if (req.file?.filename) {
+    photoUrl = req.file.filename
+  } else if (parsed.data.photoUrl !== undefined) {
+    photoUrl = parsed.data.photoUrl
+  } else {
+    photoUrl = null
+  }
+
+  const result = await update(id, {
+    ...parsed.data,
+    photoUrl,
+  })
+
+  res.json(successResponse(result, 'stok keluar'))
 }
 
 export const getStockOut = async (req: Request, res: Response) => {
