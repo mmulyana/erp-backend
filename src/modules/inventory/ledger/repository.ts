@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma, RefType } from '@prisma/client'
 import { id } from 'date-fns/locale'
 import {
   eachDayOfInterval,
@@ -129,7 +129,7 @@ export const readAll = async ({
   itemId?: string
   sortBy?: 'date' | 'createdAt'
   sortOrder?: 'desc' | 'asc'
-  type?: Prisma.EnumRefTypeFilter
+  type?: RefType
 }) => {
   const where: Prisma.StockLedgerWhereInput = {
     AND: [
@@ -144,7 +144,15 @@ export const readAll = async ({
           }
         : {},
       itemId ? { itemId } : {},
-      type ? { type } : {},
+      type === 'LOAN'
+        ? {
+            type: {
+              in: ['LOAN', 'RETURNED'],
+            },
+          }
+        : type
+          ? { type }
+          : {},
     ],
   }
 
