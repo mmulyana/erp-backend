@@ -9,7 +9,7 @@ export function commentSocketHandler(socket: Socket) {
 
   socket.on('report-comment:findAll', async (reportId: string) => {
     const comments = await prisma.reportComment.findMany({
-      where: { reportId, deletedAt: null },
+      where: { reportId },
       include: { user: true },
       orderBy: { createdAt: 'asc' },
     })
