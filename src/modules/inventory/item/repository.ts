@@ -17,12 +17,14 @@ const select: Prisma.InventorySelect = {
     select: {
       id: true,
       name: true,
+      deletedAt: true,
     },
   },
   brand: {
     select: {
       id: true,
       name: true,
+      deletedAt: true,
     },
   },
   photoUrl: true,
@@ -102,83 +104,106 @@ export const readAll = async ({
   warehouseId,
   sortBy,
   sortOrder,
+  status,
 }: PaginationParams & {
   infinite?: boolean
   brandId?: string
   warehouseId?: string
   sortBy?: string
   sortOrder?: string
+  status?: 'OutOfStock' | 'LowStock' | 'Available'
 }) => {
-  const where: Prisma.InventoryWhereInput = {
-    AND: [
-      search
-        ? {
-            name: { contains: search, mode: 'insensitive' },
-          }
-        : {},
-      brandId ? { brandId } : {},
-      warehouseId ? { warehouseId } : {},
-      {
-        deletedAt: null,
-      },
-    ],
-  }
-
-  const orderBy: Prisma.InventoryOrderByWithRelationInput = {
-    [sortBy || 'createdAt']: (sortOrder as 'asc' | 'desc') || 'desc',
-  }
-
-  if (page === undefined || limit === undefined) {
-    const data = await db.inventory.findMany({
-      select,
-      where,
-      orderBy,
-    })
-    return {
-      data: data.map((i) => ({
-        ...i,
-        status: generateStatus(i.totalStock, i.minimum),
-      })),
-    }
-  }
-
+  const orderField = sortBy || 'createdAt'
+  const orderDirection = sortOrder === 'asc' ? 'ASC' : 'DESC'
   const { skip, take } = getPaginateParams(page, limit)
 
-  const [data, total] = await Promise.all([
-    db.inventory.findMany({
-      where,
-      select,
-      orderBy,
-      skip,
-      take,
-    }),
-    db.inventory.count({ where }),
-  ])
+  let paramIndex = 1
+  const params: any[] = []
 
+  let whereClause = `WHERE "deletedAt" IS NULL`
+
+  if (search) {
+    whereClause += ` AND "name" ILIKE '%' || $${paramIndex} || '%'`
+    params.push(search)
+    paramIndex++
+  }
+
+  if (brandId) {
+    whereClause += ` AND "brandId" = $${paramIndex}`
+    params.push(brandId)
+    paramIndex++
+  }
+
+  if (warehouseId) {
+    whereClause += ` AND "warehouseId" = $${paramIndex}`
+    params.push(warehouseId)
+    paramIndex++
+  }
+
+  if (status) {
+    whereClause += ` AND (
+      CASE
+        WHEN "totalStock" = 0 THEN 'OutOfStock'
+        WHEN "totalStock" <= "minimum" AND "totalStock" > 0 THEN 'LowStock'
+        ELSE 'Available'
+      END = $${paramIndex}
+    )`
+    params.push(status)
+    paramIndex++
+  }
+
+  params.push(take)
+  params.push(skip)
+
+  const data = await db.$queryRawUnsafe<
+    Array<any & { total_count: bigint }>
+  >(
+    `
+    SELECT *,
+      CASE
+        WHEN "totalStock" = 0 THEN 'OutOfStock'
+        WHEN "totalStock" <= "minimum" AND "totalStock" > 0 THEN 'LowStock'
+        ELSE 'Available'
+      END AS status,
+      COUNT(*) OVER() AS total_count
+    FROM inventories
+    ${whereClause}
+    ORDER BY "${orderField}" ${orderDirection}
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `,
+    ...params
+  )
+
+  const total = Number(data[0]?.total_count ?? 0)
   const total_pages = Math.ceil(total / limit)
   const hasNextPage = page * limit < total
 
+  const parsedData = data.map(({ total_count, ...i }) => ({
+    ...i,
+  }))
+
+  if (page === undefined || limit === undefined) {
+    return {
+      data: parsedData,
+    }
+  }
+
   if (infinite) {
     return {
-      data: data.map((i) => ({
-        ...i,
-        status: generateStatus(i.totalStock, i.minimum),
-      })),
+      data: parsedData,
       nextPage: hasNextPage ? page + 1 : undefined,
     }
   }
 
   return {
-    data: data.map((i) => ({
-      ...i,
-      status: generateStatus(i.totalStock, i.minimum),
-    })),
+    data: parsedData,
     page,
     limit,
-    total_pages,
     total,
+    total_pages,
   }
 }
+
 
 export const isExist = async (id: string) => {
   const data = await db.inventory.findUnique({ where: { id } })
