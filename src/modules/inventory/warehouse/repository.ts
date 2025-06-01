@@ -7,6 +7,7 @@ import { Messages } from '@/utils/constant'
 import db from '@/lib/prisma'
 
 import { Location } from './schema'
+import { PaginationParams } from '@/types'
 
 const select: Prisma.WarehouseSelect = {
   id: true,
@@ -56,19 +57,18 @@ export const read = async (id: string) => {
   return data
 }
 
-type readAllParams = {
-  page?: number
-  limit?: number
-  search?: string
-  infinite?: boolean
-}
-
 export const readAll = async ({
   limit,
   page,
   search,
   infinite,
-}: readAllParams) => {
+  sortBy,
+  sortOrder,
+}: PaginationParams & {
+  infinite?: boolean
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}) => {
   const where: Prisma.WarehouseWhereInput = {
     AND: [
       search
@@ -82,25 +82,26 @@ export const readAll = async ({
     ],
   }
 
+  const orderBy: Prisma.WarehouseOrderByWithRelationInput = {
+    [sortBy || 'createdAt']: sortOrder || 'desc',
+  }
+
   if (page === undefined || limit === undefined) {
     const data = await db.warehouse.findMany({
       select,
       where,
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     })
     return { data }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
+
   const [data, total] = await Promise.all([
     db.warehouse.findMany({
       where,
       select,
-      orderBy: {
-        name: 'desc',
-      },
+      orderBy,
       skip,
       take,
     }),
