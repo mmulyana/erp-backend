@@ -6,6 +6,7 @@ import userRoutes from './user/router'
 import authRoutes from './auth/router'
 import roleRoutes from './role/router'
 import permissionRoutes from './permission/router'
+import accountRoutes from './account/router'
 
 import employeeRoutes from './hris/employee/router'
 import overtimeRoutes from './hris/overtime/router'
@@ -33,6 +34,7 @@ const route = Router()
 
 route.use('/auth', authRoutes)
 route.use('/user', isAuthenticated, userRoutes)
+route.use('/account', isAuthenticated, accountRoutes)
 route.use('/role', isAuthenticated, roleRoutes)
 route.use('/permission', isAuthenticated, permissionRoutes)
 
