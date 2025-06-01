@@ -4,28 +4,35 @@ import { hash } from 'bcryptjs'
 import { checkParamsId, getParams } from '@/utils/params'
 import { errorParse } from '@/utils/error-handler'
 import {
-  createResponse,
-  customResponse,
   deleteResponse,
   successResponse,
   updateResponse,
 } from '@/utils/response'
 import { create, destroy, find, findAll, isExist, update } from './repository'
 import { AccountSchema } from './schema'
+import { getQueryParam } from '@/utils'
 
 export const getUsers = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
-  const active = req.query.active ? req.query.active === 'true' : undefined
-  const roleId = req.query.roleId ? String(req.query.roleId) : undefined
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
+  const active = getQueryParam(req.query, 'active', 'boolean')
+  const roleId = getQueryParam(req.query, 'roleId', 'string')
 
-  const result = await findAll({ page, limit, search, active, roleId })
+  const result = await findAll({
+    page,
+    limit,
+    search,
+    active,
+    roleId,
+    sortBy,
+    sortOrder,
+  })
   res.json(successResponse(result, 'users'))
 }
 
 export const getUsersInfinite = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
-  const active = req.query.active ? req.query.active === 'true' : undefined
-  const roleId = req.query.roleId ? String(req.query.roleId) : undefined
+  const active = getQueryParam(req.query, 'active', 'boolean')
+  const roleId = getQueryParam(req.query, 'roleId', 'string')
 
   const result = await findAll({
     page,
@@ -52,7 +59,7 @@ export const patchUser = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isExist(id)
 
-  const parsed = AccountSchema.safeParse(req.body)
+  const parsed = AccountSchema.partial().safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
