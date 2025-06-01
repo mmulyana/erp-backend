@@ -6,7 +6,7 @@ export const AccountSchema = z.object({
   email: z.string().email(Messages.InvalidEmail).optional().nullable(),
   phone: z.string().min(10).optional().nullable(),
   roleId: z.string().optional().nullable(),
-  password: z.string(),
+  password: z.string().nullable().optional(),
   active: z.boolean().default(true),
 })
 
