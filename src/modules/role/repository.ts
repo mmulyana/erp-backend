@@ -100,8 +100,13 @@ export const findOne = async (id: string) => {
     },
   })
 
-  return {
+  const payload = {
     ...data,
-    permissions: data.permissions.split(','),
+    permissions:
+      data.permissions && data.permissions.length > 0
+        ? data.permissions.split(',')
+        : [],
   }
+
+  return payload
 }

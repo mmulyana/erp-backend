@@ -13,6 +13,7 @@ import {
   findByPhone,
   findByUsername,
 } from './repository'
+import { makePermissionsUnique } from '@/utils/unique'
 
 export const loginService = async (credentials: Login) => {
   const { username, password } = credentials
@@ -63,7 +64,13 @@ export const findMeService = async (id: string) => {
     email: data.email,
     phone: data.phone,
     photoUrl: data.photoUrl,
-    role: data.role,
-    permissions: data.role.permissions,
+    role: {
+      id: data.role.id,
+      name: data.role.name,
+    },
+    permissions:
+      data.role.permissions && data.role.permissions.length > 0
+        ? data.role.permissions.split(',')
+        : [],
   }
 }

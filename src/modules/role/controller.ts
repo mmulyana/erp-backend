@@ -7,7 +7,7 @@ import {
   deleteResponse,
   updateResponse,
 } from '@/utils/response'
-import { errorParse, throwError } from '@/utils/error-handler'
+import { errorParse } from '@/utils/error-handler'
 
 import {
   findById,
@@ -18,8 +18,6 @@ import {
   update,
 } from './repository'
 import { CreateRoleSchema, UpdateRoleSchema } from './schema'
-import { Messages } from '@/utils/constant'
-import { HttpStatusCode } from 'axios'
 
 export const findRoles = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)

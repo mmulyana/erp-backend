@@ -1,6 +1,6 @@
 export const permissions = [
   {
-    name: 'employee',
+    name: 'Pegawai',
     permissions: [
       {
         key: 'employee:create',
@@ -27,6 +27,11 @@ export const permissions = [
         name: 'Melihat gaji pegawai',
         description: 'Akses untuk melihat gaji pegawai',
       },
+    ],
+  },
+  {
+    name: 'Kasbon',
+    permissions: [
       {
         key: 'cash-advance:create',
         name: 'Buat Kasbon',
@@ -47,31 +52,26 @@ export const permissions = [
         name: 'Lihat Kasbon',
         description: 'Akses untuk melihat data kasbon',
       },
-      {
-        key: 'cash-advance:total',
-        name: 'Total Kasbon',
-        description: 'Akses untuk melihat total jumlah kasbon',
-      },
-      {
-        key: 'cash-advance:chart',
-        name: 'Grafik Kasbon',
-        description: 'Akses untuk melihat grafik kasbon',
-      },
+    ],
+  },
+  {
+    name: 'Absensi',
+    permissions: [
       {
         key: 'attendance:create',
         name: 'Buat Kehadiran',
         description: 'Akses untuk membuat data kehadiran',
       },
       {
-        key: 'attendance:update',
-        name: 'Ubah Kehadiran',
-        description: 'Akses untuk mengubah data kehadiran',
-      },
-      {
         key: 'attendance:view',
         name: 'Lihat Kehadiran',
         description: 'Akses untuk melihat data kehadiran',
       },
+    ],
+  },
+  {
+    name: 'Lembur',
+    permissions: [
       {
         key: 'overtime:create',
         name: 'Buat Lembur',
@@ -145,9 +145,18 @@ export const permissions = [
       {
         key: 'project:borrow-inventory',
         name: 'Pinjam Inventaris',
-        description: 'Akses untuk meminjam invenataris untuk keperluan proyek',
+        description: 'Akses untuk meminjam inventaris untuk keperluan proyek',
       },
-
+      {
+        key: 'project:stock-out',
+        name: 'Pemakaian',
+        description: 'Akses melakukan stok keluar untuk keperluan proyek',
+      },
+    ],
+  },
+  {
+    name: 'Klien',
+    permissions: [
       {
         key: 'client:create',
         name: 'Buat Klien',
@@ -209,7 +218,11 @@ export const permissions = [
         name: 'Hapus Barang',
         description: 'Akses untuk menghapus barang dari inventory',
       },
-
+    ],
+  },
+  {
+    name: 'Transaksi',
+    permissions: [
       {
         key: 'transaction:view',
         name: 'Lihat transaksi',
@@ -230,7 +243,11 @@ export const permissions = [
         name: 'Hapus transaksi',
         description: 'Akses untuk menghapus transaksi',
       },
-
+    ],
+  },
+  {
+    name: 'Supplier',
+    permissions: [
       {
         key: 'supplier:create',
         name: 'Buat Supplier',
@@ -276,12 +293,11 @@ export const permissions = [
         name: 'Reset Password',
         description: 'Akses untuk mereset password yang dimiliki user',
       },
-      {
-        key: 'user:change-role',
-        name: 'Ganti Role User',
-        description: 'Akses untuk mengubah role yang dimiliki user',
-      },
-
+    ],
+  },
+  {
+    name: 'Role',
+    permissions: [
       {
         key: 'role:create',
         name: 'Buat Role',
