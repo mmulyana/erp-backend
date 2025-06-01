@@ -84,8 +84,12 @@ export const readAll = async ({
   page,
   search,
   infinite,
+  sortBy,
+  sortOrder,
 }: PaginationParams & {
   infinite?: boolean
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }) => {
   const where: Prisma.SupplierWhereInput = {
     AND: [
@@ -100,25 +104,26 @@ export const readAll = async ({
     ],
   }
 
+  const orderBy: Prisma.SupplierOrderByWithRelationInput = {
+    [sortBy || 'createdAt']: sortOrder || 'desc',
+  }
+
   if (page === undefined || limit === undefined) {
     const data = await db.supplier.findMany({
       select,
       where,
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     })
     return { data }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
+
   const [data, total] = await Promise.all([
     db.supplier.findMany({
       where,
       select,
-      orderBy: {
-        name: 'desc',
-      },
+      orderBy,
       skip,
       take,
     }),
