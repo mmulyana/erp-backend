@@ -29,12 +29,14 @@ export const getLocation = async (req: Request, res: Response) => {
 }
 
 export const getLocations = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
 
   const result = await readAll({
     limit,
     page,
     search,
+    sortBy,
+    sortOrder
   })
   res.json(successResponse(result, 'lokasi'))
 }
