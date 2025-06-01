@@ -89,6 +89,7 @@ export const getProjects = async (req: Request, res: Response) => {
   const clientId = getQueryParam(req.query, 'clientId', 'string')
   const leadId = getQueryParam(req.query, 'leadId', 'string')
   const status = getQueryParam(req.query, 'status', 'string')
+  const priority = getQueryParam(req.query, 'priority', 'string')
 
   const result = await readAll({
     page,
@@ -99,6 +100,7 @@ export const getProjects = async (req: Request, res: Response) => {
     status,
     sortBy,
     sortOrder,
+    priority,
   })
 
   res.json(successResponse(result, 'proyek'))

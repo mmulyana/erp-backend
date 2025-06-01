@@ -184,8 +184,10 @@ export const readAll = async ({
   infinite,
   sortBy,
   sortOrder,
+  priority,
 }: PaginationParams & {
   clientId?: string
+  priority?: any
   leadId?: string
   status?: string
   infinite?: boolean
@@ -199,6 +201,7 @@ export const readAll = async ({
         : {},
       leadId ? { leadId } : {},
       clientId ? { clientId } : {},
+      priority ? { priority } : {},
       status ? { status: status as any } : {},
     ],
   }
