@@ -2,9 +2,9 @@ import db from '@/lib/prisma'
 import { deleteFile } from '@/utils/file'
 
 export const generateStatus = (total: number, minimum: number) => {
-  if (total === 0) return 'Habis'
-  if (total <= minimum && total > 0) return 'Hampir habis'
-  return 'Tersedia'
+  if (total === 0) return 'OutOfStock'
+  if (total <= minimum && total > 0) return 'LowStock'
+  return 'Available'
 }
 
 export const checkPhotoUrl = async (id: string, newPhoto: string | null) => {
