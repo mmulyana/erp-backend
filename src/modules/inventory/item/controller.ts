@@ -35,6 +35,7 @@ export const getInventories = async (req: Request, res: Response) => {
   const { page, limit, search, sortBy, sortOrder } = getParams(req)
   const brandId = getQueryParam(req.query, 'brandId', 'string')
   const warehouseId = getQueryParam(req.query, 'warehouseId', 'string')
+  const status = getQueryParam(req.query, 'status', 'string') as any
 
   const result = await readAll({
     limit,
@@ -44,6 +45,7 @@ export const getInventories = async (req: Request, res: Response) => {
     sortOrder,
     brandId,
     warehouseId,
+    status,
   })
   res.json(successResponse(result, 'inventory'))
 }
