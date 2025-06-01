@@ -13,7 +13,6 @@ import {
   findByPhone,
   findByUsername,
 } from './repository'
-import { makePermissionsUnique } from '@/utils/unique'
 
 export const loginService = async (credentials: Login) => {
   const { username, password } = credentials
