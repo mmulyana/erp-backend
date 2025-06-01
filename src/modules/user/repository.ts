@@ -8,6 +8,7 @@ import { getPaginateParams } from '@/utils/params'
 import { Messages } from '@/utils/constant'
 
 import { Account } from './schema'
+import { PaginationParams } from '@/types'
 
 export const create = async (data: Account) => {
   const userData: Prisma.UserCreateInput = {
@@ -36,17 +37,12 @@ export const update = async (
     password?: string
   },
 ) => {
+  if (data.roleId === '') {
+    delete data.roleId
+  }
   return await db.user.update({ data, where: { id } })
 }
 
-type Params = {
-  page?: number
-  limit?: number
-  search?: string
-  active?: boolean
-  roleId?: string
-  infinite?: boolean
-}
 export const findAll = async ({
   active,
   infinite,
@@ -54,7 +50,15 @@ export const findAll = async ({
   page,
   roleId,
   search,
-}: Params) => {
+  sortBy = 'createdAt',
+  sortOrder = 'desc',
+}: PaginationParams & {
+  active?: boolean
+  roleId?: string
+  infinite?: boolean
+  sortBy?: 'username' | 'createdAt'
+  sortOrder?: 'asc' | 'desc'
+}) => {
   const where: Prisma.UserWhereInput = {
     AND: [
       search
@@ -82,10 +86,12 @@ export const findAll = async ({
     role: true,
   }
 
+  const orderBy = { [sortBy]: sortOrder }
+
   if (page === undefined || limit === undefined) {
     const users = await db.user.findMany({
       where,
-      orderBy: { username: 'asc' },
+      orderBy,
       select,
     })
 
@@ -99,7 +105,7 @@ export const findAll = async ({
       skip,
       take,
       where,
-      orderBy: { username: 'asc' },
+      orderBy,
       select,
     }),
     db.user.count({ where }),
