@@ -673,10 +673,17 @@ export const readProjectStatusChart = async ({
 }) => {
   const today = new Date()
   const y = year ?? today.getFullYear()
-  const m = monthIndex ?? today.getMonth()
 
-  const start = startOfMonth(new Date(y, m))
-  const end = endOfMonth(new Date(y, m))
+  let start: Date
+  let end: Date
+
+  if (monthIndex !== undefined) {
+    start = startOfMonth(new Date(y, monthIndex))
+    end = endOfMonth(new Date(y, monthIndex))
+  } else {
+    start = new Date(y, 0, 1)
+    end = new Date(y, 11, 31, 23, 59, 59, 999)
+  }
 
   const raw = await db.project.groupBy({
     by: ['status'],

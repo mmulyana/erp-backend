@@ -324,7 +324,7 @@ export const getProjectStatusChart = async (req: Request, res: Response) => {
   const monthIndex = getQueryParam(req.query, 'month', 'number')
 
   const result = await readProjectStatusChart({
-    year,
+    year: year || new Date().getFullYear(),
     monthIndex,
   })
   res.json(successResponse(result, 'Bagan status proyek'))

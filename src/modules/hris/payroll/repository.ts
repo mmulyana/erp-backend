@@ -26,6 +26,7 @@ const select: Prisma.PayrollSelect = {
     select: {
       id: true,
       fullname: true,
+      position: true,
     },
   },
   employeeId: true,
@@ -61,7 +62,7 @@ export const readAll = async ({
   sortBy?: 'createdAt' | 'doneAt'
   sortOrder?: 'asc' | 'desc'
 }) => {
-  const filter: Prisma.PayrollWhereInput[] = []
+  const filter: Prisma.PayrollWhereInput[] = [{ deletedAt: null }]
 
   if (search) {
     filter.push({
@@ -133,7 +134,7 @@ export const readAll = async ({
 }
 
 export const readOne = async (id: string) => {
-  return await db.payroll.findUnique({ where: { id } })
+  return await db.payroll.findUnique({ where: { id }, select })
 }
 
 export const isExist = async (id: string) => {
