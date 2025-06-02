@@ -24,9 +24,13 @@ export const loginService = async (credentials: Login) => {
   let user
   if (isEmail) {
     user = await findByEmail(username)
-  } else if (isUsername) {
+  }
+  
+  if (isUsername) {
     user = await findByUsername(username)
-  } else if (isPhoneNumber) {
+  }
+
+  if (isPhoneNumber) {
     user = await findByPhone(username)
   }
 

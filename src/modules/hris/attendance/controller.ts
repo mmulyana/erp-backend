@@ -17,6 +17,7 @@ import {
   update,
 } from './repository'
 import { AttendanceSchema } from './schema'
+import { getQueryParam } from '@/utils'
 
 export const saveAttendance = async (req: Request, res: Response) => {
   const parsed = AttendanceSchema.safeParse(req.body)
@@ -48,6 +49,7 @@ export const updateAttendance = async (req: Request, res: Response) => {
 
 export const readAttendances = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
+  const notYet = getQueryParam(req.query, 'notYet', 'boolean')
   // console.log('-------------')
   // console.log('local', req.query.startDate)
   // console.log('hasil konversi ke utc', new Date(req.query.startDate as string))
@@ -56,6 +58,7 @@ export const readAttendances = async (req: Request, res: Response) => {
     limit,
     search,
     startDate: new Date(req.query.startDate as string),
+    notYet,
   })
   res.json(successResponse(result, 'Kehadiran'))
 }

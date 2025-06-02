@@ -48,7 +48,7 @@ export const checkRemaining = async (id: string, amount: number) => {
   })
 
   if (!cashAdvance) {
-    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+    return throwError('Gak ada bang', HttpStatusCode.BadRequest)
   }
 
   const totalUsed = await db.cashAdvanceTransaction.aggregate({
@@ -59,7 +59,7 @@ export const checkRemaining = async (id: string, amount: number) => {
   })
 
   const remaining = cashAdvance.amount - (totalUsed._sum.amount ?? 0)
-  
+
   console.log('remaining', remaining)
   console.log('amount', amount)
 

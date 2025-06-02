@@ -12,7 +12,7 @@ import route from './modules'
 
 dotenv.config()
 
-const PORT = Number(process.env.REST_PORT) || 5000
+const PORT = Number(process.env.REST_PORT) || 8000
 const HOST = process.env.HOST || 'localhost'
 
 const app = express()

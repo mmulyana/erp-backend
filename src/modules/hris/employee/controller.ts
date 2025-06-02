@@ -25,6 +25,7 @@ import {
   findTotalEmployee,
   findLastEducation,
   findSummaryById,
+  readProjectEmployee,
 } from './repository'
 import {
   createResponse,
@@ -34,6 +35,7 @@ import {
 } from '@/utils/response'
 
 import { CertificationSchema, EmployeeSchema } from './schema'
+import { getQueryParam } from '@/utils'
 
 // employee
 export const postEmployee = async (req: Request, res: Response) => {
@@ -76,24 +78,22 @@ export const getEmployee = async (req: Request, res: Response) => {
 }
 export const getEmployees = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
-  const active = req.query.active ? req.query.active === 'true' : undefined
-  const position = req.params.position ? String(req.params.position) : undefined
+  const active = getQueryParam(req.query, 'active', 'boolean')
+  const position = getQueryParam(req.query, 'position', 'string')
 
   const result = await readAll(page, limit, search, position, active)
   res.json(successResponse(result, 'pegawai'))
 }
 export const getEmployeesInfinite = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
-  const active = req.query.active ? req.query.active === 'true' : undefined
-  const positionId = req.params.positionId
-    ? String(req.params.positionId)
-    : undefined
+  const active = getQueryParam(req.query, 'active', 'boolean')
+  const position = getQueryParam(req.query, 'position', 'string')
 
   const result = await readAllInfinite(
     page,
     limit || 10,
     search,
-    positionId,
+    position,
     active,
   )
   res.json(successResponse(result, 'pegawai'))
@@ -255,4 +255,19 @@ export const getSummaryById = async (req: Request, res: Response) => {
   })
 
   res.json(successResponse(result, 'ringkasan pegawai'))
+}
+export const getProjectEmployee = async (req: Request, res: Response) => {
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
+  const employeeId = getQueryParam(req.query, 'employeeId', 'string')
+
+  const result = await readProjectEmployee({
+    employeeId,
+    limit,
+    page,
+    search,
+    sortBy,
+    sortOrder,
+  })
+
+  res.json(successResponse(result, 'penugasan proyek'))
 }

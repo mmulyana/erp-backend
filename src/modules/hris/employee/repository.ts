@@ -679,71 +679,166 @@ export const findSummaryById = async ({
   const [presences, absents] = await Promise.all([
     db.attendance.findMany({
       where: {
-        AND: [
-          {
-            employeeId: id,
-            type: 'presence',
-            date: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-        ],
-      },
-    }),
-    db.attendance.findMany({
-      where: {
-        AND: [
-          {
-            employeeId: id,
-            type: 'absent',
-            date: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-        ],
-      },
-    }),
-  ])
-
-  const overtimes = await db.overtime.findMany({
-    where: {
-      AND: [
-        {
-          employeeId: id,
-          date: {
-            gte: startDate,
-            lte: endDate,
-          },
-        },
-      ],
-    },
-  })
-
-  const cashAdvances = await db.cashAdvance.findMany({
-    where: {
-      AND: {
         employeeId: id,
+        type: 'presence',
         date: {
           gte: startDate,
           lte: endDate,
         },
-        status: CashAdvanceStatus.notYetPaidOff,
+      },
+    }),
+    db.attendance.findMany({
+      where: {
+        employeeId: id,
+        type: 'absent',
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    }),
+  ])
+
+  const attendances = [...presences, ...absents].sort((a, b) =>
+    a.date < b.date ? -1 : 1,
+  )
+
+  const overtimes = await db.overtime.findMany({
+    where: {
+      employeeId: id,
+      date: {
+        gte: startDate,
+        lte: endDate,
       },
     },
+  })
+
+  const rawCashAdvances = await db.cashAdvance.findMany({
+    where: {
+      employeeId: id,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+      status: CashAdvanceStatus.notYetPaidOff,
+      deletedAt: null,
+    },
+    include: {
+      transactions: true,
+    },
+  })
+
+  const cashAdvances = rawCashAdvances.map((ca) => {
+    const paid = ca.transactions.reduce((sum, t) => sum + t.amount, 0)
+    const remaining = ca.amount - paid
+    return {
+      ...ca,
+      remaining,
+    }
   })
 
   const total = {
     presence: presences.length,
     absent: absents.length,
     overtimes: overtimes.reduce((sum, i) => sum + i.totalHour, 0),
-    cashAdvance: cashAdvances.reduce((sum, i) => sum + i.amount, 0),
   }
 
   return {
     total,
+    attendances,
     overtimes,
     cashAdvances,
+  }
+}
+
+export const readProjectEmployee = async ({
+  page,
+  limit,
+  search,
+  employeeId,
+  sortBy,
+  sortOrder,
+}: PaginationParams & {
+  employeeId?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}) => {
+  const where: Prisma.AssignedEmployeeWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [
+              {
+                project: {
+                  name: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          }
+        : {},
+      employeeId ? { employeeId } : {},
+      { deletedAt: null },
+    ],
+  }
+
+  const orderBy: Prisma.AssignedEmployeeOrderByWithRelationInput = {
+    [sortBy || 'createdAt']: sortOrder || 'desc',
+  }
+
+  const select: Prisma.AssignedEmployeeSelect = {
+    id: true,
+    createdAt: true,
+    startDate: true,
+    endDate: true,
+    deletedAt: true,
+    employee: {
+      select: {
+        id: true,
+        fullname: true,
+        photoUrl: true,
+        position: true,
+      },
+    },
+    project: {
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        priority: true,
+      },
+    },
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.assignedEmployee.findMany({
+      where,
+      select,
+      orderBy,
+    })
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+  const [data, total] = await Promise.all([
+    db.assignedEmployee.findMany({
+      skip,
+      take,
+      where,
+      select,
+      orderBy,
+    }),
+    db.assignedEmployee.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages,
   }
 }

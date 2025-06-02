@@ -160,6 +160,7 @@ export const create = async (payload: Loan & { borrowerId: string }) => {
         projectId: payload.projectId,
         requestQuantity: payload.requestQuantity,
         photoUrlIn: payload.photoUrlIn,
+        note: payload.note
       },
     })
 
