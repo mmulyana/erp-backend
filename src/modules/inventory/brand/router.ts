@@ -1,23 +1,24 @@
-import RouterWithFile from '../../../helper/router-with-file'
-import Validation from '../../../helper/validation'
-import { brandSchema } from './schema'
-import BrandController from './controller'
-import multer from 'multer'
+import { Router } from 'express'
+import upload from '@/utils/upload'
+import {
+  deleteBrand,
+  getBrand,
+  getBrands,
+  getBrandsInfinite,
+  patchBrand,
+  patchDestroyPhotoBrand,
+  postBrand,
+} from './controller'
 
-export default class BrandRouter extends RouterWithFile {
-  private schema: Validation = new Validation(brandSchema)
-  private controller: BrandController = new BrandController()
+const router = Router()
 
-  constructor(upload: multer.Multer) {
-    super(upload, 'brand')
-    this.register()
-  }
+router.get('/data/infinite', getBrandsInfinite)
+router.get('/', getBrands)
+router.get('/:id', getBrand)
+router.patch('/:id', upload.single('photoUrl'), patchBrand)
+router.post('/', upload.single('photoUrl'), postBrand)
+router.delete('/:id', deleteBrand)
 
-  protected register() {
-    this.router.post('/', this.upload.single('photo'), this.compressImage, this.schema.validate, this.controller.createHandler)
-    this.router.patch('/:id', this.upload.single('photo'), this.compressImage, this.controller.updateHandler)
-    this.router.delete('/:id', this.controller.deleteHandler)
-    this.router.get('/', this.controller.readHandler)
-    this.router.get('/:id', this.controller.readOneHandler)
-  }
-}
+router.patch('/:id/photo', patchDestroyPhotoBrand)
+
+export default router

@@ -1,25 +1,21 @@
-import Validation from '../../../helper/validation'
-import ClientController from './controller'
-import { companySchema } from './schema'
-import RouterWithFile from '../../../helper/router-with-file'
-import { MulterConfig } from '../../../utils/multer-config'
+import { Router } from 'express'
+import {
+  deleteCompany,
+  getCompanies,
+  getCompaniesInfinite,
+  getCompany,
+  patchCompany,
+  postCompany,
+} from './controller'
+import upload from '@/utils/upload'
 
-export default class CompanyRouter extends RouterWithFile {
-  private controller: ClientController = new ClientController()
-  private companySchema: Validation = new Validation(companySchema)
+const router = Router()
 
-  constructor(multer: MulterConfig) {
-    super(multer.uploadImg, 'company')
-    this.register()
-  }
+router.get('/data/infinite', getCompaniesInfinite)
+router.get('/', getCompanies)
+router.post('/', upload.single('photoUrl'), postCompany)
+router.get('/:id', getCompany)
+router.patch('/:id', upload.single('photoUrl'), patchCompany)
+router.delete('/:id', deleteCompany)
 
-  protected register() {
-    this.router.post('/', this.upload.single('photo'), this.compressImage, this.companySchema.validate, this.controller.handleCreate)
-    this.router.patch('/:id', this.upload.single('photo'), this.compressImage, this.companySchema.validate, this.controller.handleUpdate)
-    this.router.delete('/:id', this.controller.handleDelete)
-    
-    this.router.get('/list/pagination', this.controller.handleReadByPagination)
-    this.router.get('/:id', this.controller.handleReadOne)
-    this.router.get('/', this.controller.handleRead)
-  }
-}
+export default router

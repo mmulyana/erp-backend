@@ -1,10 +1,11 @@
 import { z } from 'zod'
 
-export const createRoleSchema = z.object({
+export const CreateRoleSchema = z.object({
   name: z.string(),
-  description: z.string().optional().nullable(),
+  description: z.string().optional(),
+  permissions: z.string().optional(),
 })
-export const updateRoleSchema = createRoleSchema.partial()
+export const UpdateRoleSchema = CreateRoleSchema.partial()
 
-export type createRoleDTO = z.infer<typeof createRoleSchema>
-export type updateRoleDTO = z.infer<typeof updateRoleSchema>
+export type createRole = z.infer<typeof CreateRoleSchema>
+export type updateRole = z.infer<typeof UpdateRoleSchema>

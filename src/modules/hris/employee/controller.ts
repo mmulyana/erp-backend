@@ -1,602 +1,258 @@
-import { NextFunction, Request, Response } from 'express'
-import EmployeeRepository, { FilterEmployee } from './repository'
-import BaseController from '../../../helper/base-controller'
+import { Request, Response } from 'express'
+import { HttpStatusCode } from 'axios'
 
-export default class EmployeeController extends BaseController {
-  private repository: EmployeeRepository = new EmployeeRepository()
+import { errorParse, throwError } from '@/utils/error-handler'
+import { checkParamsId, getParams } from '@/utils/params'
+import {
+  isExist,
+  update,
+  create,
+  destroy,
+  read,
+  readAll,
+  readAllInfinite,
+  findCertificates,
+  findCertificate,
+  isCertifExist,
+  destroyCertificate,
+  createCertificate,
+  updateCertificate,
+  findAttendanceById,
+  findOvertimeById,
+  findCashAdvancesById,
+  findChartCashAdvancesById,
+  destroyPhoto,
+  findTotalEmployee,
+  findLastEducation,
+  findSummaryById,
+} from './repository'
+import {
+  createResponse,
+  deleteResponse,
+  successResponse,
+  updateResponse,
+} from '@/utils/response'
 
-  constructor() {
-    super('Pegawai')
-  }
+import { CertificationSchema, EmployeeSchema } from './schema'
 
-  // EMPLOYEE
-  createHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await this.repository.create(req.body)
-      this.response.success(res, this.message.successCreate(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  updateHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const data = await this.repository.update(Number(id), req.body)
-      this.response.success(res, this.message.successUpdate(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  deleteHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.delete(Number(id))
-      this.response.success(res, this.message.successDelete())
-    } catch (error) {
-      next(error)
-    }
-  }
-  softDeleteHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      await this.repository.softDelete(Number(id))
-      this.response.success(res, this.message.successDelete())
-    } catch (error) {
-      next(error)
-    }
-  }
-  readHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const data = await this.repository.read(Number(id))
-      this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  readByPaginationHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const page = Number(req.query.page) || 1
-      const limit = Number(req.query.limit) || 10
-      let where: FilterEmployee = {}
-      if (req.query.name) {
-        where.fullname = String(req.query.name)
-      }
-      if (req.query.positionId) {
-        where.positionId = Number(req.query.positionId)
-      }
-      const data = await this.repository.readByPagination(page, limit, where)
-      this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      let where: FilterEmployee = {}
-      if (req.query.name) {
-        where.fullname = String(req.query.name)
-      }
-      if (req.query.positionId) {
-        where.positionId = Number(req.query.positionId)
-      }
-      const data = await this.repository.findAll(where)
-      this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
+// employee
+export const postEmployee = async (req: Request, res: Response) => {
+  const parsed = EmployeeSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  // PHOTO
-  uploadPhotoHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
+  const photoUrl = req?.file?.filename || undefined
 
-      if (req.file?.fieldname) {
-        const data = await this.repository.updatePhoto(
-          Number(id),
-          req.file.filename
-        )
-        this.response.success(res, this.message.successCreate(), data)
-      }
-    } catch (error) {
-      next(error)
-    }
-  }
-  deletePhotoHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      const data = await this.repository.deletePhoto(Number(id))
-      this.response.success(res, this.message.successUpdateField('photo'), data)
-    } catch (error) {
-      next(error)
-    }
-  }
+  const result = await create({ ...parsed.data, photoUrl })
+  res.json(createResponse(result, 'pegawai'))
+}
+export const patchEmployee = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
 
-  createAddressHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { employeeId } = req.params
-      const data = await this.repository.createAddress(
-        Number(employeeId),
-        req.body
-      )
-      this.response.success(
-        res,
-        this.message.successCreateField('alamat'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
+  const parsed = EmployeeSchema.partial().safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
-  updateAddressHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { addressId } = req.params
-      const data = await this.repository.updateAddress(
-        Number(addressId),
-        req.body
-      )
-      this.response.success(
-        res,
-        this.message.successUpdateField('alamat'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  deleteAddressHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { addressId } = req.params
-      const data = await this.repository.deleteAddress(Number(addressId))
-      this.response.success(
-        res,
-        this.message.successDeleteField('alamat'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  readAddressHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { employeeId } = req.params
-      const { addressId } = req.query
-      const data = await this.repository.readAddress(
-        Number(employeeId),
-        Number(addressId)
-      )
-      this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
+  const photoUrl = req?.file?.filename || undefined
+
+  const result = await update(id, { ...parsed.data, photoUrl })
+  res.json(updateResponse(result, 'pegawai'))
+}
+export const deleteEmployee = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  await destroy(id)
+  res.json(deleteResponse('pegawai'))
+}
+export const getEmployee = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await read(id)
+  res.json(successResponse(result, 'pegawai'))
+}
+export const getEmployees = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const active = req.query.active ? req.query.active === 'true' : undefined
+  const position = req.params.position ? String(req.params.position) : undefined
+
+  const result = await readAll(page, limit, search, position, active)
+  res.json(successResponse(result, 'pegawai'))
+}
+export const getEmployeesInfinite = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  const active = req.query.active ? req.query.active === 'true' : undefined
+  const positionId = req.params.positionId
+    ? String(req.params.positionId)
+    : undefined
+
+  const result = await readAllInfinite(
+    page,
+    limit || 10,
+    search,
+    positionId,
+    active,
+  )
+  res.json(successResponse(result, 'pegawai'))
+}
+export const patchDestroyPhoto = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await destroyPhoto(id)
+  res.json(updateResponse(result, 'photo pegawai'))
+}
+
+// certification
+export const postCertificate = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+
+  const fileUrl = req.file.filename
+  if (!fileUrl) {
+    return throwError('File tidak boleh kosong', HttpStatusCode.BadRequest)
   }
 
-  createContactHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { employeeId } = req.params
-      const data = await this.repository.createContact(
-        Number(employeeId),
-        req.body
-      )
-      this.response.success(
-        res,
-        this.message.successCreateField('nomor telp'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  updateContactHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { contactId } = req.params
-      const data = await this.repository.updateContact(
-        Number(contactId),
-        req.body
-      )
-      this.response.success(
-        res,
-        this.message.successUpdateField('nomor telp'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  deleteContactHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { contactId } = req.params
-      const data = await this.repository.deleteContact(Number(contactId))
-      this.response.success(
-        res,
-        this.message.successDeleteField('nomor telp'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  readContactHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { contactId } = req.query
-      const { employeeId } = req.params
-      const data = await this.repository.readContact(
-        Number(employeeId),
-        Number(contactId)
-      )
-      this.response.success(
-        res,
-        this.message.successReadField('Nomor telp'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
+  const parsed = CertificationSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  positionHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const { positionId } = req.body
+  const result = await createCertificate(id, { ...parsed.data, fileUrl })
+  res.json(createResponse(result, 'sertifikat pegawai'))
+}
+export const patchCertificate = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isCertifExist(id)
 
-      const data = await this.repository.updatePositionEmployee(
-        Number(id),
-        Number(positionId)
-      )
-      this.response.success(
-        res,
-        this.message.successUpdateField('jabatan'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
+  const parsed = CertificationSchema.partial().safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  activeHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { employeeId } = req.params
-      const data = await this.repository.updateStatusEmployee(
-        Number(employeeId),
-        true,
-        req.body
-      )
-      this.response.success(res, this.message.successActive(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  inactiveHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { employeeId } = req.params
-      const data = await this.repository.updateStatusEmployee(
-        Number(employeeId),
-        false,
-        req.body
-      )
-      this.response.success(res, this.message.successInactive(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  employeeTrackHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { employeeId } = req.params
-      const data = await this.repository.readEmployeeTrack(Number(employeeId))
-      return this.response.success(
-        res,
-        this.message.successReadField('Aktivasi'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
+  const fileUrl = req.file?.filename
+  const changeFile = !!fileUrl
 
-  createCompetencyHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { employeeId } = req.params
-      await this.repository.createCompetency(Number(employeeId), req.body)
-      return this.response.success(
-        res,
-        this.message.successCreateField('kompetensi')
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  createSingleCompetencyHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { employeeId } = req.params
-      const data = await this.repository.createSingleCompetency(
-        Number(employeeId),
-        req.body
-      )
-      return this.response.success(
-        res,
-        this.message.successCreateField('kompetensi'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  deleteCompetencyHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { competencyId } = req.params
-      const data = await this.repository.deleteCompetency(Number(competencyId))
-      return this.response.success(
-        res,
-        this.message.successDeleteField('kompetensi'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  readCompetencyHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { competencyId } = req.query
-      const { employeeId } = req.params
-      const data = await this.repository.readCompetency(
-        Number(employeeId),
-        Number(competencyId)
-      )
-      return this.response.success(
-        res,
-        this.message.successReadField('kompetensi'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
+  const result = await updateCertificate(req.params.id, {
+    ...parsed.data,
+    fileUrl,
+    changeFile,
+  })
+  res.json(updateResponse(result, 'sertifikat pegawai'))
+}
+export const deleteCertificate = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isCertifExist(id)
 
-  createCertifHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { employeeId } = req.params
+  await destroyCertificate(id)
+  res.json(deleteResponse('sertifikat pegawai'))
+}
+export const getCertificates = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
 
-      const formData = req.body
+  const { page, limit, search } = getParams(req)
+  const result = await findCertificates({
+    limit,
+    page,
+    search,
+    id,
+  })
+  res.json(successResponse(result, 'sertifikasi pegawai'))
+}
+export const getCertificate = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  const result = await findCertificate(id)
+  res.json(successResponse(result, 'sertifikat'))
+}
 
-      if (Array.isArray(req.files)) {
-        formData.certif_file = (req.files as Express.Multer.File[]).map(
-          (file) => file.filename
-        )
-      } else if (req.file) {
-        formData.certif_file = req.file.filename
-      }
+// DETAIL
+export const getAttendancesById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
 
-      const dataArray = Object.keys(formData).reduce((acc: any[], key) => {
-        const value = formData[key]
-        if (Array.isArray(value)) {
-          value.forEach((item, index) => {
-            if (!acc[index]) acc[index] = {}
-            acc[index][key] = item
-          })
-        } else {
-          if (!acc[0]) acc[0] = {}
-          acc[0][key] = value
-        }
-        return acc
-      }, [])
+  const result = await findAttendanceById({
+    employeeId: id,
+    startMonth: Number(req.query.startMonth as string),
+    endMonth: Number(req.query.endMonth as string),
+    year: Number(req.query.year as string),
+  })
 
-      await this.repository.createCertif(Number(employeeId), dataArray)
-      return this.response.success(
-        res,
-        this.message.successCreateField('sertifikat')
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  createSingleHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { employeeId } = req.params
-      const data = await this.repository.createSingleCertif(
-        Number(employeeId),
-        { ...req.body, certif_file: req?.file?.filename }
-      )
-      return this.response.success(
-        res,
-        this.message.successCreateField('sertifikat'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  updateCertifHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { certifId } = req.params
-      const data = await this.repository.updateCertif(Number(certifId), {
-        ...req.body,
-        certif_file: req?.file?.filename,
-      })
-      return this.response.success(
-        res,
-        this.message.successUpdateField('sertifikat'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  deleteCertifHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { certifId } = req.params
-      const data = await this.repository.deleteCertif(Number(certifId))
-      return this.response.success(
-        res,
-        this.message.successDeleteField('sertifikat'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  readCertifHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { certifId } = req.query
-      const { competencyId } = req.params
-      const data = await this.repository.readCertif(
-        Number(competencyId),
-        Number(certifId)
-      )
-      return this.response.success(
-        res,
-        this.message.successReadField('sertifikat'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  updateCompetenciesHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      await this.repository.updateCompentencies(Number(id), req.body)
-      return this.response.success(
-        res,
-        this.message.successUpdateField('kompetensi')
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
+  res.json(successResponse(result, 'absensi pegawai'))
+}
+export const getOvertimesById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
 
-  readExpiringCertificationHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { positionId } = req.query
-      const data = await this.repository.getExpiringCertificates(
-        positionId ? Number(positionId) : undefined
-      )
-      return this.response.success(
-        res,
-        this.message.customMessage(
-          'yang sertifikatnya akan dan sudah kadaluwarsa'
-        ),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  readExpiringSafetyHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { positionId } = req.query
-      const data = await this.repository.getExpiringSafety(
-        positionId ? Number(positionId) : undefined
-      )
-      return this.response.success(
-        res,
-        this.message.customMessage(
-          'yang safety induction akan dan sudah kadaluwarsa'
-        ),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
+  const startDate = req.query.startDate
+    ? new Date(req.query.startDate as string)
+    : undefined
+  const endDate = req.query.endDate
+    ? new Date(req.query.endDate as string)
+    : undefined
+
+  const { page, limit, search } = getParams(req)
+
+  const result = await findOvertimeById({
+    employeeId: id,
+    startDate,
+    endDate,
+    limit,
+    page,
+    search,
+  })
+
+  res.json(successResponse(result, 'lembur pegawai'))
+}
+export const getCashAdvancesById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const { page, limit, search } = getParams(req)
+
+  const result = await findCashAdvancesById({
+    employeeId: id,
+    limit,
+    page,
+    search,
+  })
+
+  res.json(successResponse(result, 'kasbon pegawai'))
+}
+export const getChartCashAdvancesById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await findChartCashAdvancesById(id)
+
+  res.json(successResponse(result, 'chart kasbon pegawai'))
+}
+export const getTotalEmployee = async (req: Request, res: Response) => {
+  const result = await findTotalEmployee()
+  res.json(successResponse(result, 'Total pegawai'))
+}
+export const getLastEducation = async (req: Request, res: Response) => {
+  const result = await findLastEducation()
+  res.json(successResponse(result, 'Pendidikan terakhir'))
+}
+export const getSummaryById = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const startDate = req.query.startDate
+    ? new Date(req.query.startDate as string)
+    : undefined
+  const endDate = req.query.endDate
+    ? new Date(req.query.endDate as string)
+    : undefined
+
+  const result = await findSummaryById({
+    id,
+    startDate,
+    endDate,
+  })
+
+  res.json(successResponse(result, 'ringkasan pegawai'))
 }

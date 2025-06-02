@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
-export const companySchema = z.object({
+export const CompanySchema = z.object({
   name: z.string(),
-  phone: z.string().optional(),
   email: z.string().optional(),
+  phone: z.string().optional(),
   address: z.string().optional(),
+  photoUrl: z.any(),
 })
-export type Company = z.infer<typeof companySchema>
+export type Company = z.infer<typeof CompanySchema>

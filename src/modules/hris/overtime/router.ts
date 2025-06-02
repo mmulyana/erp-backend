@@ -1,26 +1,23 @@
 import { Router } from 'express'
-import Validation from '../../../helper/validation'
-import { overtimeSchema } from './schema'
-import OvertimeController from './controller'
+import {
+  deleteOvertime,
+  getOvertimeChart,
+  getOvertime,
+  getOvertimes,
+  postOvertime,
+  patchOvertime,
+  getOvertimeByDate,
+} from './controller'
 
-export default class OvertimeRouter {
-  public router: Router
-  private create: Validation = new Validation(overtimeSchema)
-  private update: Validation = new Validation(overtimeSchema.partial())
-  private controller: OvertimeController = new OvertimeController()
+const router = Router()
 
-  constructor() {
-    this.router = Router()
-    this.register()
-  }
+router.get('/report/chart', getOvertimeChart)
+router.get('/report/by-date', getOvertimeByDate)
 
-  protected register() {
-    this.router.post('/', this.create.validate, this.controller.createHandler)
-    this.router.patch('/:id', this.update.validate, this.controller.updateHandler)
-    this.router.delete('/:id', this.controller.deleteHandler)
+router.get('/', getOvertimes)
+router.post('/', postOvertime)
+router.get('/:id', getOvertime)
+router.patch('/:id', patchOvertime)
+router.delete('/:id', deleteOvertime)
 
-    this.router.get('/list/pagination', this.controller.readPaginationHandler)
-    this.router.get('/:id', this.controller.readOneHandler)
-    this.router.get('/', this.controller.readAllHandler)
-  }
-}
+export default router

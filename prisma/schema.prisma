@@ -9,201 +9,120 @@ datasource db {
 
 // Authorization
 model User {
-  id           Int                 @id @default(autoincrement())
-  name         String              @unique
-  email        String?             @unique
-  phoneNumber  String?             @unique
-  photo        String?
-  active       Boolean             @default(true)
-  password     String
-  created_at   DateTime            @default(now()) @db.Date()
-  updated_at   DateTime            @updatedAt
-  roleId       Int?
-  employeeId   Int?                @unique
+  id       String  @id @default(uuid()) @db.Uuid()
+  roleId   String? @db.Uuid()
+  username String  @unique @db.VarChar(50)
+  phone    String? @unique @db.VarChar(13)
+  email    String? @unique @db.VarChar(255)
+  active   Boolean @default(true)
+  photoUrl String? @db.VarChar(100)
+  password String  @db.VarChar(255)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
   attachments  ProjectAttachment[]
-  transactions TransactionGoods[]
-  likes        ActivityLike[]
-  logs         ActivityLog[]
-  activities   Activity[]
-  employee     Employee?           @relation(fields: [employeeId], references: [id])
-  role         Role?               @relation(fields: [roleId], references: [id])
-  tours        Tour[]
-  helpdesk     Helpdesk[]
+  reports      ProjectReport[]
+  cashAdvances CashAdvance[]
+  attendances  Attendance[]
+  loans        Loan[]
+  overtimes    Overtime[]
+  projects     Project[]
+
+  role     Role?           @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  payrolls Payroll[]
+  StockIn  StockIn[]
+  StockOut StockOut[]
+  comments ReportComment[]
+
+  @@map("users")
 }
 
 model Role {
-  id             Int              @id @default(autoincrement())
-  name           String           @unique
-  description    String?
-  users          User[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  RolePermission RolePermission[]
-}
-
-model RolePermission {
-  id           Int        @id @default(autoincrement())
-  roleId       Int
-  permissionId Int
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id])
-
-  @@unique([roleId, permissionId])
-}
-
-model Permission {
-  id             Int              @id @default(autoincrement())
-  key            String           @unique
-  name           String
-  description    String?
-  groupId        Int?
-  group          PermissionGroup? @relation(fields: [groupId], references: [id])
-  RolePermission RolePermission[]
-}
-
-model PermissionGroup {
-  id          Int          @id @default(autoincrement())
+  id          String  @id @default(uuid()) @db.Uuid()
   name        String
-  created_at  DateTime     @default(now())
-  permissions Permission[]
+  description String?
+  permissions String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  users User[]
+
+  @@map("roles")
 }
 
-// HRIS Module
+// HRIS
 model Employee {
-  id                    Int                   @id @default(autoincrement())
-  fullname              String                @db.VarChar(50)
-  status                Boolean?              @default(true)
-  photo                 String?
-  joined_at             String?
-  joined_type           JoinedType?           @default(date)
-  basic_salary          Decimal?              @db.Decimal(10, 2)
-  overtime_salary       Decimal?              @db.Decimal(10, 2)
-  pay_type              PayType?              @default(daily)
-  employment_type       EmploymentType?       @default(permanent)
-  place_of_birth        String?
-  birth_date            String?
-  gender                Gender?
-  marital_status        MaritalStatus?
-  religion              String?
-  last_education        String?
-  email                 String?
-  isHidden              Boolean?              @default(false)
-  positionId            Int?
-  safety_induction_date DateTime?
-  position              Position?             @relation(fields: [positionId], references: [id])
-  attendances           Attendance[]
-  cashAdvances          CashAdvance[]
-  phoneNumbers          PhoneNumbers[]
-  addresses             Address[]
-  statusTracks          EmployeeStatusTrack[]
-  competencies          EmployeeCompetency[]
-  certifications        Certification[]
-  overtime              Overtime[]
-  EmployeeAssigned      EmployeeAssigned[]
-  Project               Project[]
-  user                  User?
-}
+  id                  String    @id @default(uuid()) @db.Uuid()
+  fullname            String    @db.VarChar(50)
+  position            String?   @db.VarChar(50)
+  photoUrl            String?   @db.VarChar(100)
+  birthDate           DateTime?
+  joinedAt            DateTime?
+  active              Boolean?  @default(true)
+  phone               String?
+  lastEducation       String?
+  salary              Int?
+  overtimeSalary      Int?
+  safetyInductionDate DateTime?
+  address             String?   @db.Text()
+  payType             PayType?  @default(daily)
 
-enum JoinedType {
-  date
-  year
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  assignedEmployee AssignedEmployee[]
+  certificates     Certificate[]
+  cashAdvances     CashAdvance[]
+  attendances      Attendance[]
+  overtimes        Overtime[]
+  payrolls         Payroll[]
+
+  @@map("employees")
 }
 
 enum PayType {
-  daily
   monthly
+  daily
 }
 
-enum EmploymentType {
-  permanent
-  contract
-  partime
-}
+model Certificate {
+  id         String    @id @default(uuid()) @db.Uuid()
+  employeeId String    @db.Uuid()
+  name       String
+  fileUrl    String?
+  publisher  String?
+  issueDate  DateTime?
+  expiryDate DateTime?
 
-enum Gender {
-  male
-  female
-}
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-enum MaritalStatus {
-  single
-  married
-  divorced
-}
+  employee Employee @relation(fields: [employeeId], references: [id])
 
-model EmployeeCompetency {
-  id           Int        @id @default(autoincrement())
-  employeeId   Int
-  competencyId Int
-  employee     Employee   @relation(fields: [employeeId], references: [id])
-  competency   Competency @relation(fields: [competencyId], references: [id])
-}
-
-model Competency {
-  id                 Int                  @id @default(autoincrement())
-  name               String               @db.VarChar(100)
-  color              String?
-  EmployeeCompetency EmployeeCompetency[]
-  Certification      Certification[]
-}
-
-model Certification {
-  id                   Int         @id @default(autoincrement())
-  certif_name          String
-  certif_file          String?
-  issuing_organization String?
-  issue_year           String?     @db.VarChar(10)
-  issue_month          String?     @db.VarChar(10)
-  expiry_year          String?     @db.VarChar(10)
-  expiry_month         String?     @db.VarChar(10)
-  expire_at            DateTime?
-  employeeId           Int
-  competencyId         Int?
-  competency           Competency? @relation(fields: [competencyId], references: [id])
-  employee             Employee    @relation(fields: [employeeId], references: [id])
-}
-
-model PhoneNumbers {
-  id         Int      @id @default(autoincrement())
-  value      String
-  employeeId Int
-  employee   Employee @relation(fields: [employeeId], references: [id])
-}
-
-model Address {
-  id         Int         @id @default(autoincrement())
-  type       AddressType @default(domicile)
-  value      String
-  employeeId Int
-  employee   Employee    @relation(fields: [employeeId], references: [id])
-}
-
-enum AddressType {
-  domicile
-  origin
-  alternative
-}
-
-enum Status {
-  active
-  inactive
-}
-
-model Position {
-  id          Int        @id @default(autoincrement())
-  name        String     @db.VarChar(100)
-  color       String?
-  description String?
-  employees   Employee[]
+  @@map("certificates")
 }
 
 model Attendance {
-  id         Int            @id @default(autoincrement())
-  employee   Employee       @relation(fields: [employeeId], references: [id])
-  employeeId Int
-  date       DateTime       @db.Date
-  total_hour Int
+  id         String         @id @default(uuid()) @db.Uuid()
+  employeeId String         @db.Uuid()
+  createdBy  String         @db.Uuid()
+  date       DateTime
   type       AttendanceType @default(presence)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  user     User     @relation(fields: [createdBy], references: [id])
+
+  @@map("attendances")
 }
 
 enum AttendanceType {
@@ -212,346 +131,472 @@ enum AttendanceType {
 }
 
 model Overtime {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  date        DateTime @db.Date
-  total_hour  Int
-  description String?
+  id         String   @id @default(uuid()) @db.Uuid()
+  employeeId String   @db.Uuid()
+  createdBy  String   @db.Uuid()
+  totalHour  Int
+  note       String?  @db.VarChar(255)
+  date       DateTime
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  user     User     @relation(fields: [createdBy], references: [id])
+
+  @@map("overtimes")
 }
 
 model CashAdvance {
-  id          Int      @id @default(autoincrement())
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  employeeId  Int
-  amount      Decimal  @db.Decimal(10, 2)
-  requestDate DateTime @db.Date
-  description String?
+  id         String            @id @default(uuid()) @db.Uuid()
+  employeeId String            @db.Uuid()
+  createdBy  String            @db.Uuid()
+  amount     Int               @db.Integer()
+  date       DateTime
+  note       String?           @db.VarChar(255)
+  status     CashAdvanceStatus @default(notYetPaidOff)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  user     User     @relation(fields: [createdBy], references: [id])
+
+  transactions CashAdvanceTransaction[]
+
+  @@map("cash_advances")
 }
 
-// Activity Features
-model ActivityLog {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  action      String
-  module      String
-  description String
-  timestamp   DateTime @default(now())
+enum CashAdvanceStatus {
+  paidOff
+  notYetPaidOff
 }
 
-model EmployeeStatusTrack {
-  id          Int      @id @default(autoincrement())
-  date        DateTime
-  status      Boolean
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  description String?
+model CashAdvanceTransaction {
+  id            String   @id @default(uuid()) @db.Uuid()
+  cashAdvanceId String   @db.Uuid()
+  amount        Int
+  date          DateTime
+  note          String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  cashAdvance CashAdvance @relation(fields: [cashAdvanceId], references: [id])
+
+  @@map("cash_advance_transactions")
 }
 
-model BoardContainer {
-  id       String       @id
-  name     String       @unique
-  color    String
-  position Int
-  items    BoardItems[]
+model PayrollPeriod {
+  id        String       @id @default(uuid()) @db.Uuid()
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  payType   PayType
+  status    PeriodStatus @default(processing)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  payrolls  Payroll[]
+
+  @@map("payroll_periods")
 }
 
-model BoardItems {
-  id          String         @id
-  position    Int
-  containerId String
-  container   BoardContainer @relation(fields: [containerId], references: [id])
-  project     Project?
+model Payroll {
+  id             String        @id @default(uuid()) @db.Uuid()
+  employeeId     String        @db.Uuid()
+  periodId       String        @db.Uuid()
+  createdBy      String        @db.Uuid()
+  workDay        Int
+  overtimeHour   Int
+  salary         Int
+  overtimeSalary Int
+  paymentType    PaymentType?
+  deduction      Int           @default(0)
+  status         PayrollStatus @default(draft)
+  note           String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  doneAt    DateTime?
+
+  period   PayrollPeriod @relation(fields: [periodId], references: [id])
+  user     User          @relation(fields: [createdBy], references: [id])
+  employee Employee      @relation(fields: [employeeId], references: [id])
+
+  @@map("payrolls")
+}
+
+enum PaymentType {
+  TRANSFER
+  CASH
+}
+
+enum PeriodStatus {
+  processing
+  done
+}
+
+enum PayrollStatus {
+  draft
+  done
 }
 
 model Project {
-  id               Int                 @id @default(autoincrement())
-  name             String
-  progress         Int                 @default(0)
-  payment_status   Int                 @default(0)
-  description      String?
-  date_created     DateTime            @default(now())
-  date_started     DateTime?
-  date_ended       DateTime?
-  isArchive        Boolean?            @default(false)
-  isDeleted        Boolean?            @default(false)
-  net_value        Decimal?            @db.Decimal(10, 2)
-  leadId           Int?
-  clientId         Int?
-  boardItemsId     String              @unique
-  lead             Employee?           @relation(fields: [leadId], references: [id])
-  client           Client?             @relation(fields: [clientId], references: [id])
-  boardItems       BoardItems          @relation(fields: [boardItemsId], references: [id])
-  employees        EmployeeAssigned[]
-  labels           ProjectHasLabel[]
-  activities       Activity[]
-  TransactionGoods TransactionGoods[]
-  attachments      ProjectAttachment[]
-  ProjectEstimate  ProjectEstimate[]
+  id                 String           @id @default(uuid()) @db.Uuid()
+  leadId             String?          @db.Uuid()
+  clientId           String?          @db.Uuid()
+  name               String           @db.VarChar(255)
+  description        String?          @db.VarChar(255)
+  progressPercentage Int              @default(0)
+  paymentPercentage  Int              @default(0)
+  netValue           Int
+  status             ProjectStatus    @default(NOT_STARTED)
+  deadlineAt         DateTime?
+  priority           ProjectPriority?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  deletedAt          DateTime?
+  doneAt             DateTime?
+
+  attachments ProjectAttachment[]
+  employees   AssignedEmployee[]
+  reports     ProjectReport[]
+  loans       Loan[]
+  stockOut    StockOut[]
+
+  client Client? @relation(fields: [clientId], references: [id])
+  lead   User?   @relation(fields: [leadId], references: [id])
+
+  @@map("projects")
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ProjectStatus {
+  NOT_STARTED
+  OFFERING
+  DOING
+  BILLING
+  DONE
+}
+
+model AssignedEmployee {
+  id         String    @id @default(uuid()) @db.Uuid()
+  employeeId String    @db.Uuid()
+  projectId  String    @db.Uuid()
+  startDate  DateTime?
+  endDate    DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  project  Project  @relation(fields: [projectId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("assigned_employees")
 }
 
 model ProjectAttachment {
-  id          Int       @id @default(autoincrement())
-  file        String
-  name        String
-  type        String?
-  uploaded_by Int?
-  projectId   Int
-  isSecret    Boolean?  @default(false)
-  uploaded_at DateTime? @default(now())
-  user        User?     @relation(fields: [uploaded_by], references: [id])
-  project     Project   @relation(fields: [projectId], references: [id])
-}
-
-model ProjectEstimate {
-  id        Int      @id @default(autoincrement())
+  id        String  @id @default(uuid()) @db.Uuid()
+  projectId String  @db.Uuid()
+  createdBy String  @db.Uuid()
+  fileUrl   String
+  type      String  @db.VarChar(50)
+  secret    Boolean @default(false)
   name      String
-  price     Decimal? @db.Decimal(10, 2)
-  qty       Int?
-  projectId Int?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user    User    @relation(fields: [createdBy], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@map("project_attachments")
 }
 
-model Activity {
-  id             Int                  @id @default(autoincrement())
-  userId         Int?
-  user           User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
-  name           String?
-  comment        String
-  projectId      Int
-  replyId        Int?
-  project        Project              @relation(fields: [projectId], references: [id], onDelete: NoAction)
-  attachments    ActivityAttachment[]
-  replies        Activity[]           @relation("ActivityReplies")
-  parentActivity Activity?            @relation("ActivityReplies", fields: [replyId], references: [id], onDelete: NoAction)
-  created_at     DateTime             @default(now())
-  updated_at     DateTime?
-  likes          ActivityLike[]
+model ProjectReport {
+  id        String @id @default(uuid()) @db.Uuid()
+  projectId String @db.Uuid()
+  createdBy String @db.Uuid()
+  message   String @db.VarChar(255)
+  type      String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: NoAction)
+  user    User    @relation(fields: [createdBy], references: [id])
+
+  attachments ReportAttachment[]
+  comments    ReportComment[]
+
+  @@map("project_reports")
 }
 
-model ActivityLike {
-  id         Int      @id @default(autoincrement())
-  activityId Int
-  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
-  created_at DateTime @default(now())
+model ReportAttachment {
+  id       String @id @default(uuid()) @db.Uuid()
+  reportId String @db.Uuid()
+  photoUrl String
 
-  @@unique([activityId, userId])
+  createdAt DateTime @default(now())
+
+  report ProjectReport @relation(fields: [reportId], references: [id])
+
+  @@map("report_attachments")
 }
 
-model ActivityAttachment {
-  id         Int      @id @default(autoincrement())
-  attachment String
-  activityId Int
-  activity   Activity @relation(fields: [activityId], references: [id])
-}
+model ReportComment {
+  id        String  @id @default(uuid()) @db.Uuid()
+  message   String
+  createdBy String  @db.Uuid()
+  commentId String? @db.Uuid()
+  reportId  String  @db.Uuid()
 
-model ProjectHasLabel {
-  id        Int          @id @default(autoincrement())
-  projectId Int
-  labelId   Int
-  project   Project      @relation(fields: [projectId], references: [id])
-  label     ProjectLabel @relation(fields: [labelId], references: [id])
-}
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-model EmployeeAssigned {
-  id         Int      @id @default(autoincrement())
-  projectId  Int
-  employeeId Int
-  project    Project  @relation(fields: [projectId], references: [id])
-  employee   Employee @relation(fields: [employeeId], references: [id])
-}
+  user   User          @relation(fields: [createdBy], references: [id])
+  report ProjectReport @relation(fields: [reportId], references: [id])
 
-model ProjectLabel {
-  id       Int               @id @default(autoincrement())
-  name     String
-  color    String
-  projects ProjectHasLabel[]
+  @@map("report_comments")
 }
 
 model Client {
-  id        Int            @id @default(autoincrement())
+  id        String  @id @default(uuid()) @db.Uuid()
+  companyId String? @db.Uuid()
   name      String
-  phone     String?
   email     String?
+  phone     String?
   position  String?
-  companyId Int?
-  company   CompanyClient? @relation(fields: [companyId], references: [id])
-  Project   Project[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  project Project[]
+
+  company CompanyClient? @relation(fields: [companyId], references: [id])
+
+  @@map("clients")
 }
 
 model CompanyClient {
-  id      Int      @id @default(autoincrement())
-  name    String
-  address String?
-  phone   String?
-  email   String?
-  logo    String?
-  users   Client[]
-}
-
-// MODULE INVENTORY
-model Goods {
-  id            Int      @id @default(autoincrement())
-  name          String
-  qty           Int
-  available     Int
-  minimum       Int      @default(1)
-  description   String?
-  photoUrl      String?
-  locationId    Int?
-  measurementId Int?
-  categoryId    Int?
-  brandId       Int?
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  is_deleted    Boolean  @default(false)
-
-  location        Location?          @relation(fields: [locationId], references: [id])
-  measurement     Measurements?      @relation(fields: [measurementId], references: [id])
-  brand           Brand?             @relation(fields: [brandId], references: [id])
-  category        goodsCategory?     @relation(fields: [categoryId], references: [id])
-  transactions    TransactionGoods[]
-  stock_histories StockHistory[]
-
-  @@index([locationId])
-  @@index([categoryId])
-  @@index([brandId])
-  @@index([available])
-}
-
-model StockHistory {
-  id               Int      @id @default(autoincrement())
-  transactionId    Int      @unique
-  goodsId          Int
-  qty_before       Int
-  available_before Int
-  created_at       DateTime @default(now())
-
-  transaction TransactionGoods @relation(fields: [transactionId], references: [id])
-  good        Goods            @relation(fields: [goodsId], references: [id])
-
-  @@index([goodsId, created_at])
-}
-
-model TransactionGoods {
-  id          Int             @id @default(autoincrement())
-  goodsId     Int
-  qty         Int
-  price       Decimal?
-  supplierId  Int?
-  date        DateTime
-  type        TransactionType
-  created_at  DateTime        @default(now())
-  updated_at  DateTime        @updatedAt
-  projectId   Int?
-  is_returned Boolean?        @default(false)
-
-  project       Project?      @relation(fields: [projectId], references: [id])
-  good          Goods         @relation(fields: [goodsId], references: [id])
-  supplier      Supplier?     @relation(fields: [supplierId], references: [id])
-  stock_history StockHistory?
-  User          User?         @relation(fields: [userId], references: [id])
-  userId        Int?
-
-  @@index([goodsId, date])
-  @@index([supplierId])
-}
-
-enum TransactionType {
-  in
-  out
-  opname
-  borrowed
-}
-
-model Location {
-  id    Int     @id @default(autoincrement())
-  name  String
-  goods Goods[]
-}
-
-model Measurements {
-  id    Int     @id @default(autoincrement())
-  name  String
-  goods Goods[]
-}
-
-model Brand {
-  id       Int     @id @default(autoincrement())
+  id       String  @id @default(uuid()) @db.Uuid()
   name     String
+  email    String?
+  phone    String?
+  address  String? @db.Text()
   photoUrl String?
-  goods    Goods[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  employees Client[]
+
+  @@map("company_clients")
 }
 
-model goodsCategory {
-  id    Int     @id @default(autoincrement())
-  name  String
-  goods Goods[]
+// Inventory
+model Inventory {
+  id                String  @id @default(uuid()) @db.Uuid()
+  warehouseId       String? @db.Uuid()
+  brandId           String? @db.Uuid()
+  name              String  @db.VarChar(50)
+  minimum           Int     @default(1)
+  description       String? @db.VarChar(255)
+  unitOfMeasurement String? @db.VarChar(50)
+  photoUrl          String? @db.VarChar(100)
+  availableStock    Int     @default(0)
+  totalStock        Int     @default(0)
+  category          String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  warehouse Warehouse?      @relation(fields: [warehouseId], references: [id])
+  brand     BrandInventory? @relation(fields: [brandId], references: [id])
+
+  loans         Loan[]
+  stockLedgers  StockLedger[]
+  stockInItems  StockInItem[]
+  stockOutItems StockOutItem[]
+
+  @@map("inventories")
+}
+
+model StockLedger {
+  id          String   @id @default(uuid()) @db.Uuid()
+  itemId      String   @db.Uuid()
+  type        RefType
+  referenceId String   @db.Uuid()
+  quantity    Int
+  date        DateTime
+  note        String?  @db.VarChar(255)
+
+  createdAt DateTime @default(now())
+
+  inventory Inventory @relation(fields: [itemId], references: [id])
+
+  @@map("stock_ledgers")
+}
+
+enum RefType {
+  STOCK_IN
+  STOCK_OUT
+  LOAN
+  RETURNED
+}
+
+model StockIn {
+  id              String   @id @default(uuid()) @db.Uuid()
+  supplierId      String?  @db.Uuid()
+  createdBy       String?  @db.Uuid()
+  referenceNumber String?
+  note            String?
+  date            DateTime
+  photoUrl        String?  @db.VarChar(100)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  supplier Supplier?     @relation(fields: [supplierId], references: [id])
+  user     User?         @relation(fields: [createdBy], references: [id])
+  items    StockInItem[]
+
+  @@map("stock_in")
+}
+
+model StockInItem {
+  id        String @id @default(uuid()) @db.Uuid()
+  stockInId String @db.Uuid()
+  itemId    String @db.Uuid()
+  quantity  Int
+  unitPrice Int
+
+  stockIn StockIn   @relation(fields: [stockInId], references: [id])
+  item    Inventory @relation(fields: [itemId], references: [id])
+
+  @@map("stock_in_items")
+}
+
+model StockOut {
+  id        String   @id @default(uuid()) @db.Uuid()
+  createdBy String?  @db.Uuid()
+  note      String?
+  date      DateTime
+  photoUrl  String?  @db.VarChar(100)
+  projectId String?  @db.Uuid()
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User?    @relation(fields: [createdBy], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+
+  items StockOutItem[]
+
+  @@map("stock_out")
+}
+
+model StockOutItem {
+  id         String @id @default(uuid())
+  stockOutId String @db.Uuid()
+  itemId     String @db.Uuid()
+  quantity   Int
+  unitPrice  Int?
+
+  stockOut StockOut  @relation(fields: [stockOutId], references: [id])
+  item     Inventory @relation(fields: [itemId], references: [id])
+
+  @@map("stock_out_items")
+}
+
+model Loan {
+  id               String     @id @default(uuid())
+  inventoryId      String     @db.Uuid()
+  borrowerId       String     @db.Uuid()
+  requestQuantity  Int
+  returnedQuantity Int        @default(0)
+  requestDate      DateTime
+  returnDate       DateTime?
+  note             String?
+  status           LoanStatus @default(LOANED)
+  photoUrlOut      String?
+  photoUrlIn       String?
+  projectId        String     @db.Uuid()
+
+  createdAt DateTime @default(now())
+
+  item     Inventory @relation(fields: [inventoryId], references: [id])
+  borrower User      @relation(fields: [borrowerId], references: [id])
+  project  Project   @relation(fields: [projectId], references: [id])
+
+  @@map("loans")
+}
+
+enum LoanStatus {
+  LOANED
+  PARTIAL_RETURNED
+  RETURNED
 }
 
 model Supplier {
-  id          Int                @id @default(autoincrement())
-  name        String
-  phone       String?
-  email       String?
-  address     String?
-  photoUrl    String?
-  tags        SupplierToTag[]
-  transaction TransactionGoods[]
-  employees   SupplierEmployee[]
+  id           String  @id @default(uuid()) @db.Uuid()
+  name         String  @db.VarChar(50)
+  address      String? @db.Text()
+  photoUrl     String? @db.VarChar(100)
+  email        String? @db.VarChar(100)
+  phone        String? @db.VarChar(100)
+  googleMapUrl String? @db.VarChar(100)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  stockIn StockIn[]
+
+  @@map("suppliers")
 }
 
-model SupplierEmployee {
-  id         Int      @id @default(autoincrement())
-  name       String
-  position   String?
-  phone      String?
-  supplierId Int
-  supplier   Supplier @relation(fields: [supplierId], references: [id])
+model Warehouse {
+  id   String @id @default(uuid()) @db.Uuid()
+  name String @db.VarChar(50)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  inventories Inventory[]
+
+  @@map("warehouses")
 }
 
-model SupplierTag {
-  id       Int             @id @default(autoincrement())
-  name     String
-  color    String
-  supplier SupplierToTag[]
-}
+model BrandInventory {
+  id       String  @id @default(uuid()) @db.Uuid()
+  name     String  @db.VarChar(50)
+  photoUrl String? @db.VarChar(100)
 
-model SupplierToTag {
-  id         Int         @id @default(autoincrement())
-  supplierId Int
-  tagId      Int
-  supplier   Supplier    @relation(fields: [supplierId], references: [id])
-  tag        SupplierTag @relation(fields: [tagId], references: [id])
-}
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-model Recap {
-  id         Int      @id @default(autoincrement())
-  name       String
-  start_date DateTime @db.Date()
-  end_date   DateTime @db.Date()
-}
+  inventories Inventory[]
 
-model Tour {
-  id     Int    @id @default(autoincrement())
-  name   String
-  userId Int
-  user   User   @relation(fields: [userId], references: [id])
-}
-
-model Helpdesk {
-  id      Int          @id @default(autoincrement())
-  message String
-  userId  Int
-  resolve Boolean      @default(false)
-  type    HelpdeskType
-  user    User         @relation(fields: [userId], references: [id])
-}
-
-enum HelpdeskType {
-  feature
-  bug
+  @@map("inventory_brands")
 }

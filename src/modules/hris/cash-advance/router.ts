@@ -1,28 +1,32 @@
 import { Router } from 'express'
-import Validation from '../../../helper/validation'
-import CashAdvanceController from './controller'
-import { cashAdvanceSchema } from './schema'
+import {
+  getCashAdvance,
+  getCashAdvances,
+  postCashAdvance,
+  patchCashAdvance,
+  deleteCashAdvance,
+  postCashAdvanceTransaction,
+  patchCashAdvanceTransaction,
+  deleteCashAdvanceTransaction,
+  getCashAdvanceTransaction,
+  getCashAdvanceTransactions,
+  getTotalByMonth,
+} from './controller'
 
-export default class CashAdvanceRouter {
-  public router: Router
-  private cashAdvanceSchema: Validation = new Validation(cashAdvanceSchema)
-  private controller: CashAdvanceController = new CashAdvanceController()
+const router = Router()
 
-  constructor() {
-    this.router = Router()
-    this.register()
-  }
+router.get('/report/by-month', getTotalByMonth)
 
-  protected register() {
-    this.router.post('/', this.cashAdvanceSchema.validate, this.controller.createHandler)
-    this.router.patch('/:id', this.cashAdvanceSchema.validate, this.controller.updateHandler)
-    this.router.delete('/:id', this.controller.deleteHandler)
+router.post('/transaction', postCashAdvanceTransaction)
+router.patch('/transaction/:id', patchCashAdvanceTransaction)
+router.delete('/transaction/:id', deleteCashAdvanceTransaction)
+router.get('/transaction/:id', getCashAdvanceTransaction)
 
-    this.router.get('/list/pagination', this.controller.ReadByPagination)
-    this.router.get('/:id', this.controller.readByIdHandler)
-    this.router.get('/', this.controller.readAllHandler)
+router.get('/', getCashAdvances)
+router.post('/', postCashAdvance)
+router.get('/:id', getCashAdvance)
+router.get('/:id/transaction', getCashAdvanceTransactions)
+router.patch('/:id', patchCashAdvance)
+router.delete('/:id', deleteCashAdvance)
 
-    this.router.get('/data/total-by-month', this.controller.readTotalInYearHandler)
-    this.router.get('/data/total', this.controller.readTotalHandler)
-  }
-}
+export default router

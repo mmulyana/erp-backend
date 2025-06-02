@@ -1,52 +1,75 @@
-import AuthRepository from './repository'
+import { HttpStatusCode } from 'axios'
 import { compare } from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import dotenv from 'dotenv'
-import TelegramService from '../../helper/telegram'
-dotenv.config()
 
-export interface LoginDTO {
-  email?: string
-  name?: string
-  phoneNumber?: string
-  password: string
+import { throwError } from '@/utils/error-handler'
+import { isValidUUID } from '@/utils/is-valid-uuid'
+import { Messages } from '@/utils/constant'
+
+import { Login } from './schema'
+import {
+  findByEmail,
+  findById,
+  findByPhone,
+  findByUsername,
+} from './repository'
+
+export const loginService = async (credentials: Login) => {
+  const { username, password } = credentials
+
+  const isEmail = username.includes('@')
+  const isPhoneNumber = /^\d+$/.test(username)
+  const isUsername = /^[a-zA-Z0-9]+$/.test(username)
+
+  let user
+  if (isEmail) {
+    user = await findByEmail(username)
+  } else if (isUsername) {
+    user = await findByUsername(username)
+  } else if (isPhoneNumber) {
+    user = await findByPhone(username)
+  }
+
+  if (!user) {
+    return throwError(Messages.AccountDoesntExists, HttpStatusCode.BadRequest)
+  }
+
+  if (!user || !(await compare(password, user.password))) {
+    return throwError(Messages.InvalidCredential, HttpStatusCode.BadRequest)
+  }
+
+  const token = jwt.sign({ id: user.id }, process.env.SECRET as string, {
+    expiresIn: '7d',
+  })
+
+  return {
+    token,
+  }
 }
 
-export class AuthService {
-  private repository: AuthRepository = new AuthRepository()
-  private telegram: TelegramService = new TelegramService()
+export const findMeService = async (id: string) => {
+  if (!isValidUUID(id)) {
+    return throwError(Messages.InvalidUUID, HttpStatusCode.NotFound)
+  }
 
-  async login(credentials: LoginDTO) {
-    const { email, name, password, phoneNumber } = credentials
+  const data = await findById(id)
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.NotFound)
+  }
 
-    let user
-    if (email) {
-      user = await this.repository.findByEmail(email)
-    } else if (name) {
-      user = await this.repository.findByName(name)
-    } else if (phoneNumber) {
-      user = await this.repository.findByPhone(phoneNumber)
-    }
-
-    if (!user?.active) {
-      throw new Error('Akun tidak ada')
-    }
-
-    if (!user || !(await compare(password, user.password))) {
-      throw new Error('Kredensial salah')
-    }
-
-    const token = jwt.sign(
-      { id: user.id, name: user.name },
-      process.env.SECRET as string,
-      { expiresIn: '2d' }
-    )
-
-    await this.telegram.send(`${user.name} sudah login`, 'log')
-
-    return {
-      name: user.name,
-      token,
-    }
+  return {
+    id: data.id,
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    photoUrl: data.photoUrl,
+    role: {
+      id: data.role.id,
+      name: data.role.name,
+    },
+    permissions:
+      data.role.permissions && data.role.permissions.length > 0
+        ? data.role.permissions.split(',')
+        : [],
   }
 }

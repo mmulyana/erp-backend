@@ -1,56 +1,85 @@
-import { NextFunction, Request, Response } from 'express'
-import ApiResponse from '../../../helper/api-response'
-import BaseController from '../../../helper/base-controller'
-import AttendanceRepository from './repository'
-import { endOfDay } from 'date-fns'
+import { Request, Response } from 'express'
 
-export default class AttendanceController extends BaseController {
-  private repository: AttendanceRepository = new AttendanceRepository()
+import { getParams } from '@/utils/params'
+import { errorParse } from '@/utils/error-handler'
+import {
+  createResponse,
+  successResponse,
+  updateResponse,
+} from '@/utils/response'
 
-  constructor() {
-    super('Kehadiran')
+import {
+  create,
+  readAll,
+  readAttendanceByDate,
+  readAttendanceChart,
+  readAttendancePerDay,
+  update,
+} from './repository'
+import { AttendanceSchema } from './schema'
+
+export const saveAttendance = async (req: Request, res: Response) => {
+  const parsed = AttendanceSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+  // console.log('payload', parsed.data)
+  const result = await create({ ...parsed.data, createdBy: req.user.id })
+  res.json(createResponse(result, 'Kehadiran'))
+}
+
+export const updateAttendance = async (req: Request, res: Response) => {
+  const parsed = AttendanceSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  createHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await this.repository.create(req.body)
-      return this.response.success(res, this.message.successCreate())
-    } catch (error) {
-      next(error)
-    }
-  }
-  updateHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.update(Number(id), req.body)
-      return this.response.success(res, this.message.successUpdate())
-    } catch (error) {
-      next(error)
-    }
-  }
-  deleteHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.delete(Number(id))
-      return this.response.success(res, this.message.successDelete())
-    } catch (error) {
-      next(error)
-    }
-  }
-  readHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { date, name, positionId, endDate } = req.query
-      const localDate = endOfDay(new Date())
+  const result = await update({ ...parsed.data, createdBy: req.user.id })
+  res.json(updateResponse(result, 'Kehadiran'))
+}
 
-      const data = await this.repository.read({
-        search: name ? String(name) : undefined,
-        positionId: positionId ? Number(positionId) : undefined,
-        startDate: date ? new Date(String(date)) : new Date(localDate),
-        endDate: endDate ? new Date(String(endDate)) : undefined
-      })
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
+// export const destroyAttendance = async (req: Request, res: Response) => {
+//   const { id } = checkParamsId(req)
+//   await isExist(id)
+
+//   await destroy(id)
+//   res.json(deleteResponse('Kehadiran'))
+// }
+
+export const readAttendances = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+  // console.log('-------------')
+  // console.log('local', req.query.startDate)
+  // console.log('hasil konversi ke utc', new Date(req.query.startDate as string))
+  const result = await readAll({
+    page,
+    limit,
+    search,
+    startDate: new Date(req.query.startDate as string),
+  })
+  res.json(successResponse(result, 'Kehadiran'))
+}
+
+export const getAttendanceChart = async (req: Request, res: Response) => {
+  const startDate = req.query.startDate
+    ? new Date(req.query.startDate as string)
+    : undefined
+  const endDate = req.query.endDate
+    ? new Date(req.query.endDate as string)
+    : undefined
+  const result = await readAttendanceChart({ startDate, endDate })
+  res.json(successResponse(result, 'Laporan absensi'))
+}
+
+export const getAttendanceTotal = async (req: Request, res: Response) => {
+  const result = await readAttendancePerDay({
+    startDate: req.query.startDate as string,
+  })
+  res.json(successResponse(result, 'Laporan absensi per hari'))
+}
+
+export const getAttendanceByDate = async (req: Request, res: Response) => {
+  const date = req.query.date ? new Date(req.query.date as string) : undefined
+  const result = await readAttendanceByDate(date)
+  res.json(successResponse(result, 'Absensi harian'))
 }
