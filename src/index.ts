@@ -42,7 +42,7 @@ app.use(express.static('uploads'))
 app.use(express.json())
 
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Ok' })
+  res.status(200).json({ message: 'Hello world!' })
 })
 
 app.use('/api', route)
