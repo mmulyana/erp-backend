@@ -1,5 +1,4 @@
-import { Request, Response, NextFunction } from 'express'
-import { CashAdvanceSchema, CashAdvanceTransactionSchema } from './schema'
+import { Request, Response } from 'express'
 import {
   successResponse,
   createResponse,
@@ -8,6 +7,8 @@ import {
 } from '@/utils/response'
 import { checkParamsId, getParams } from '@/utils/params'
 import { errorParse } from '@/utils/error-handler'
+
+import { CashAdvanceSchema, CashAdvanceTransactionSchema } from './schema'
 import {
   create,
   createTransaction,

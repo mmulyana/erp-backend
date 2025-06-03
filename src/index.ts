@@ -41,7 +41,7 @@ app.use(express.static('public'))
 app.use(express.static('uploads'))
 app.use(express.json())
 
-app.post('/', (req, res) => {
+app.get('/', (req, res) => {
   res.status(200).json({ message: 'Ok' })
 })
 
