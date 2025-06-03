@@ -1,0 +1,35 @@
+name: backend-staging
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_PRIVATE_KEY" > ./deploy.key
+          chmod 600 ./deploy.key
+          ssh-keyscan -H erp-stg.barokahjayasemesta.com >> ~/.ssh/known_hosts
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy Backend
+        run: |
+          BRANCH=${{ github.ref_name }}
+          ssh -i ./deploy.key ${{ secrets.SSH_USER }}@erp-stg.barokahjayasemesta.com "cd /home/mmulyana/app/erp-backend-staging && \
+          git fetch origin $BRANCH && \
+          git reset --hard origin/$BRANCH && \
+          pnpm install && \
+          pnpm build && \
+          npx prisma generate && \
+          npx prisma db push && \
+          pm2 reload erp-backend-staging"
