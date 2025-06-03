@@ -14,6 +14,7 @@ import {
   getEmployeesInfinite,
   getLastEducation,
   getOvertimesById,
+  getProjectEmployee,
   getSummaryById,
   getTotalEmployee,
   patchCertificate,
@@ -29,6 +30,7 @@ const router = Router()
 router.get('/data/chart', getTotalEmployee)
 router.get('/data/last-education', getLastEducation)
 router.get('/data/infinite', getEmployeesInfinite)
+router.get('/data/project', getProjectEmployee)
 
 // certificate
 router.get('/data/certificate/:id', getCertificate)

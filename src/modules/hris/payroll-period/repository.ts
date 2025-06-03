@@ -67,22 +67,33 @@ export const create = async (
 }
 export const update = async (id: string, payload: PayrollPeriod) => {
   const data = await db.payrollPeriod.update({
-    where: { id, deletedAt: null },
+    where: { id },
     data: {
       name: payload.name,
-      startDate: payload.startDate,
-      endDate: payload.endDate,
     },
   })
   return data
 }
-export const destroy = async (id: string, payload: PayrollPeriod) => {
+export const destroy = async (id: string) => {
   const data = await db.payrollPeriod.update({
     where: { id },
     data: {
-      deletedAt: null,
+      deletedAt: new Date(),
     },
   })
+
+  const payrolls = await db.payroll.findMany({ where: { periodId: id } })
+  if (payrolls.length > 0) {
+    await db.payroll.updateMany({
+      data: {
+        deletedAt: new Date(),
+      },
+      where: {
+        periodId: id,
+      },
+    })
+  }
+
   return data
 }
 

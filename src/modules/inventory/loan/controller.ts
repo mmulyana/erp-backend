@@ -21,15 +21,21 @@ import {
 } from './repository'
 
 export const postLoan = async (req: Request, res: Response) => {
+  console.log(req.body)
   const parsed = LoanSchema.safeParse(req.body)
-  if (!parsed.success) return errorParse(parsed.error)
+  if (!parsed.success) {
+    console.log('error', parsed.error)
+    return errorParse(parsed.error)
+  }
 
-  const photoInFiles = (req.files as Express.Multer.File[]) ?? []
+  let photoUrl = req.file.filename
+
+  console.log('parse', parsed.data)
 
   const result = await create({
     ...parsed.data,
     borrowerId: req.user.id,
-    photoUrlIn: photoInFiles?.map((i) => i.filename).join('|'),
+    photoUrlIn: photoUrl,
   })
 
   res.json(createResponse(result, 'Peminjaman'))

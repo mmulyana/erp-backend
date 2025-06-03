@@ -2,9 +2,14 @@ import { Request, Response } from 'express'
 
 import { checkParamsId, getParams } from '@/utils/params'
 import { errorParse } from '@/utils/error-handler'
-import { successResponse } from '@/utils/response'
+import { getQueryParam } from '@/utils'
+import {
+  deleteResponse,
+  successResponse,
+  updateResponse,
+} from '@/utils/response'
 
-import { create, readAll, read, isExist } from './repository'
+import { create, readAll, read, isExist, update, destroy } from './repository'
 import { PayrollPeriodSchema } from './schema'
 
 export const postPayrollPeriod = async (req: Request, res: Response) => {
@@ -16,18 +21,22 @@ export const postPayrollPeriod = async (req: Request, res: Response) => {
   const result = await create({ ...parsed.data, createdBy: req.user.id })
   res.json(successResponse(result, 'Periode gaji'))
 }
-export const getPayrollPeriods = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
+export const patchPayrollPeriod = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
 
-  const status = req.query.status
-    ? (String(req.query.status) as any)
-    : undefined
-  const sortBy = req.query.sortBy
-    ? (String(req.query.sortBy) as any)
-    : undefined
-  const sortOrder = req.query.sortOrder
-    ? (String(req.query.sortOrder) as any)
-    : undefined
+  const parsed = PayrollPeriodSchema.partial().safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+
+  const result = await update(id, parsed.data)
+  res.json(updateResponse(result, 'Periode gaji'))
+}
+export const getPayrollPeriods = async (req: Request, res: Response) => {
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
+
+  const status = getQueryParam(req.query, 'status', 'string') as any
 
   const result = await readAll({
     page,
@@ -51,10 +60,7 @@ export const getPayrollPeriodsInfinite = async (
   res: Response,
 ) => {
   const { page, limit, search } = getParams(req)
-
-  const status = req.query.status
-    ? (String(req.query.status) as any)
-    : undefined
+  const status = getQueryParam(req.query, 'status', 'string') as any
 
   const result = await readAll({
     page,
@@ -64,4 +70,11 @@ export const getPayrollPeriodsInfinite = async (
     infinite: true,
   })
   res.json(successResponse(result, 'Periode gaji'))
+}
+export const deletePayrollPeriod = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  await destroy(id)
+  res.json(deleteResponse('Periode gaji'))
 }

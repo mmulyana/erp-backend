@@ -10,9 +10,11 @@ import { errorHandler } from './utils/error-handler'
 import setupSwagger from './lib/swagger'
 import route from './modules'
 
-dotenv.config()
+dotenv.config({
+  path: `.env.${process.env.NODE_ENV || 'production'}`,
+})
 
-const PORT = Number(process.env.REST_PORT) || 5000
+const PORT = Number(process.env.REST_PORT) || 8000
 const HOST = process.env.HOST || 'localhost'
 
 const app = express()

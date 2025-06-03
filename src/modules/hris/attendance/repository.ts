@@ -18,6 +18,7 @@ import {
   format,
 } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { PaginationParams } from '@/types'
 
 export const isExist = async (id: string) => {
   const data = await db.attendance.findUnique({ where: { id } })
@@ -81,46 +82,58 @@ export const update = async (payload: Attendance & { createdBy: string }) => {
   }
 }
 
-type ReadAllParams = {
-  startDate: Date
-  search?: string
-  position?: string
-  page?: number
-  limit?: number
-}
 export const readAll = async ({
   startDate,
   search,
   position,
   page,
   limit,
-}: ReadAllParams) => {
+  notYet,
+}: PaginationParams & {
+  startDate?: Date
+  position?: string
+  notYet?: boolean
+}) => {
   const whereEmployee: Prisma.EmployeeWhereInput = {
     deletedAt: null,
     fullname: search ? { contains: search, mode: 'insensitive' } : undefined,
     position: position || undefined,
     active: true,
+    ...(notYet
+      ? {
+          attendances: {
+            none: {
+              date: {
+                gte: startDate,
+                lte: startDate,
+              },
+            },
+          },
+        }
+      : {}),
+  }
+
+  const select = {
+    id: true,
+    fullname: true,
+    position: true,
+    attendances: {
+      where: {
+        date: {
+          gte: startDate,
+          lte: startDate,
+        },
+      },
+      select: {
+        type: true,
+      },
+    },
   }
 
   if (page === undefined || limit === undefined) {
     const employees = await db.employee.findMany({
       where: whereEmployee,
-      select: {
-        id: true,
-        fullname: true,
-        position: true,
-        attendances: {
-          where: {
-            date: {
-              gte: startDate,
-              lte: startDate,
-            },
-          },
-          select: {
-            type: true,
-          },
-        },
-      },
+      select,
     })
 
     const data = employees.map((employee) => {
@@ -146,22 +159,7 @@ export const readAll = async ({
       orderBy: {
         fullname: 'asc',
       },
-      select: {
-        id: true,
-        fullname: true,
-        position: true,
-        attendances: {
-          where: {
-            date: {
-              gte: startDate,
-              lte: startDate,
-            },
-          },
-          select: {
-            type: true,
-          },
-        },
-      },
+      select,
     }),
     db.employee.count({ where: whereEmployee }),
   ])

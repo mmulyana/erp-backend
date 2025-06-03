@@ -1,13 +1,4 @@
-import {
-  startOfDay,
-  endOfDay,
-  subDays,
-  startOfMonth,
-  endOfMonth,
-  getDaysInMonth,
-  setDate,
-  subMonths,
-} from 'date-fns'
+import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { Prisma } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 
@@ -15,15 +6,14 @@ import { convertUTCToWIB } from '@/utils/convert-date'
 import { throwError } from '@/utils/error-handler'
 import { getPaginateParams } from '@/utils/params'
 import { Messages } from '@/utils/constant'
+import { DateRangeParams } from '@/types'
 import db from '@/lib/prisma'
 
-import { CashAdvance, CashAdvanceTransaction } from './schema'
 import { checkRemaining, recalculateRemaining, updateStatus } from './helper'
+import { CashAdvance, CashAdvanceTransaction } from './schema'
 
-export type FilterCash = {
+export type FilterCash = DateRangeParams & {
   fullname?: string
-  startDate?: Date
-  endDate?: Date
 }
 
 type Payload = CashAdvance & { createdBy: string }
@@ -78,7 +68,12 @@ export const update = async (id: string, payload: Payload) => {
 }
 
 export const destroy = async (id: string) => {
-  await db.cashAdvance.delete({ where: { id } })
+  await db.cashAdvance.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+  })
 }
 
 export const findAll = async (
