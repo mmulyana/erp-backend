@@ -63,6 +63,7 @@ export const create = async (data: Payload) => {
       overtimeSalary: data.overtimeSalary,
       address: data.address,
       phone: data.phone,
+      payType: data.payType,
     },
   })
 }
@@ -111,28 +112,55 @@ export const read = async (id: string) => {
     salary: true,
     overtimeSalary: true,
     safetyInductionDate: true,
+    payType: true,
   }
   return await db.employee.findUnique({ where: { id }, select })
 }
 
-export const readAll = async (
-  page?: number,
-  limit?: number,
-  search?: string,
-  position?: string,
-  active?: boolean,
-) => {
+export const readAll = async ({
+  active,
+  limit,
+  page,
+  position,
+  search,
+  lastEdu,
+  sortBy,
+  sortOrder,
+}: PaginationParams & {
+  lastEdu?: string
+  position?: string
+  active?: boolean
+  sortBy?: any
+  sortOrder?: 'desc' | 'asc'
+}) => {
   const where: Prisma.EmployeeWhereInput = {
     AND: [
       search
         ? {
-            OR: [{ fullname: { contains: search } }],
+            OR: [{ fullname: { contains: search, mode: 'insensitive' } }],
           }
         : {},
 
-      active !== undefined ? { active } : {},
-      position !== undefined ? { position } : {},
-    ].filter(Boolean),
+      typeof active === 'boolean' ? { active } : {},
+
+      position
+        ? {
+            position: {
+              contains: position,
+              mode: 'insensitive',
+            },
+          }
+        : {},
+
+      lastEdu
+        ? {
+            lastEducation: {
+              equals: lastEdu,
+              mode: 'insensitive',
+            },
+          }
+        : {},
+    ],
   }
 
   const select: Prisma.EmployeeSelect = {
@@ -152,10 +180,15 @@ export const readAll = async (
     overtimeSalary: true,
   }
 
+  const orderBy: Prisma.EmployeeOrderByWithRelationInput = {
+    [sortBy ?? 'createdAt']: sortOrder ?? 'asc',
+  }
+
   if (page === undefined || limit === undefined) {
     const data = await db.employee.findMany({
       where,
       select,
+      orderBy,
     })
     return { data }
   }
@@ -167,9 +200,7 @@ export const readAll = async (
       take,
       where,
       select,
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     }),
     db.employee.count({ where }),
   ])

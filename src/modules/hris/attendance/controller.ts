@@ -50,6 +50,7 @@ export const updateAttendance = async (req: Request, res: Response) => {
 export const readAttendances = async (req: Request, res: Response) => {
   const { page, limit, search } = getParams(req)
   const notYet = getQueryParam(req.query, 'notYet', 'boolean')
+  const position = getQueryParam(req.query, 'position', 'string')
   // console.log('-------------')
   // console.log('local', req.query.startDate)
   // console.log('hasil konversi ke utc', new Date(req.query.startDate as string))
@@ -59,6 +60,7 @@ export const readAttendances = async (req: Request, res: Response) => {
     search,
     startDate: new Date(req.query.startDate as string),
     notYet,
+    position,
   })
   res.json(successResponse(result, 'Kehadiran'))
 }

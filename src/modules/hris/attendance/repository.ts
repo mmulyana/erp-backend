@@ -8,8 +8,6 @@ import db from '@/lib/prisma'
 
 import { Attendance } from './schema'
 import {
-  addDays,
-  differenceInDays,
   endOfDay,
   startOfDay,
   eachDayOfInterval,
@@ -18,7 +16,7 @@ import {
   format,
 } from 'date-fns'
 import { id } from 'date-fns/locale'
-import { PaginationParams } from '@/types'
+import { OrderByParams, PaginationParams } from '@/types'
 
 export const isExist = async (id: string) => {
   const data = await db.attendance.findUnique({ where: { id } })
@@ -97,7 +95,6 @@ export const readAll = async ({
   const whereEmployee: Prisma.EmployeeWhereInput = {
     deletedAt: null,
     fullname: search ? { contains: search, mode: 'insensitive' } : undefined,
-    position: position || undefined,
     active: true,
     ...(notYet
       ? {
@@ -111,9 +108,17 @@ export const readAll = async ({
           },
         }
       : {}),
+    ...(position
+      ? {
+          position: {
+            contains: position,
+            mode: 'insensitive',
+          },
+        }
+      : {}),
   }
 
-  const select = {
+  const select: Prisma.EmployeeSelect = {
     id: true,
     fullname: true,
     position: true,

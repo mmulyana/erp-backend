@@ -13,3 +13,8 @@ export type DateRangeParams = {
   startDate?: Date
   endDate?: Date
 }
+
+export type OrderByParams = {
+  sortBy?: any
+  sortOrder?: any
+}
