@@ -30,6 +30,8 @@ import projectRoutes from './project/project/router'
 import clientRoutes from './project/client/router'
 import companyClientRoutes from './project/company/router'
 
+import commandRoutes from './command/router'
+
 const route = Router()
 
 route.use('/auth', authRoutes)
@@ -59,5 +61,7 @@ route.use('/loan', isAuthenticated, loanRoutes)
 route.use('/project', isAuthenticated, projectRoutes)
 route.use('/client', isAuthenticated, clientRoutes)
 route.use('/company-client', isAuthenticated, companyClientRoutes)
+
+route.use('/command', isAuthenticated, commandRoutes)
 
 export default route
