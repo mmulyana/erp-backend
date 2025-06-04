@@ -5,6 +5,7 @@ export const OvertimeSchema = z.object({
   date: z.coerce.date(),
   totalHour: z.number(),
   note: z.string().optional(),
+  projectId: z.string().nullable().optional(),
 })
 
 export type Overtime = z.infer<typeof OvertimeSchema>

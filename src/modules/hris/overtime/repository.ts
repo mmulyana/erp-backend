@@ -16,6 +16,8 @@ import { Messages } from '@/utils/constant'
 import db from '@/lib/prisma'
 
 import { Overtime } from './schema'
+import { OrderByParams, PaginationParams } from '@/types'
+import { generateData } from './helper'
 
 type Payload = Overtime & { createdBy: string }
 
@@ -40,6 +42,7 @@ export const create = async (payload: Payload) => {
       createdBy: payload.createdBy,
       note: payload.note,
       date: new Date(payload.date),
+      projectId: payload.projectId,
     },
   })
 }
@@ -66,18 +69,21 @@ export const destroy = async (id: string) => {
   })
 }
 
-type findAllParams = {
-  page?: number
-  limit?: number
-  search?: string
-  startDate?: Date
-}
 export const findAll = async ({
   page,
   limit,
   search,
   startDate,
-}: findAllParams) => {
+  position,
+  projectId,
+  sortBy,
+  sortOrder,
+}: PaginationParams &
+  OrderByParams & {
+    startDate?: Date
+    projectId?: string
+    position?: string
+  }) => {
   const where: Prisma.OvertimeWhereInput = {
     date: startDate,
     deletedAt: null,
@@ -93,6 +99,21 @@ export const findAll = async ({
     },
   }
 
+  if (position) {
+    where.employee.position = {
+      contains: position,
+      mode: 'insensitive',
+    }
+  }
+
+  if (projectId) {
+    where.projectId = projectId
+  }
+
+  const orderBy: Prisma.OvertimeOrderByWithRelationInput = {
+    [sortBy ?? 'createdAt']: sortOrder ?? 'desc',
+  }
+
   const select: Prisma.OvertimeSelect = {
     id: true,
     totalHour: true,
@@ -102,7 +123,15 @@ export const findAll = async ({
       select: {
         fullname: true,
         position: true,
+        photoUrl: true,
         id: true,
+      },
+    },
+    projectId: true,
+    project: {
+      select: {
+        id: true,
+        name: true,
       },
     },
   }
@@ -111,18 +140,11 @@ export const findAll = async ({
     const rawData = await db.overtime.findMany({
       where,
       select,
-      orderBy: {
-        createdAt: 'asc',
-      },
+      orderBy,
     })
-
     const data = rawData.map((item) => ({
-      id: item.id,
+      ...generateData(item),
       employeeId: item.employeeId,
-      fullname: item.employee.fullname,
-      position: item.employee.position ?? '-',
-      totalHour: item.totalHour,
-      note: item.note ?? '',
     }))
 
     return { data }
@@ -136,20 +158,14 @@ export const findAll = async ({
       take,
       where,
       select,
-      orderBy: {
-        createdAt: 'asc',
-      },
+      orderBy,
     }),
     db.overtime.count({ where }),
   ])
 
   const data = rawData.map((item) => ({
-    id: item.id,
-    fullname: item.employee.fullname,
-    position: item.employee.position ?? '-',
-    totalHour: item.totalHour,
-    note: item.note ?? '',
-    deletedAt: item.deletedAt,
+    ...generateData(item),
+    employeeId: item.employeeId,
   }))
 
   const total_pages = Math.ceil(total / limit)

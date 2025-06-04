@@ -16,7 +16,7 @@ import {
   format,
 } from 'date-fns'
 import { id } from 'date-fns/locale'
-import { OrderByParams, PaginationParams } from '@/types'
+import { PaginationParams } from '@/types'
 
 export const isExist = async (id: string) => {
   const data = await db.attendance.findUnique({ where: { id } })
@@ -121,6 +121,7 @@ export const readAll = async ({
   const select: Prisma.EmployeeSelect = {
     id: true,
     fullname: true,
+    photoUrl: true,
     position: true,
     attendances: {
       where: {
@@ -148,6 +149,7 @@ export const readAll = async ({
         fullname: employee.fullname,
         position: employee.position ?? '-',
         status: attendance?.type ?? null,
+        photoUrl: employee.photoUrl,
       }
     })
 
@@ -176,6 +178,7 @@ export const readAll = async ({
       fullname: employee.fullname,
       position: employee.position ?? '-',
       status: attendance?.type ?? null,
+      photoUrl: employee.photoUrl,
     }
   })
 

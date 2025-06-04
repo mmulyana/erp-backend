@@ -18,6 +18,7 @@ import {
 } from '@/utils/response'
 import { checkParamsId, getParams } from '@/utils/params'
 import { errorParse } from '@/utils/error-handler'
+import { getQueryParam } from '@/utils'
 
 export const postOvertime = async (req: Request, res: Response) => {
   const parsed = OvertimeSchema.safeParse(req.body)
@@ -51,13 +52,19 @@ export const deleteOvertime = async (req: Request, res: Response) => {
 }
 
 export const getOvertimes = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
+  const position = getQueryParam(req.query, 'position', 'string')
+  const projectId = getQueryParam(req.query, 'projectId', 'string')
 
   const result = await findAll({
     page,
     limit,
     search,
     startDate: new Date(req.query.startDate as string),
+    sortBy,
+    sortOrder,
+    position,
+    projectId,
   })
   res.json(successResponse(result, 'lembur'))
 }
