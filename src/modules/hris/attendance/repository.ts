@@ -93,6 +93,7 @@ export const readAll = async ({
   notYet?: boolean
 }) => {
   const whereEmployee: Prisma.EmployeeWhereInput = {
+    payType: 'daily',
     deletedAt: null,
     fullname: search ? { contains: search, mode: 'insensitive' } : undefined,
     active: true,

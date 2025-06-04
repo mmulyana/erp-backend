@@ -60,8 +60,8 @@ export const checkRemaining = async (id: string, amount: number) => {
 
   const remaining = cashAdvance.amount - (totalUsed._sum.amount ?? 0)
 
-  console.log('remaining', remaining)
-  console.log('amount', amount)
+  // console.log('remaining', remaining)
+  // console.log('amount', amount)
 
   if (amount > remaining) {
     return throwError(

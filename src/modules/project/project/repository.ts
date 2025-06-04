@@ -131,6 +131,14 @@ export const create = async (payload: Payload) => {
       progressPercentage: payload.progressPercentage || 0,
       priority: payload.priority,
       status: payload.status,
+      employees: {
+        createMany: {
+          data: payload.employeeIds.map((employeeId) => ({
+            employeeId,
+            startDate: new Date(),
+          })),
+        },
+      },
     },
   })
 

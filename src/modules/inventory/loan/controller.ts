@@ -21,16 +21,14 @@ import {
 } from './repository'
 
 export const postLoan = async (req: Request, res: Response) => {
-  console.log(req.body)
+  // console.log(req.body)
   const parsed = LoanSchema.safeParse(req.body)
   if (!parsed.success) {
-    console.log('error', parsed.error)
+    // console.log('error', parsed.error)
     return errorParse(parsed.error)
   }
 
-  let photoUrl = req.file.filename
-
-  console.log('parse', parsed.data)
+  let photoUrl = req?.file?.filename || undefined
 
   const result = await create({
     ...parsed.data,

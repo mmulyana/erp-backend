@@ -42,7 +42,7 @@ export const create = async (payload: Payload) => {
       createdBy: payload.createdBy,
       note: payload.note,
       date: new Date(payload.date),
-      projectId: payload.projectId,
+      projectId: payload.projectId !== '' ? payload.projectId : undefined,
     },
   })
 }

@@ -22,8 +22,6 @@ export const patchInfo = async (req: Request, res: Response) => {
     photoUrl = null
   }
 
-  console.log('photoUrl', photoUrl)
-
   await updateUser(id, { ...parsed.data, photoUrl })
   res.json(updateResponse(null, 'Akun'))
 }

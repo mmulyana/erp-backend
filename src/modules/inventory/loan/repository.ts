@@ -235,7 +235,7 @@ export const findStatusByMonth = async ({
       fill: '#475DEF',
       name: 'Dikembalikan',
     },
-    PARTIAL_RETURNED: { fill: '#D52B42', name: 'Belum lengkap' },
+    PARTIAL_RETURNED: { fill: '#EE682F', name: 'Belum lengkap' },
   }
 
   return result.map((item) => ({

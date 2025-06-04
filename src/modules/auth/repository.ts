@@ -7,7 +7,6 @@ export const findByUsername = async (username: string) => {
   return db.user.findUnique({ where: { username, active: true, deletedAt: null } })
 }
 export const findByPhone = async (phone: string) => {
-  console.log('terpanggil')
   return db.user.findUnique({ where: { phone, active: true, deletedAt: null } })
 }
 

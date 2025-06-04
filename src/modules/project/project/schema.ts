@@ -14,6 +14,7 @@ export const ProjectSchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('LOW'),
   deadlineAt: z.coerce.date().nullable().optional(),
   doneAt: z.coerce.date().nullable().optional(),
+  employeeIds: z.string().array().nullable().optional(),
 })
 
 export const AssignedSchema = z.object({

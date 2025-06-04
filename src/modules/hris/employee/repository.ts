@@ -184,16 +184,18 @@ export const readAll = async ({
     [sortBy ?? 'createdAt']: sortOrder ?? 'asc',
   }
 
+  const { skip, take } = getPaginateParams(page, limit)
+
   if (page === undefined || limit === undefined) {
     const data = await db.employee.findMany({
       where,
       select,
       orderBy,
+      take
     })
     return { data }
   }
 
-  const { skip, take } = getPaginateParams(page, limit)
   const [data, total] = await Promise.all([
     db.employee.findMany({
       skip,
