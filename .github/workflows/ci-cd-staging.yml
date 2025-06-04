@@ -12,20 +12,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh/
-          echo "$SSH_PRIVATE_KEY" > ./deploy.key
-          chmod 600 ./deploy.key
-          ssh-keyscan -H erp-stg.barokahjayasemesta.com >> ~/.ssh/known_hosts
-        shell: bash
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+      - name: Set up SSH Agent
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Deploy Backend
+      - name: Add SSH Known Hosts
         run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+        shell: bash
+
+      - name: Deploy to Server
+        run: |
+          set -e
+
           BRANCH=${{ github.ref_name }}
-          ssh -i ./deploy.key ${{ secrets.SSH_USER }}@erp-stg.barokahjayasemesta.com "cd /home/mmulyana/app/erp-backend-staging && \
+          SSH_USER=${{ secrets.SSH_USER }}
+          SERVER_HOST=${{ secrets.SERVER_HOST }}
+          REMOTE_DIR="/home/mmulyana/app/erp-backend-staging"
+
+          ssh $SSH_USER@$SERVER_HOST "cd $REMOTE_DIR && \
           git fetch origin $BRANCH && \
           git reset --hard origin/$BRANCH && \
           pnpm install && \
@@ -33,3 +41,5 @@ jobs:
           npx prisma generate && \
           npx prisma db push && \
           pm2 reload erp-backend-staging"
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
