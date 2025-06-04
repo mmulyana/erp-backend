@@ -37,9 +37,21 @@ export const update = async (
     password?: string
   },
 ) => {
+  const existingUser = await db.user.findUnique({ where: { id } })
+
+  if (!existingUser) throw new Error('User not found')
+
+  const isGuest = existingUser.username === 'GUEST'
+
+  if (isGuest) {
+    delete data.username
+    delete data.password
+  }
+
   if (data.roleId === '') {
     delete data.roleId
   }
+
   return await db.user.update({ data, where: { id } })
 }
 

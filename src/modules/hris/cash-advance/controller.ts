@@ -24,6 +24,7 @@ import {
   update,
   updateTransaction,
 } from './repository'
+import { getQueryParam } from '@/utils'
 
 export const postCashAdvance = async (req: Request, res: Response) => {
   const parsed = CashAdvanceSchema.safeParse(req.body)
@@ -64,13 +65,21 @@ export const getCashAdvance = async (req: Request, res: Response) => {
 }
 
 export const getCashAdvances = async (req: Request, res: Response) => {
-  const { page, limit, search } = getParams(req)
-  const start_date = req.params.startDate
-    ? String(req.params.startDate)
-    : undefined
-  const end_date = req.params.endDate ? String(req.params.endDate) : undefined
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
+  const startDate = getQueryParam(req.query, 'startDate', 'string')
+  const endDate = getQueryParam(req.query, 'endDate', 'string')
+  const position = getQueryParam(req.query, 'position', 'string')
 
-  const data = await findAll(page, limit, search, start_date, end_date)
+  const data = await findAll({
+    page,
+    limit,
+    search,
+    startDate,
+    endDate,
+    position,
+    sortBy,
+    sortOrder,
+  })
   res.json(successResponse(data, 'kasbon'))
 }
 

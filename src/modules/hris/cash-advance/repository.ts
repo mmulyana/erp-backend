@@ -6,7 +6,7 @@ import { convertUTCToWIB } from '@/utils/convert-date'
 import { throwError } from '@/utils/error-handler'
 import { getPaginateParams } from '@/utils/params'
 import { Messages } from '@/utils/constant'
-import { DateRangeParams } from '@/types'
+import { DateRangeParams, OrderByParams, PaginationParams } from '@/types'
 import db from '@/lib/prisma'
 
 import { checkRemaining, recalculateRemaining, updateStatus } from './helper'
@@ -76,13 +76,21 @@ export const destroy = async (id: string) => {
   })
 }
 
-export const findAll = async (
-  page?: number,
-  limit?: number,
-  search?: string,
-  startDate?: string,
-  endDate?: string,
-) => {
+export const findAll = async ({
+  page,
+  limit,
+  search,
+  startDate,
+  endDate,
+  position,
+  sortBy,
+  sortOrder,
+}: PaginationParams &
+  OrderByParams & {
+    startDate?: string
+    endDate?: string
+    position?: string
+  }) => {
   const where: Prisma.CashAdvanceWhereInput = {
     AND: [
       search
@@ -104,14 +112,26 @@ export const findAll = async (
             },
           }
         : {},
+      position
+        ? {
+            employee: {
+              position: { contains: position, mode: 'insensitive' },
+            },
+          }
+        : {},
       { deletedAt: null },
     ],
+  }
+
+  const orderBy: Prisma.CashAdvanceOrderByWithRelationInput = {
+    [sortBy ?? 'createdAt']: sortOrder ?? 'desc',
   }
 
   if (page === undefined || limit === undefined) {
     const data = await db.cashAdvance.findMany({
       where,
       select,
+      orderBy,
     })
     return { data }
   }
@@ -120,9 +140,7 @@ export const findAll = async (
 
   const [data, total] = await Promise.all([
     db.cashAdvance.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
       where,
       skip,
       take,
