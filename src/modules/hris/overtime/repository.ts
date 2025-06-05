@@ -26,6 +26,7 @@ export const create = async (payload: Payload) => {
     where: {
       employeeId: payload.employeeId,
       date: new Date(payload.date),
+      deletedAt: null,
     },
   })
   if (existing.length > 0) {
