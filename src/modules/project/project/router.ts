@@ -3,6 +3,8 @@ import {
   deleteAssignEmployee,
   deleteAttachment,
   deleteProject,
+  getAssigned,
+  getAssignedCost,
   getAssignedEmployee,
   getAttachments,
   getEstimateRevenue,
@@ -35,6 +37,8 @@ router.get('/data/report-chart', getProjectReportChart)
 router.get('/data/status-chart', getProjectStatusChart)
 router.get('/data/total-revenue', getTotalNetValue)
 router.get('/data/estimate-revenue', getEstimateRevenue)
+router.get('/data/assigned/:id', getAssigned)
+router.get('/data/assigned/cost/:id', getAssignedCost)
 
 router.get('/report/:id', getReport)
 router.post('/report', upload.array('photoUrl', 10), postReport)

@@ -10,6 +10,7 @@ import { Messages } from '@/utils/constant'
 import { Assigned, Attachment, Project, Report } from './schema'
 import { DateRangeParams, PaginationParams } from '@/types'
 import {
+  differenceInCalendarDays,
   eachDayOfInterval,
   endOfDay,
   endOfMonth,
@@ -273,6 +274,7 @@ export const readAssign = async (projectId: string) => {
           fullname: true,
           photoUrl: true,
           position: true,
+          salary: true,
         },
       },
     },
@@ -307,13 +309,13 @@ export const createAssign = async (payload: Assigned) => {
 }
 
 export const updateAssign = async (id: string, payload: Assigned) => {
-  await db.assignedEmployee.update({
+  return await db.assignedEmployee.update({
     where: { id },
     data: {
       projectId: payload.projectId,
       employeeId: payload.employeeId,
       startDate: new Date(payload.startDate),
-      endDate: payload.endDate ? new Date(payload.endDate) : null,
+      endDate: payload.endDate || null,
     },
   })
 }
@@ -817,4 +819,59 @@ export const readReportById = async (id: string) => {
     where: { id },
     select: selectReport,
   })
+}
+
+export const readAssigned = async (id: string) => {
+  const data = await db.assignedEmployee.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      startDate: true,
+      endDate: true,
+      employeeId: true,
+    },
+  })
+  return data
+}
+
+export const readAssignedCost = async (projectId: string) => {
+  const assignments = await db.assignedEmployee.findMany({
+    where: { projectId, deletedAt: null },
+    select: {
+      id: true,
+      startDate: true,
+      endDate: true,
+      employee: {
+        select: {
+          id: true,
+          fullname: true,
+          photoUrl: true,
+          position: true,
+          salary: true,
+        },
+      },
+    },
+  })
+
+  const today = new Date()
+
+  const computed = assignments.map((item) => {
+    const start = new Date(item.startDate)
+    const end = item.endDate ? new Date(item.endDate) : today
+    const days = differenceInCalendarDays(end, start) + 1
+    const cost = item.employee.salary ? days * item.employee.salary : 0
+
+    return {
+      ...item,
+      days,
+      cost,
+    }
+  })
+
+  const totalCost = computed.reduce((sum, item) => sum + item.cost, 0)
+
+  return {
+    data: computed,
+    totalCost,
+  }
 }

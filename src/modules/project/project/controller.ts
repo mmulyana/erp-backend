@@ -33,6 +33,8 @@ import {
   updateAssign,
   updateAttachment,
   updateReport,
+  readAssigned,
+  readAssignedCost,
 } from './repository'
 
 import { checkParamsId, getParams } from '@/utils/params'
@@ -132,13 +134,13 @@ export const patchAssignEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isAssignExist(id)
 
-  const parsed = AssignedSchema.safeParse(req.body)
+  const parsed = AssignedSchema.partial().safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
 
-  await updateAssign(id, parsed.data)
-  res.json(successResponse(null, 'Penugasan pegawai'))
+  const result = await updateAssign(id, parsed.data)
+  res.json(successResponse(result, 'Penugasan pegawai'))
 }
 
 export const deleteAssignEmployee = async (req: Request, res: Response) => {
@@ -342,4 +344,14 @@ export const getTotalNetValue = async (req: Request, res: Response) => {
 export const getEstimateRevenue = async (req: Request, res: Response) => {
   const result = await readEstimateRevenue()
   res.json(successResponse(result, 'Estimasi pendapatan'))
+}
+export const getAssigned = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  const result = await readAssigned(id)
+  res.json(successResponse(result, 'penugasan'))
+}
+export const getAssignedCost = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  const result = await readAssignedCost(id)
+  res.json(successResponse(result, 'penugasan'))
 }

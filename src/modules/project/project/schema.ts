@@ -21,7 +21,10 @@ export const AssignedSchema = z.object({
   projectId: z.string(),
   employeeId: z.string(),
   startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
+  endDate: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : val),
+    z.coerce.date().optional(),
+  ),
 })
 
 export const AttachmentSchema = z.object({
