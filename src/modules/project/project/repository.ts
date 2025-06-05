@@ -362,6 +362,7 @@ export const createAttachment = async (
       type: payload.type,
       fileUrl: payload.fileUrl,
       createdBy: payload.createdBy,
+      secret: payload.secret
     },
   })
 
@@ -454,6 +455,7 @@ export const readAllProjectAttachments = async ({
     createdAt: true,
     updatedAt: true,
     fileUrl: true,
+    secret: true,
     project: {
       select: {
         name: true,
