@@ -259,6 +259,7 @@ export const readAttendancePerDay = async ({
   const totalEmployee = await db.employee.count({
     where: {
       deletedAt: null,
+      payType: 'daily',
     },
   })
 
