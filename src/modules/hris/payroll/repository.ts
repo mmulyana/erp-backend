@@ -43,6 +43,7 @@ const select: Prisma.PayrollSelect = {
     select: {
       id: true,
       name: true,
+      payType: true,
     },
   },
 }
@@ -94,13 +95,16 @@ export const readAll = async ({
       select,
     })
 
-    const withSalary = data.map((i) => ({
-      ...i,
-      salary:
-        i.workDay * i.salary + i.overtimeHour * i.overtimeSalary - i.deduction,
-    }))
+    const withCalculatedSalary = data.map((i) => {
+      const baseSalary =
+        i.period.payType === 'daily' ? i.workDay * i.salary : i.salary
+      return {
+        ...i,
+        salary: baseSalary + i.overtimeHour * i.overtimeSalary - i.deduction,
+      }
+    })
 
-    return { data: withSalary }
+    return { data: withCalculatedSalary }
   }
 
   const { skip, take } = getPaginateParams(page, limit)
@@ -118,14 +122,17 @@ export const readAll = async ({
 
   const total_pages = Math.ceil(total / limit)
 
-  const withSalary = data.map((i) => ({
-    ...i,
-    salary:
-      i.workDay * i.salary + i.overtimeHour * i.overtimeSalary - i.deduction,
-  }))
+  const withCalculatedSalary = data.map((i) => {
+    const baseSalary =
+      i.period.payType === 'daily' ? i.workDay * i.salary : i.salary
+    return {
+      ...i,
+      salary: baseSalary + i.overtimeHour * i.overtimeSalary - i.deduction,
+    }
+  })
 
   return {
-    data: withSalary,
+    data: withCalculatedSalary,
     total,
     page,
     limit,
@@ -182,27 +189,44 @@ export const findTotalAmount = async ({
     },
   }
 
+  const selectFields = {
+    salary: true,
+    overtimeSalary: true,
+    deduction: true,
+    workDay: true,
+    overtimeHour: true,
+    period: {
+      select: {
+        payType: true,
+      },
+    },
+  }
+
+  const calculatePayrollAmount = (
+    payroll: Prisma.PayrollGetPayload<{ select: typeof selectFields }>,
+  ) => {
+    const baseSalary =
+      payroll.period.payType === 'daily'
+        ? payroll.workDay * payroll.salary
+        : payroll.salary
+    return (
+      baseSalary +
+      payroll.overtimeSalary * payroll.overtimeHour -
+      payroll.deduction
+    )
+  }
+
   if (periodId) {
     where.periodId = periodId
     const payrolls = await db.payroll.findMany({
       where,
-      select: {
-        salary: true,
-        overtimeSalary: true,
-        deduction: true,
-        workDay: true,
-        overtimeHour: true,
-      },
+      select: selectFields,
     })
 
-    const totalAmount = payrolls.reduce((sum, p) => {
-      return (
-        sum +
-        p.salary * p.workDay +
-        p.overtimeSalary * p.overtimeHour -
-        p.deduction
-      )
-    }, 0)
+    const totalAmount = payrolls.reduce(
+      (sum, p) => sum + calculatePayrollAmount(p),
+      0,
+    )
 
     return { total: totalAmount }
   }
@@ -220,41 +244,22 @@ export const findTotalAmount = async ({
           ...where,
           createdAt: { gte: start, lte: end },
         },
-        select: {
-          salary: true,
-          overtimeSalary: true,
-          deduction: true,
-          workDay: true,
-          overtimeHour: true,
-        },
+        select: selectFields,
       }),
       db.payroll.findMany({
         where: {
           ...where,
           createdAt: { gte: prevStart, lte: prevEnd },
         },
-        select: {
-          salary: true,
-          overtimeSalary: true,
-          deduction: true,
-          workDay: true,
-          overtimeHour: true,
-        },
+        select: selectFields,
       }),
     ])
 
-    const sum = (items: typeof currentPayrolls) =>
-      items.reduce(
-        (sum, p) =>
-          sum +
-          p.salary * p.workDay +
-          p.overtimeSalary * p.overtimeHour -
-          p.deduction,
-        0,
-      )
+    const sumPayrolls = (items: typeof currentPayrolls) =>
+      items.reduce((sum, p) => sum + calculatePayrollAmount(p), 0)
 
-    const current = sum(currentPayrolls)
-    const previous = sum(prevPayrolls)
+    const current = sumPayrolls(currentPayrolls)
+    const previous = sumPayrolls(prevPayrolls)
     const percentage =
       previous === 0 ? 100 : ((current - previous) / previous) * 100
 

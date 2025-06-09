@@ -131,6 +131,14 @@ export const readAll = async ({
     [sortBy]: sortOrder,
   }
 
+  const payrollSelectFields = {
+    workDay: true,
+    salary: true,
+    overtimeHour: true,
+    overtimeSalary: true,
+    deduction: true,
+  }
+
   if (page === undefined || limit === undefined) {
     const data = await db.payrollPeriod.findMany({
       where,
@@ -145,21 +153,14 @@ export const readAll = async ({
             status: 'done',
             deletedAt: null,
           },
-          select: {
-            workDay: true,
-            salary: true,
-            overtimeHour: true,
-            overtimeSalary: true,
-            deduction: true,
-          },
+          select: payrollSelectFields,
         })
 
         const totalSpending = payrolls.reduce((sum, p) => {
+          const baseSalary =
+            period.payType === 'daily' ? p.workDay * p.salary : p.salary
           return (
-            sum +
-            (p.workDay * p.salary +
-              p.overtimeHour * p.overtimeSalary -
-              p.deduction)
+            sum + baseSalary + p.overtimeHour * p.overtimeSalary - p.deduction
           )
         }, 0)
 
@@ -193,21 +194,14 @@ export const readAll = async ({
           status: 'done',
           deletedAt: null,
         },
-        select: {
-          workDay: true,
-          salary: true,
-          overtimeHour: true,
-          overtimeSalary: true,
-          deduction: true,
-        },
+        select: payrollSelectFields,
       })
 
       const totalSpending = payrolls.reduce((sum, p) => {
+        const baseSalary =
+          period.payType === 'daily' ? p.workDay * p.salary : p.salary
         return (
-          sum +
-          (p.workDay * p.salary +
-            p.overtimeHour * p.overtimeSalary -
-            p.deduction)
+          sum + baseSalary + p.overtimeHour * p.overtimeSalary - p.deduction
         )
       }, 0)
 
