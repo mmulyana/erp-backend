@@ -54,6 +54,7 @@ export const update = async (id: string, payload: Payload) => {
       employeeId: payload.employeeId,
       totalHour: payload.totalHour,
       createdBy: payload.createdBy,
+      projectId: payload.projectId,
       note: payload.note,
       ...(payload.date ? { date: new Date(payload.date) } : undefined),
     },
@@ -186,6 +187,7 @@ export const findOne = async (id: string) => {
     note: true,
     date: true,
     totalHour: true,
+    projectId: true,
     employee: {
       select: {
         fullname: true,

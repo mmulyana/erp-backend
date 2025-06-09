@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const SupplierSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1, 'Tidak boleh kosong'),
   address: z.string().optional(),
   email: z.string().optional(),
   phone: z.string().optional(),

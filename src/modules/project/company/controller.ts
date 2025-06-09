@@ -12,9 +12,10 @@ import {
 
 export const postCompany = async (req: Request, res: Response) => {
   const parsed = CompanySchema.safeParse(req.body)
-  if (!parsed) {
+  if (!parsed.success) {
     return errorParse(parsed.error)
   }
+  console.log('parsed', parsed.data)
 
   const photoUrl = req?.file?.filename || undefined
 

@@ -134,10 +134,13 @@ export const create = async (payload: Payload) => {
       status: payload.status,
       employees: {
         createMany: {
-          data: payload.employeeIds.map((employeeId) => ({
-            employeeId,
-            startDate: new Date(),
-          })),
+          data:
+            payload.employeeIds && payload.employeeIds.length > 0
+              ? payload.employeeIds.map((employeeId) => ({
+                  employeeId,
+                  startDate: new Date(),
+                }))
+              : [],
         },
       },
     },
@@ -362,7 +365,7 @@ export const createAttachment = async (
       type: payload.type,
       fileUrl: payload.fileUrl,
       createdBy: payload.createdBy,
-      secret: payload.secret
+      secret: payload.secret,
     },
   })
 

@@ -4,14 +4,19 @@ export const StockInSchema = z.object({
   referenceNumber: z.string().optional(),
   supplierId: z.string().nullable().optional(),
   note: z.string().optional(),
-  date: z.coerce.date(),
+  date: z.coerce.date({
+    errorMap: ({ code }, { defaultError }) => {
+      if (code == 'invalid_date') return { message: 'Tidak boleh kosong' }
+      return { message: defaultError }
+    },
+  }),
   photoUrl: z.any(),
   items: z
     .array(
       z.object({
-        itemId: z.string().uuid(),
-        quantity: z.coerce.number().min(1),
-        unitPrice: z.coerce.number().min(0),
+        itemId: z.string().min(1, 'Tidak boleh kosong'),
+        quantity: z.coerce.number().int().positive('Tidak boleh nol'),
+        unitPrice: z.coerce.number().int().positive('Tidak boleh nol'),
       }),
     )
     .min(1),

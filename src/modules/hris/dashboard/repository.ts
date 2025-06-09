@@ -55,6 +55,7 @@ export const findExpiringCertificates = async ({
     expiryDate: {
       lte: deadline,
     },
+    deletedAt: null,
   }
   // console.log('day', day)
   // console.log('where', where)
@@ -116,6 +117,7 @@ export const findExpiringSafetyInduction = async ({
     safetyInductionDate: {
       lte: maxDate,
     },
+    deletedAt: null,
   }
 
   const select: Prisma.EmployeeSelect = {
