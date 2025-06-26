@@ -251,7 +251,6 @@ export const updateTransaction = async (
       note: data.note,
     },
   })
-
   const remaining = await recalculateRemaining(data.cashAdvanceId)
   await updateStatus(data.cashAdvanceId, remaining)
 }

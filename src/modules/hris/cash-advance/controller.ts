@@ -108,9 +108,9 @@ export const patchCashAdvanceTransaction = async (
   res: Response,
 ) => {
   const { id } = checkParamsId(req)
-  await isExist(id)
+  await isTransactionExist(id)
 
-  const parsed = CashAdvanceTransactionSchema.safeParse(req.body)
+  const parsed = CashAdvanceTransactionSchema.partial().safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }
