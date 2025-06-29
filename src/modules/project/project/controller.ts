@@ -225,6 +225,10 @@ export const getProjectAttachments = async (req: Request, res: Response) => {
   const type = getQueryParam(req.query, 'type', 'string')
   const infinite = getQueryParam(req.query, 'infinite', 'boolean')
 
+  const canAccessSecret = req.user.permissions.includes(
+    'project:read-secret-attachment',
+  )
+
   const result = await readAllProjectAttachments({
     page,
     limit,
@@ -232,6 +236,7 @@ export const getProjectAttachments = async (req: Request, res: Response) => {
     projectId,
     type,
     infinite,
+    allowSecret: canAccessSecret,
   })
   res.json(successResponse(result, 'Lampiran'))
 }

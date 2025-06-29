@@ -407,6 +407,7 @@ type ReadProjectAttachmentParams = PaginationParams & {
   type?: string
   projectId?: string
   infinite?: boolean
+  allowSecret?: boolean
 }
 
 export const readAllProjectAttachments = async ({
@@ -416,6 +417,7 @@ export const readAllProjectAttachments = async ({
   type,
   projectId,
   infinite,
+  allowSecret,
 }: ReadProjectAttachmentParams) => {
   const where: Prisma.ProjectAttachmentWhereInput = {
     AND: [
@@ -443,6 +445,7 @@ export const readAllProjectAttachments = async ({
             projectId,
           }
         : {},
+      !allowSecret ? { secret: false } : {},
     ],
   }
 
