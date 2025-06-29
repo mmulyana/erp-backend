@@ -8,7 +8,7 @@ interface CustomError extends Error {
 
 interface UserPayload {
   id: string
-  // permissions?: string[]
+  permissions?: string[]
 }
 
 declare module 'express' {
@@ -48,6 +48,9 @@ const isAuthenticated = async (
 
       const user = await db.user.findUnique({
         where: { id: payload.id },
+        include: {
+          role: true,
+        },
       })
       if (!user) {
         const customError = new Error() as CustomError
@@ -56,7 +59,13 @@ const isAuthenticated = async (
         return next(customError)
       }
 
-      req.user = { id: user.id }
+      req.user = {
+        id: user.id,
+        permissions:
+          user.role.permissions && user.role.permissions.length > 0
+            ? user.role.permissions.split(',')
+            : [],
+      }
       next()
     },
   )
