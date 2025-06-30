@@ -225,6 +225,7 @@ export const readAll = async ({
       clientId ? { clientId } : {},
       priority ? { priority } : {},
       status ? { status: status as any } : {},
+      { deletedAt: null },
     ],
   }
 

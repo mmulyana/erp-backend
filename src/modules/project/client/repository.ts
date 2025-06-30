@@ -92,7 +92,11 @@ export const readAll = async ({
     },
     _count: {
       select: {
-        project: true,
+        project: {
+          where: {
+            deletedAt: null,
+          },
+        },
       },
     },
   }

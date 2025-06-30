@@ -21,28 +21,26 @@ export const loginService = async (credentials: Login) => {
   const isPhoneNumber = /^\d+$/.test(username)
   const isUsername = /^[a-zA-Z0-9]+$/.test(username)
 
-  let user
+  let user = null
+
   if (isEmail) {
     user = await findByEmail(username)
-  }
-
-  if (isUsername) {
-    user = await findByUsername(username)
-  }
-
-  if (isPhoneNumber) {
+  } else if (isPhoneNumber) {
     user = await findByPhone(username)
-  }
-
-  if (!user.active) {
-    return throwError(Messages.AccountNonActive, HttpStatusCode.BadRequest)
+  } else if (isUsername) {
+    user = await findByUsername(username)
   }
 
   if (!user) {
     return throwError(Messages.AccountDoesntExists, HttpStatusCode.BadRequest)
   }
 
-  if (!user || !(await compare(password, user.password))) {
+  if (!user.active) {
+    return throwError(Messages.AccountNonActive, HttpStatusCode.BadRequest)
+  }
+
+  const isPasswordMatch = await compare(password, user.password)
+  if (!isPasswordMatch) {
     return throwError(Messages.InvalidCredential, HttpStatusCode.BadRequest)
   }
 
