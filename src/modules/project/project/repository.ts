@@ -419,34 +419,38 @@ export const readAllProjectAttachments = async ({
   infinite,
   allowSecret,
 }: ReadProjectAttachmentParams) => {
-  const where: Prisma.ProjectAttachmentWhereInput = {
-    AND: [
-      {
-        deletedAt: null,
+  const filters: Prisma.ProjectAttachmentWhereInput[] = []
+
+  filters.push({ deletedAt: null })
+
+  if (search) {
+    filters.push({
+      name: {
+        contains: search,
+        mode: 'insensitive',
       },
-      search
-        ? {
-            name: {
-              contains: search,
-              mode: 'insensitive',
-            },
-          }
-        : {},
-      type
-        ? {
-            type: {
-              equals: type,
-              mode: 'insensitive',
-            },
-          }
-        : {},
-      projectId
-        ? {
-            projectId,
-          }
-        : {},
-      !allowSecret ? { secret: false } : {},
-    ],
+    })
+  }
+
+  if (type) {
+    filters.push({
+      type: {
+        equals: type,
+        mode: 'insensitive',
+      },
+    })
+  }
+
+  if (projectId) {
+    filters.push({ projectId })
+  }
+
+  if (!allowSecret) {
+    filters.push({ secret: false })
+  }
+
+  const where: Prisma.ProjectAttachmentWhereInput = {
+    AND: filters,
   }
 
   const orderBy: Prisma.ProjectAttachmentOrderByWithRelationInput = {

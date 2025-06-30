@@ -228,6 +228,7 @@ export const getProjectAttachments = async (req: Request, res: Response) => {
   const canAccessSecret = req.user.permissions.includes(
     'project:read-secret-attachment',
   )
+  console.log('canAccess', canAccessSecret)
 
   const result = await readAllProjectAttachments({
     page,

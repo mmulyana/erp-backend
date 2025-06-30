@@ -29,7 +29,7 @@ export const AssignedSchema = z.object({
 
 export const AttachmentSchema = z.object({
   type: z.string(),
-  secret: z.coerce.boolean().default(false),
+  secret: z.enum(['true', 'false']).transform((val) => val === 'true'),
   name: z.string(),
   projectId: z.string(),
 })

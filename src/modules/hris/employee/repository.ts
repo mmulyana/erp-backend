@@ -191,7 +191,7 @@ export const readAll = async ({
       where,
       select,
       orderBy,
-      take
+      take,
     })
     return { data }
   }
@@ -757,7 +757,11 @@ export const findSummaryById = async ({
       deletedAt: null,
     },
     include: {
-      transactions: true,
+      transactions: {
+        where: {
+          deletedAt: null,
+        },
+      },
     },
   })
 
