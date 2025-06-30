@@ -44,6 +44,7 @@ const select: Prisma.ProjectSelect = {
     select: {
       id: true,
       username: true,
+      photoUrl: true,
     },
   },
   netValue: true,
@@ -330,6 +331,9 @@ export const updateAssign = async (
         employeeId: data.employeeId,
         endDate: null,
         deletedAt: null,
+        id: {
+          not: data.id,
+        },
       },
     })
 
