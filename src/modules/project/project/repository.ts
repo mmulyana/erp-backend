@@ -1,4 +1,4 @@
-import { Prisma, ProjectStatus } from '@prisma/client'
+import { PayType, Prisma, ProjectStatus } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 
 import db from '@/lib/prisma'
@@ -65,7 +65,11 @@ const selectReport: Prisma.ProjectReportSelect = {
   _count: {
     select: {
       attachments: true,
-      comments: true,
+      comments: {
+        where: {
+          deletedAt: null,
+        },
+      },
     },
   },
   attachments: true,
@@ -628,6 +632,7 @@ export const readAllProjectReports = async ({
       type ? { type } : {},
       projectId ? { projectId } : {},
       createdBy ? { createdBy } : {},
+      { deletedAt: null },
     ],
   }
 
@@ -873,7 +878,13 @@ export const readAssigned = async (id: string) => {
 
 export const readAssignedCost = async (projectId: string) => {
   const assignments = await db.assignedEmployee.findMany({
-    where: { projectId, deletedAt: null },
+    where: {
+      projectId,
+      deletedAt: null,
+      employee: {
+        payType: PayType.daily,
+      },
+    },
     select: {
       id: true,
       startDate: true,
