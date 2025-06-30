@@ -120,22 +120,22 @@ export const readAll = async ({
   let paramIndex = 1
   const params: any[] = []
 
-  let whereClause = `WHERE "deletedAt" IS NULL`
+  let whereClause = `WHERE inventories."deletedAt" IS NULL`
 
   if (search) {
-    whereClause += ` AND "name" ILIKE '%' || $${paramIndex} || '%'`
+    whereClause += ` AND inventories."name" ILIKE '%' || $${paramIndex} || '%'`
     params.push(search)
     paramIndex++
   }
 
   if (brandId) {
-    whereClause += ` AND "brandId" = $${paramIndex}`
+    whereClause += ` AND inventories."brandId" = $${paramIndex}::uuid`
     params.push(brandId)
     paramIndex++
   }
 
   if (warehouseId) {
-    whereClause += ` AND "warehouseId" = $${paramIndex}`
+    whereClause += ` AND inventories."warehouseId" = $${paramIndex}::uuid`
     params.push(warehouseId)
     paramIndex++
   }
@@ -143,8 +143,8 @@ export const readAll = async ({
   if (status) {
     whereClause += ` AND (
       CASE
-        WHEN "totalStock" = 0 THEN 'OutOfStock'
-        WHEN "totalStock" <= "minimum" AND "totalStock" > 0 THEN 'LowStock'
+        WHEN inventories."totalStock" = 0 THEN 'OutOfStock'
+        WHEN inventories."totalStock" <= inventories."minimum" AND inventories."totalStock" > 0 THEN 'LowStock'
         ELSE 'Available'
       END = $${paramIndex}
     )`
@@ -155,23 +155,42 @@ export const readAll = async ({
   params.push(take)
   params.push(skip)
 
-  const data = await db.$queryRawUnsafe<
-    Array<any & { total_count: bigint }>
-  >(
+  const data = await db.$queryRawUnsafe<Array<any & { total_count: bigint }>>(
     `
-    SELECT *,
+    SELECT
+      inventories."id",
+      inventories."name",
+      inventories."brandId",
+      inventories."warehouseId",
+      inventories."minimum",
+      inventories."description",
+      inventories."unitOfMeasurement",
+      inventories."photoUrl",
+      inventories."availableStock",
+      inventories."totalStock",
+      inventories."category",
+      inventories."createdAt",
+      inventories."updatedAt",
+      inventories."deletedAt",
+      inventory_brands.name AS "brandName",
+      inventory_brands."photoUrl" AS "brandPhotoUrl",
+      inventory_brands."deletedAt" AS "brandDeletedAt",
+      warehouses.name AS "warehouseName",
+      warehouses."deletedAt" AS "warehouseDeletedAt",
       CASE
-        WHEN "totalStock" = 0 THEN 'OutOfStock'
-        WHEN "totalStock" <= "minimum" AND "totalStock" > 0 THEN 'LowStock'
+        WHEN inventories."totalStock" = 0 THEN 'OutOfStock'
+        WHEN inventories."totalStock" <= inventories."minimum" AND inventories."totalStock" > 0 THEN 'LowStock'
         ELSE 'Available'
       END AS status,
       COUNT(*) OVER() AS total_count
     FROM inventories
+    LEFT JOIN inventory_brands ON inventories."brandId" = inventory_brands.id
+    LEFT JOIN warehouses ON inventories."warehouseId" = warehouses.id
     ${whereClause}
-    ORDER BY "${orderField}" ${orderDirection}
+    ORDER BY inventories."${orderField}" ${orderDirection}
     LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `,
-    ...params
+    ...params,
   )
 
   const total = Number(data[0]?.total_count ?? 0)
@@ -183,9 +202,7 @@ export const readAll = async ({
   }))
 
   if (page === undefined || limit === undefined) {
-    return {
-      data: parsedData,
-    }
+    return { data: parsedData }
   }
 
   if (infinite) {
@@ -203,7 +220,6 @@ export const readAll = async ({
     total_pages,
   }
 }
-
 
 export const isExist = async (id: string) => {
   const data = await db.inventory.findUnique({ where: { id } })
