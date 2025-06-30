@@ -134,7 +134,9 @@ export const patchAssignEmployee = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
   await isAssignExist(id)
 
-  const parsed = AssignedSchema.partial().safeParse(req.body)
+  const parsed = AssignedSchema.partial()
+    .extend({ id: z.string().optional() })
+    .safeParse(req.body)
   if (!parsed.success) {
     return errorParse(parsed.error)
   }

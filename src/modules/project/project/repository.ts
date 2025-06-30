@@ -316,7 +316,31 @@ export const createAssign = async (payload: Assigned) => {
   })
 }
 
-export const updateAssign = async (id: string, payload: Assigned) => {
+export const updateAssign = async (
+  id: string,
+  payload: Assigned & { id?: string },
+) => {
+  if (!payload.endDate) {
+    const data = await db.assignedEmployee.findUnique({
+      where: { id: payload.id },
+    })
+    const isExist = await db.assignedEmployee.findFirst({
+      where: {
+        projectId: data.projectId,
+        employeeId: data.employeeId,
+        endDate: null,
+        deletedAt: null,
+      },
+    })
+
+    if (isExist) {
+      return throwError(
+        'Pegawai ini sudah ditambahkan, silangkah akhiri atau hapus data sebelumya',
+        HttpStatusCode.BadRequest,
+      )
+    }
+  }
+
   return await db.assignedEmployee.update({
     where: { id },
     data: {
