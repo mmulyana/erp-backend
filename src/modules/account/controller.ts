@@ -5,7 +5,7 @@ import { updateResponse } from '@/utils/response'
 import { checkParamsId } from '@/utils/params'
 
 import { resetPasswordSchema, updateUserSchema } from './schema'
-import { resetPassword, updateUser } from './repository'
+import { changePassword, resetPassword, updateUser } from './repository'
 
 export const patchInfo = async (req: Request, res: Response) => {
   const { id } = checkParamsId(req)
@@ -32,6 +32,13 @@ export const patchPassword = async (req: Request, res: Response) => {
   const parsed = resetPasswordSchema.safeParse(req.body)
   if (!parsed.success) return errorParse(parsed.error)
 
-  await resetPassword(id, parsed.data)
+  await changePassword(id, parsed.data)
   res.json(updateResponse(null, 'Password'))
+}
+
+export const patchResetPassword = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  
+  await resetPassword(id)
+  res.json(updateResponse(null, 'Password berhasil direset'))
 }

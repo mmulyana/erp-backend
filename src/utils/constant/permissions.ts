@@ -1,5 +1,105 @@
 export const permissions = [
   {
+    name: 'Halaman',
+    permissions: [
+      {
+        key: 'pages:hris-dashboard',
+        name: 'Dashboard HRIS',
+        description: 'Akses untuk halaman dashboard HRIS',
+      },
+      {
+        key: 'pages:hris-employee',
+        name: 'Halaman Pegawai',
+        description: 'Akses untuk halaman pegawai',
+      },
+      {
+        key: 'pages:hris-attendance',
+        name: 'Halaman Absensi',
+        description: 'Akses untuk halaman absensi',
+      },
+      {
+        key: 'pages:hris-overtime',
+        name: 'Halaman Lembur',
+        description: 'Akses untuk halaman lembur',
+      },
+      {
+        key: 'pages:hris-cash-advance',
+        name: 'Halaman Kasbon',
+        description: 'Akses untuk halaman kasbon',
+      },
+      {
+        key: 'pages:hris-payroll',
+        name: 'Halaman Gaji',
+        description: 'Akses untuk halaman gaji',
+      },
+      {
+        key: 'pages:hris-slip-gaji',
+        name: 'Halaman Slip Gaji',
+        description: 'Akses untuk halaman slip gaji',
+      },
+      {
+        key: 'pages:project-dashboard',
+        name: 'Dashboard Proyek',
+        description: 'Akses untuk halaman dashboard proyek',
+      },
+      {
+        key: 'pages:project-list',
+        name: 'Halaman Proyek',
+        description: 'Akses untuk halaman proyek',
+      },
+      {
+        key: 'pages:project-client',
+        name: 'Halaman Klien',
+        description: 'Akses untuk halaman klien',
+      },
+      {
+        key: 'pages:project-client-company',
+        name: 'Halaman Perusahaan Klien',
+        description: 'Akses untuk halaman perusahaan klien',
+      },
+      {
+        key: 'pages:inventory-dashboard',
+        name: 'Dashboard Inventaris',
+        description: 'Akses untuk halaman dashboard inventaris',
+      },
+      {
+        key: 'pages:inventory-item',
+        name: 'Halaman Barang',
+        description: 'Akses untuk halaman barang inventaris',
+      },
+      {
+        key: 'pages:inventory-warehouse',
+        name: 'Halaman Gudang',
+        description: 'Akses untuk halaman gudang',
+      },
+      {
+        key: 'pages:inventory-brand',
+        name: 'Halaman Merek',
+        description: 'Akses untuk halaman merek',
+      },
+      {
+        key: 'pages:inventory-supplier',
+        name: 'Halaman Supplier',
+        description: 'Akses untuk halaman supplier',
+      },
+      {
+        key: 'pages:inventory-stock-in',
+        name: 'Halaman Stok Masuk',
+        description: 'Akses untuk halaman stok masuk',
+      },
+      {
+        key: 'pages:inventory-stock-out',
+        name: 'Halaman Stok Keluar',
+        description: 'Akses untuk halaman stok keluar',
+      },
+      {
+        key: 'pages:inventory-stock-borrow',
+        name: 'Halaman Stok Pinjam',
+        description: 'Akses untuk halaman stok pinjam',
+      },
+    ],
+  },
+  {
     name: 'Pegawai',
     permissions: [
       {
@@ -95,7 +195,7 @@ export const permissions = [
     ],
   },
   {
-    name: 'project',
+    name: 'Proyek',
     permissions: [
       {
         key: 'project:view',
@@ -196,7 +296,7 @@ export const permissions = [
     ],
   },
   {
-    name: 'inventory',
+    name: 'Inventaris',
     permissions: [
       {
         key: 'item:view',

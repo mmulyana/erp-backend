@@ -25,13 +25,17 @@ export const loginService = async (credentials: Login) => {
   if (isEmail) {
     user = await findByEmail(username)
   }
-  
+
   if (isUsername) {
     user = await findByUsername(username)
   }
 
   if (isPhoneNumber) {
     user = await findByPhone(username)
+  }
+
+  if (!user.active) {
+    return throwError(Messages.AccountNonActive, HttpStatusCode.BadRequest)
   }
 
   if (!user) {

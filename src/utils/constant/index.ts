@@ -34,6 +34,7 @@ export const Messages = {
   fileNotSended: 'Tidak ada file yang dikirim!',
   InvalidUUID: 'invalid uuid',
   TourExist: 'Tur sudah ada',
+  AccountNonActive: 'Akun tidak aktif',
 }
 
 export const TEST_URL = 'http://localhost:5001'
