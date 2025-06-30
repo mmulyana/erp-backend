@@ -260,6 +260,7 @@ export const readAttendancePerDay = async ({
     where: {
       deletedAt: null,
       payType: 'daily',
+      active: true,
     },
   })
 
