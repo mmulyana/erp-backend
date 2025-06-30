@@ -269,6 +269,7 @@ export const getSummaryById = async (req: Request, res: Response) => {
 export const getProjectEmployee = async (req: Request, res: Response) => {
   const { page, limit, search, sortBy, sortOrder } = getParams(req)
   const employeeId = getQueryParam(req.query, 'employeeId', 'string')
+  const isEnd = getQueryParam(req.query, 'isEnd', 'boolean')
 
   const result = await readProjectEmployee({
     employeeId,
@@ -277,6 +278,7 @@ export const getProjectEmployee = async (req: Request, res: Response) => {
     search,
     sortBy,
     sortOrder,
+    isEnd,
   })
 
   res.json(successResponse(result, 'penugasan proyek'))

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Prisma, ProjectStatus } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 
 import db from '@/lib/prisma'
@@ -159,6 +159,11 @@ export const destroy = async (id: string) => {
 }
 
 export const update = async (id: string, payload: Payload) => {
+  if (payload.status === 'DONE' && !payload.doneAt) {
+    payload.doneAt = new Date()
+  } else if (payload.status !== 'DONE') {
+    payload.doneAt = null
+  }
   const data = await db.project.update({
     where: { id: id },
     data: {
@@ -758,31 +763,24 @@ export const readTotalRevenue = async ({
   const prevStart = startOfMonth(prevDate)
   const prevEnd = endOfMonth(prevDate)
 
-  const buildWhere = (start: Date, end: Date) => {
-    const where: any = {
-      deletedAt: null,
-      createdAt: {
-        gte: start,
-        lte: end,
-      },
-    }
-
-    where.status = 'DONE'
-
-    return where
-  }
+  const buildWhere = (start: Date, end: Date) => ({
+    deletedAt: null,
+    status: ProjectStatus.DONE,
+    doneAt: {
+      gte: start,
+      lte: end,
+    },
+  })
 
   const [currentAgg, previousAgg] = await Promise.all([
     db.project.aggregate({
       _sum: { netValue: true },
       where: buildWhere(start, end),
     }),
-    typeof year === 'number' && typeof monthIndex === 'number'
-      ? db.project.aggregate({
-          _sum: { netValue: true },
-          where: buildWhere(prevStart, prevEnd),
-        })
-      : Promise.resolve({ _sum: { netValue: null } }),
+    db.project.aggregate({
+      _sum: { netValue: true },
+      where: buildWhere(prevStart, prevEnd),
+    }),
   ])
 
   const currentRaw = currentAgg._sum.netValue ?? 0
@@ -793,12 +791,11 @@ export const readTotalRevenue = async ({
   const previous =
     typeof previousRaw === 'bigint' ? Number(previousRaw) : previousRaw
 
-  const percentage =
-    previous === 0
-      ? current === 0
-        ? 0
-        : 100
-      : ((current - previous) / previous) * 100
+  const percentage = (() => {
+    if (previous === 0 && current === 0) return 0
+    if (previous === 0 && current > 0) return 100
+    return ((current - previous) / previous) * 100
+  })()
 
   return {
     current,

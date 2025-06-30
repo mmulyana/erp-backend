@@ -795,10 +795,12 @@ export const readProjectEmployee = async ({
   employeeId,
   sortBy,
   sortOrder,
+  isEnd = false,
 }: PaginationParams & {
   employeeId?: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  isEnd?: boolean
 }) => {
   const where: Prisma.AssignedEmployeeWhereInput = {
     AND: [
@@ -817,6 +819,7 @@ export const readProjectEmployee = async ({
           }
         : {},
       employeeId ? { employeeId } : {},
+      isEnd ? { endDate: { not: null } } : { endDate: { equals: null } },
       { deletedAt: null },
     ],
   }

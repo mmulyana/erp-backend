@@ -46,27 +46,43 @@ const isAuthenticated = async (
         return next(customError)
       }
 
-      const user = await db.user.findUnique({
-        where: { id: payload.id },
-        include: {
-          role: true,
-        },
-      })
-      if (!user) {
-        const customError = new Error() as CustomError
-        customError.message = 'Akun tidak ditemukan'
-        customError.status = 403
-        return next(customError)
-      }
+      try {
+        const user = await db.user.findUnique({
+          where: { id: payload.id },
+          include: { role: true },
+        })
 
-      req.user = {
-        id: user.id,
-        permissions:
-          user.role.permissions && user.role.permissions.length > 0
-            ? user.role.permissions.split(',')
-            : [],
+        if (!user) {
+          const customError = new Error('Akun tidak ditemukan') as CustomError
+          customError.status = 403
+          return next(customError)
+        }
+
+        req.user = {
+          id: user.id,
+          permissions:
+            user.role.permissions?.length > 0
+              ? user.role.permissions.split(',')
+              : [],
+        }
+        return next()
+      } catch (e: any) {
+        console.error('DB error:', e)
+
+        if (e.code === 'P1001') {
+          const dbError = new Error(
+            'Database tidak bisa dihubungi',
+          ) as CustomError
+          dbError.status = 500
+          return next(dbError)
+        }
+
+        const unknownError = new Error(
+          'Terjadi kesalahan server',
+        ) as CustomError
+        unknownError.status = 500
+        return next(unknownError)
       }
-      next()
     },
   )
 }

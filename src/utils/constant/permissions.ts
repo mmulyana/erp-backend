@@ -97,6 +97,16 @@ export const permissions = [
         name: 'Halaman Stok Pinjam',
         description: 'Akses untuk halaman stok pinjam',
       },
+      {
+        key: 'pages:admin-user',
+        name: 'Halaman User',
+        description: 'Akses untuk halaman user',
+      },
+      {
+        key: 'pages:admin-role',
+        name: 'Halaman Role',
+        description: 'Akses untuk halaman role',
+      },
     ],
   },
   {
