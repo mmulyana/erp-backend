@@ -1,0 +1,45 @@
+name: backend-staging
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH Agent
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Add SSH Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+        shell: bash
+
+      - name: Deploy to Server
+        run: |
+          set -e
+
+          BRANCH=${{ github.ref_name }}
+          SSH_USER=${{ secrets.SSH_USER }}
+          SERVER_HOST=${{ secrets.SERVER_HOST }}
+          REMOTE_DIR="/home/mmulyana/app/erp-backend-staging"
+
+          ssh $SSH_USER@$SERVER_HOST "cd $REMOTE_DIR && \
+          git fetch origin $BRANCH && \
+          git reset --hard origin/$BRANCH && \
+          npx prisma generate && \
+          npx prisma db push && \
+          pnpm install && \
+          pnpm build && \
+          pm2 reload erp-backend-staging"
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}

@@ -1,90 +1,153 @@
-import { deleteFile } from '../../../utils/file'
-import db from '../../../lib/db'
+import { Prisma } from '@prisma/client'
+import { HttpStatusCode } from 'axios'
+
+import { getPaginateParams } from '@/utils/params'
+import { throwError } from '@/utils/error-handler'
+import { Messages } from '@/utils/constant'
+import { deleteFile } from '@/utils/file'
+import db from '@/lib/prisma'
+
 import { Brand } from './schema'
+import { PaginationParams } from '@/types'
 
-export default class BrandRepository {
-  create = async (payload: Brand & { photoUrl?: string }) => {
-    await db.brand.create({ data: payload })
-  }
-  update = async (
-    id: number,
-    payload: Partial<Brand> & { photoUrl?: string }
-  ) => {
-    await this.isExist(id)
-    if (payload.photoUrl) {
-      const data = await db.brand.findUnique({ where: { id } })
-      if (data?.photoUrl) {
-        await deleteFile(data.photoUrl)
-      }
-    }
-    return await db.brand.update({
-      data: payload,
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            goods: true,
-          },
-        },
+const select: Prisma.BrandInventorySelect = {
+  id: true,
+  name: true,
+  photoUrl: true,
+
+  createdAt: true,
+
+  _count: {
+    select: {
+      inventories: true,
+    },
+  },
+}
+
+export const create = async (payload: Brand & { photoUrl?: string }) => {
+  return db.brandInventory.create({
+    data: {
+      name: payload.name,
+      photoUrl: payload.photoUrl,
+    },
+  })
+}
+
+export const update = async (
+  id: string,
+  payload: Brand & { createdBy: string; photoUrl?: string },
+) => {
+  return db.brandInventory.update({
+    where: { id },
+    data: {
+      name: payload.name,
+      photoUrl: payload.photoUrl,
+    },
+  })
+}
+
+export const destroy = async (id: string) => {
+  return db.brandInventory.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+  })
+}
+
+export const read = async (id: string) => {
+  const data = await db.brandInventory.findUnique({
+    where: { id },
+    select: {
+      ...select,
+      _count: { select: { inventories: true } },
+    },
+  })
+  return data
+}
+
+export const readAll = async ({
+  limit,
+  page,
+  search,
+  infinite,
+  sortBy,
+  sortOrder,
+}: PaginationParams & {
+  infinite?: boolean
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}) => {
+  const where: Prisma.BrandInventoryWhereInput = {
+    AND: [
+      search
+        ? {
+            name: { contains: search, mode: 'insensitive' },
+          }
+        : {},
+      {
+        deletedAt: null,
       },
+    ],
+  }
+
+  const orderBy: Prisma.BrandInventoryOrderByWithRelationInput = {
+    [sortBy || 'createdAt']: sortOrder || 'desc',
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.brandInventory.findMany({
+      select,
+      where,
+      orderBy,
     })
+    return { data }
   }
-  delete = async (id: number) => {
-    await this.isExist(id)
-    const data = await db.brand.findUnique({ where: { id } })
 
-    if (data?.photoUrl) {
-      deleteFile(data.photoUrl)
-    }
+  const { skip, take } = getPaginateParams(page, limit)
 
-    await db.brand.delete({ where: { id } })
-  }
-  read = async (name: string | undefined) => {
-    const baseQuery = {
-      where: {},
-      include: {
-        _count: {
-          select: {
-            goods: true,
-          },
-        },
-      },
-    }
+  const [data, total] = await Promise.all([
+    db.brandInventory.findMany({
+      where,
+      select,
+      orderBy,
+      skip,
+      take,
+    }),
+    db.brandInventory.count({ where }),
+  ])
 
-    if (name) {
-      baseQuery.where = {
-        ...baseQuery.where,
-        OR: [
-          { name: { contains: name.toLowerCase() } },
-          { name: { contains: name.toUpperCase() } },
-          { name: { contains: name } },
-        ],
-      }
-    }
+  const total_pages = Math.ceil(total / limit)
+  const hasNextPage = page * limit < total
 
-    return await db.brand.findMany(baseQuery)
-  }
-  readOne = async (id: number) => {
-    const data = await db.brand.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            goods: true,
-          },
-        },
-      },
-    })
-
+  if (infinite) {
     return {
-      ...data,
-      photoUrl: data?.photoUrl
-        ? process.env.BASE_URL + '/img/' + data?.photoUrl
-        : null,
+      data,
+      nextPage: hasNextPage ? page + 1 : undefined,
     }
   }
-  isExist = async (id: number) => {
-    const data = await db.brand.findUnique({ where: { id } })
-    if (!data) throw Error('Merek tidak ditemukan')
+
+  return {
+    data,
+    page,
+    limit,
+    total_pages,
+    total,
   }
+}
+
+export const isExist = async (id: string) => {
+  const data = await db.brandInventory.findUnique({ where: { id } })
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+  }
+}
+
+export const destroyPhoto = async (id: string) => {
+  const data = await db.brandInventory.findUnique({ where: { id } })
+  if (data.photoUrl) {
+    await deleteFile(data.photoUrl)
+  }
+
+  await db.brandInventory.update({ where: { id }, data: { photoUrl: null } })
 }

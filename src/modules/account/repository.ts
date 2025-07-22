@@ -1,158 +1,82 @@
-import { FilterUser } from './service'
-import { Prisma } from '@prisma/client'
-import db from '../../lib/db'
+import db from '@/lib/prisma'
+import { ResetPasswordInput, UpdateUserInput } from './schema'
+import { throwError } from '@/utils/error-handler'
+import { Messages } from '@/utils/constant'
+import { HttpStatusCode } from 'axios'
+import { deleteFile } from '@/utils/file'
+import bcrypt from 'bcryptjs'
+import dotenv from 'dotenv'
+dotenv.config()
 
-export default class AccountRepository {
-  findByPagination = async (
-    page: number = 1,
-    limit: number = 10,
-    filter?: FilterUser
-  ) => {
-    const skip = (page - 1) * limit
-    let where: Prisma.UserWhereInput = {}
+export const updateUser = async (
+  id: string,
+  data: UpdateUserInput & { photoUrl?: string },
+) => {
+  const existing = await db.user.findUnique({
+    where: { id, deletedAt: null },
+  })
 
-    if (filter) {
-      if (filter.name) {
-        where = {
-          ...where,
-          OR: [
-            { name: { contains: filter.name.toLowerCase() } },
-            { name: { contains: filter.name.toUpperCase() } },
-            { name: { contains: filter.name } },
-          ],
-        }
-      }
-
-      if (filter.email) {
-        where = {
-          ...where,
-          OR: [
-            { email: { contains: filter.email.toLowerCase() } },
-            { email: { contains: filter.email.toUpperCase() } },
-            { email: { contains: filter.email } },
-          ],
-        }
-      }
-
-      if (filter.phoneNumber) {
-        where = {
-          ...where,
-          phoneNumber: {
-            contains: filter.phoneNumber,
-          },
-        }
-      }
-
-      if (filter.roleId) {
-        where = {
-          ...where,
-          roleId: filter.roleId,
-        }
-      }
-    }
-
-    const data = await db.user.findMany({
-      skip,
-      take: limit,
-      where,
-      include: {
-        role: true,
-      },
-    })
-
-    const total = await db.user.count({ where })
-    const total_pages = Math.ceil(total / limit)
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      total_pages,
-    }
-  }
-  getAccountById = async (id: number) => {
-    return await db.user.findUnique({
-      where: { id },
-      include: {
-        employee: true,
-        role: {
-          include: {
-            RolePermission: {
-              include: {
-                permission: true,
-              },
-            },
-          },
-        },
-      },
-    })
+  if (!existing) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 
-  updateAccountById = async (id: number, data: Prisma.UserUpdateInput) => {
-    return await db.user.update({ where: { id }, data })
+  if (existing.photoUrl !== data.photoUrl) {
+    await deleteFile(existing.photoUrl)
   }
 
-  deleteAccountById = async (id: number) => {
-    return await db.user.delete({ where: { id } })
+  return db.user.update({
+    where: { id },
+    data,
+  })
+}
+
+export const changePassword = async (id: string, input: ResetPasswordInput) => {
+  const user = await db.user.findUnique({
+    where: { id },
+    select: {
+      password: true,
+      deletedAt: true,
+    },
+  })
+
+  if (!user || user.deletedAt) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 
-  createAccount = async (data: Prisma.UserCreateManyInput) => {
-    return await db.user.create({
-      data,
-    })
+  const isMatch = await bcrypt.compare(input.oldPassword, user.password)
+  if (!isMatch) {
+    return throwError('INVALID_OLD_PASSWORD', HttpStatusCode.BadRequest)
   }
 
-  getRoleById = async (id: number) => {
-    return await db.role.findUnique({
-      where: { id },
-    })
+  const hashed = await bcrypt.hash(input.newPassword, 10)
+
+  return db.user.update({
+    where: { id },
+    data: {
+      password: hashed,
+    },
+  })
+}
+
+export const resetPassword = async (id: string) => {
+  const user = await db.user.findUnique({
+    where: { id },
+    select: {
+      password: true,
+      deletedAt: true,
+    },
+  })
+
+  if (!user || user.deletedAt) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
 
-  getPermissionById = async (id: number) => {
-    return await db.permission.findUnique({ where: { id } })
-  }
+  const hashed = await bcrypt.hash(process.env.DEFAULT_PASSWORD, 10)
 
-  findByPhone = async (phoneNumber: string) => {
-    const data = await db.user.findUnique({ where: { phoneNumber } })
-    if (data) {
-      return { exist: true }
-    }
-    return { exist: false }
-  }
-  findByName = async (name: string) => {
-    const data = await db.user.findUnique({ where: { name } })
-    if (data) {
-      return { exist: true }
-    }
-    return { exist: false }
-  }
-  findByEmail = async (email: string) => {
-    const data = await db.user.findUnique({ where: { email } })
-    if (data) {
-      return { exist: true }
-    }
-    return { exist: false }
-  }
-
-  findAllToursByUserId = async (userId: number) => {
-    return await db.tour.findMany({ where: { userId } })
-  }
-
-  findTourByUserIdAndName = async (userId: number, name: string) => {
-    return await db.tour.findFirst({
-      where: {
-        userId,
-        name,
-      },
-    })
-  }
-  createTour = async (userId: number, name: string) => {
-    return await db.tour.create({
-      data: {
-        userId,
-        name,
-      },
-    })
-  }
+  return db.user.update({
+    where: { id },
+    data: {
+      password: hashed,
+    },
+  })
 }

@@ -1,62 +1,102 @@
-import BaseController from '../../../helper/base-controller'
-import { NextFunction, Request, Response } from 'express'
-import BrandRepository from './repository'
+import { Request, Response } from 'express'
 
-export default class BrandController extends BaseController {
-  private repository: BrandRepository = new BrandRepository()
+import { checkParamsId, getParams } from '@/utils/params'
+import { errorParse } from '@/utils/error-handler'
+import {
+  createResponse,
+  deleteResponse,
+  successResponse,
+  updateResponse,
+} from '@/utils/response'
 
-  constructor() {
-    super('Merek')
-  }
+import {
+  create,
+  destroy,
+  destroyPhoto,
+  isExist,
+  read,
+  readAll,
+  update,
+} from './repository'
+import { BrandSchema } from './schema'
 
-  createHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await this.repository.create({
-        name: req.body.name,
-        photoUrl: req.file?.filename,
-      })
-      return this.response.success(res, this.message.successCreate())
-    } catch (error) {
-      next(error)
-    }
+export const getBrand = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await read(id)
+  res.json(successResponse(result, 'merek'))
+}
+
+export const getBrands = async (req: Request, res: Response) => {
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
+
+  const result = await readAll({
+    limit,
+    page,
+    search,
+    sortBy,
+    sortOrder,
+  })
+  res.json(successResponse(result, 'merek'))
+}
+
+export const getBrandsInfinite = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+
+  const result = await readAll({
+    limit,
+    page,
+    search,
+    infinite: true,
+  })
+  res.json(successResponse(result, 'merek'))
+}
+
+export const deleteBrand = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  await destroy(id)
+  res.json(deleteResponse(null, 'merek'))
+}
+
+export const patchBrand = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const parsed = BrandSchema.partial().safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
-  updateHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.update(Number(id), {
-        ...(req.body.name !== '' ? { name: req.body.name } : undefined),
-        photoUrl: req.file?.filename,
-      })
-      return this.response.success(res, this.message.successUpdate())
-    } catch (error) {
-      next(error)
-    }
+  const photoUrl = req?.file?.filename || undefined
+
+  const result = await update(id, {
+    ...parsed.data,
+    createdBy: req.user.id,
+    photoUrl,
+  })
+  res.json(updateResponse(result, 'merek'))
+}
+
+export const postBrand = async (req: Request, res: Response) => {
+  const parsed = BrandSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
-  deleteHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.delete(Number(id))
-      return this.response.success(res, this.message.successDelete())
-    } catch (error) {
-      next(error)
-    }
-  }
-  readHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { name } = req.query
-      const data = await this.repository.read(name?.toString() || undefined)
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  readOneHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const data = await this.repository.readOne(Number(id))
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
+  const photoUrl = req?.file?.filename || undefined
+
+  const result = await create({
+    ...parsed.data,
+    photoUrl,
+  })
+  res.json(createResponse(result, 'merek'))
+}
+
+export const patchDestroyPhotoBrand = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await destroyPhoto(id)
+  res.json(updateResponse(result, 'merek'))
 }

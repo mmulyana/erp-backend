@@ -1,29 +1,18 @@
 import { Router } from 'express'
-import Validation from '../../helper/validation'
-import { createRoleSchema, updateRoleSchema } from './schema'
-import RoleController from './controller'
+import {
+  createRole,
+  deleteRole,
+  updateRole,
+  findRoles,
+  findRole,
+} from './controller'
 
-export default class RoleRouter {
-  public router: Router
-  private controller: RoleController = new RoleController()
-  private create: Validation = new Validation(createRoleSchema)
-  private update: Validation = new Validation(updateRoleSchema)
+const router = Router()
 
-  constructor() {
-    this.router = Router()
-    this.register()
-  }
+router.get('/', findRoles)
+router.get('/:id', findRole)
+router.post('/', createRole)
+router.patch('/:id', updateRole)
+router.delete('/:id', deleteRole)
 
-  protected register() {
-    this.router.get('/', this.controller.getRolesHandler)
-    this.router.get('/:id', this.controller.getRoleByIdHandler)
-    
-    this.router.post('/', this.create.validate, this.controller.createRoleHandler)
-    this.router.post('/:id/permission/add/:permissionId', this.controller.addPermissionRoleHandler)
-    
-    this.router.delete('/:id', this.controller.deleteRoleHandler)
-    this.router.delete('/:id/permission/remove/:permissionId', this.controller.deletePermissionRoleHandler)
-    
-    this.router.patch('/:id', this.update.validate, this.controller.updateRoleHandler)
-  }
-}
+export default router

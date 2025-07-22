@@ -1,16 +1,11 @@
 import { z } from 'zod'
 
-export const supplierSchema = z.object({
-  name: z.string(),
-  phone: z.string().optional(),
-  email: z.string().optional(),
+export const SupplierSchema = z.object({
+  name: z.string().min(1, 'Tidak boleh kosong'),
   address: z.string().optional(),
-})
-export const updateSchema = supplierSchema.partial({
-  name: true,
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  googleMapUrl: z.string().optional(),
 })
 
-export const updateTagSchema = z.object({
-  tagIds: z.number().array().optional(),
-})
-export type Supplier = z.infer<typeof supplierSchema>
+export type Supplier = z.infer<typeof SupplierSchema>

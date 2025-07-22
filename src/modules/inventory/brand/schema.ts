@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-export const brandSchema = z.object({
-  name: z.string(),
+export const BrandSchema = z.object({
+  name: z.string().min(1, "Tidak boleh kosong"),
 })
 
-export type Brand = z.infer<typeof brandSchema>
+export type Brand = z.infer<typeof BrandSchema>

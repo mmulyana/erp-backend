@@ -1,761 +1,884 @@
-import { deleteFile, PATHS } from '../../../utils/file'
-import Message from '../../../utils/constant/message'
-import db from '../../../lib/db'
+import { CashAdvanceStatus, Prisma } from '@prisma/client'
+import { HttpStatusCode } from 'axios'
 import {
-  contactSchema,
-  addressSchema,
-  employeeSchema,
-  competencySchema,
-  certifchema,
-  updateEmployeeSchema,
-} from './schema'
-import { z } from 'zod'
+  addMonths,
+  getYear,
+  eachDayOfInterval,
+  endOfDay,
+  endOfMonth,
+  format,
+  getDate,
+  getMonth,
+  startOfDay,
+  startOfMonth,
+  subMonths,
+} from 'date-fns'
+import { id as ind } from 'date-fns/locale'
 
-import { differenceInDays, format } from 'date-fns'
-import { Prisma } from '@prisma/client'
+import { isValidUUID } from '@/utils/is-valid-uuid'
+import { getPaginateParams } from '@/utils/params'
+import { throwError } from '@/utils/error-handler'
+import { Messages } from '@/utils/constant'
+import { deleteFile } from '@/utils/file'
+import db from '@/lib/prisma'
 
-type Employee = z.infer<typeof employeeSchema>
-type UpdateEmployee = z.infer<typeof updateEmployeeSchema>
-type Contact = z.infer<typeof contactSchema>
-type Address = z.infer<typeof addressSchema>
-type Competency = z.infer<typeof competencySchema>
-type Certification = z.infer<typeof certifchema>
+import { PaginationParams } from '@/types'
 
-export type FilterEmployee = {
-  fullname?: string
-  positionId?: number
+import { Certification, Employee } from './schema'
+
+type Payload = Employee & {
+  photoUrl?: string
+  active?: boolean
+  deletedAt?: string
 }
 
-export default class EmployeeRepository {
-  private message: Message = new Message('pegawai')
-  // EMPLOYEE
-  create = async (payload: Employee) => {
-    const data = await db.employee.create({
-      data: {
-        fullname: payload.fullname,
-        joined_at: payload.joined_at,
-        joined_type: payload.joined_type,
-        basic_salary: payload.basic_salary,
-        overtime_salary: payload.overtime_salary,
-        pay_type: payload.pay_type,
-        employment_type: payload.employment_type,
-        place_of_birth: payload.place_of_birth,
-        birth_date: payload.birth_date,
-        gender: payload.gender,
-        marital_status: payload.marital_status,
-        religion: payload.religion,
-        positionId: Number(payload.positionId),
-        last_education: payload.last_education,
-        safety_induction_date: payload.safety_induction_date,
-        email: payload.email,
-        addresses: {
-          create: payload.addresses?.map((item) => ({
-            value: item.value,
-            type: item.type,
-          })),
-        },
-        phoneNumbers: {
-          create: payload.phoneNumbers?.map((item) => ({
-            value: item.value,
-          })),
-        },
-        competencies: {
-          create: payload.competencies?.map((competencyId) => ({
-            competency: {
-              connect: { id: Number(competencyId) },
-            },
-          })),
-        },
-      },
-      include: {
-        competencies: {
-          select: {
-            competency: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    })
-    return data
+export const isExist = async (id: string) => {
+  const data = await db.employee.findUnique({ where: { id } })
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
-  update = async (id: number, payload: UpdateEmployee) => {
-    return await db.employee.update({
-      data: payload,
-      where: { id },
-      select: {
-        id: true,
-      },
-    })
-  }
-  updateCompentencies = async (
-    id: number,
-    { competencyIds }: { competencyIds: number[] }
-  ) => {
-    await this.isExist(id)
-    const employee = await db.employee.findUnique({
-      where: { id },
-      include: {
-        competencies: {
-          include: {
-            competency: true,
-          },
-        },
-      },
-    })
+}
 
-    const currentCompetencies = employee?.competencies.map(
-      (item) => item.competency.id
-    )
-
-    const competenciesToConnect = competencyIds.filter(
-      (item) => !currentCompetencies?.includes(item)
-    )
-
-    const competenciesToDisconnect = currentCompetencies?.filter(
-      (item) => !competencyIds.includes(item)
-    )
-
-    await db.employee.update({
-      where: { id },
-      data: {
-        competencies: {
-          deleteMany: {
-            competencyId: {
-              in: competenciesToDisconnect,
-            },
-          },
-          create: competenciesToConnect.map((competencyId) => ({
-            competencyId,
-          })),
-        },
-      },
-    })
-  }
-  delete = async (id: number) => {
-    await this.isExist(id)
-    const data = await db.employee.findUnique({ where: { id } })
-    if (data?.photo) {
-      deleteFile(data?.photo)
-    }
-    await db.employee.delete({ where: { id } })
-  }
-  softDelete = async (id: number) => {
-    await this.isExist(id)
-    await db.employee.update({
-      data: {
-        isHidden: true,
-      },
-      where: { id },
-    })
-  }
-  read = async (id: number) => {
-    await this.isExist(id)
-    const data = await db.employee.findUnique({
-      include: {
-        _count: {
-          select: {
-            certifications: true,
-          },
-        },
-        addresses: true,
-        certifications: {
-          include: {
-            competency: {
-              select: {
-                name: true,
-                color: true,
-                id: true,
-              },
-            },
-          },
-        },
-        statusTracks: true,
-        phoneNumbers: true,
-        competencies: {
-          include: {
-            competency: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      },
-      where: { id },
-    })
-    return data
-  }
-  readByPagination = async (
-    page: number = 1,
-    limit: number = 10,
-    filter?: FilterEmployee
-  ) => {
-    const skip = (page - 1) * limit
-    const where: Prisma.EmployeeWhereInput = {
-      isHidden: false,
-    }
-
-    if (filter) {
-      if (filter.fullname) {
-        where.OR = [
-          { fullname: { contains: filter.fullname.toLowerCase() } },
-          { fullname: { contains: filter.fullname.toUpperCase() } },
-          { fullname: { contains: filter.fullname } },
-        ]
-      }
-
-      if ('positionId' in filter) {
-        where.positionId = filter.positionId
-      }
-    }
-
-    const data = await db.employee.findMany({
-      skip,
-      take: limit,
-      where,
-      select: {
-        fullname: true,
-        id: true,
-        status: true,
-        last_education: true,
-        birth_date: true,
-        photo: true,
-        certifications: {
-          include: {
-            competency: true,
-          },
-        },
-        competencies: {
-          select: {
-            competency: true,
-            id: true,
-          },
-        },
-      },
-    })
-
-    const total = await db.employee.count({ where })
-    const total_pages = Math.ceil(total / limit)
-    return { data, total, page, limit, total_pages }
-  }
-  findAll = async (filter?: FilterEmployee) => {
-    const where: Prisma.EmployeeWhereInput = {
-      isHidden: false,
-    }
-
-    if (filter) {
-      if (filter.fullname) {
-        where.OR = [
-          { fullname: { contains: filter.fullname.toLowerCase() } },
-          { fullname: { contains: filter.fullname.toUpperCase() } },
-          { fullname: { contains: filter.fullname } },
-        ]
-      }
-    }
-
-    const data = await db.employee.findMany({
-      where,
-      select: {
-        fullname: true,
-        id: true,
-        status: true,
-        last_education: true,
-        birth_date: true,
-        photo: true,
-        certifications: {
-          include: {
-            competency: true,
-          },
-        },
-        competencies: {
-          select: {
-            competency: true,
-            id: true,
-          },
-        },
-      },
-    })
-
-    return data
+export const isCertifExist = async (id: string) => {
+  if (!isValidUUID(id)) {
+    throwError('ID tidak valid', HttpStatusCode.BadRequest)
   }
 
-  // PHOTO
-  updatePhoto = async (id: number, photo: string) => {
-    await this.isExist(id)
-
-    if (photo) {
-      const data = await db.employee.findUnique({ where: { id } })
-      if (data?.photo) {
-        deleteFile(data?.photo)
-      }
-    }
-
-    await db.employee.update({
-      where: { id },
-      data: {
-        photo,
-      },
-    })
+  const data = await db.certificate.findUnique({ where: { id } })
+  if (!data) {
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
   }
-  deletePhoto = async (id: number) => {
-    await this.isExist(id)
+}
 
-    const data = await db.employee.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        photo: true,
-      },
-    })
-    if (data?.photo) {
-      deleteFile(data?.photo)
-    }
-    return data
+export const create = async (data: Payload) => {
+  return await db.employee.create({
+    data: {
+      fullname: data.fullname,
+      position: data.position,
+      photoUrl: data.photoUrl,
+      birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+      joinedAt: data.joinedAt ? new Date(data.joinedAt) : undefined,
+      lastEducation: data.lastEducation,
+      salary: data.salary,
+      overtimeSalary: data.overtimeSalary,
+      address: data.address,
+      phone: data.phone,
+      payType: data.payType,
+    },
+  })
+}
+
+export const update = async (id: string, data: Payload) => {
+  const exist = await db.employee.findUnique({ where: { id } })
+  if (data.photoUrl && exist.photoUrl) {
+    await deleteFile(exist.photoUrl)
   }
 
-  // ADDRESS
-  createAddress = async (employeeId: number, payload: Address) => {
-    await this.isExist(employeeId)
-    await db.address.create({
-      data: { ...payload, employeeId },
-    })
-    return { employeeId }
-  }
-  updateAddress = async (id: number, payload: Address) => {
-    await this.isAddressExist(id)
-    return await db.address.update({
-      data: payload,
-      where: {
-        id: id,
-      },
-      select: {
-        employeeId: true,
-      },
-    })
-  }
-  deleteAddress = async (id: number) => {
-    await this.isAddressExist(id)
-    return await db.address.delete({
-      where: { id },
-      select: { employeeId: true },
-    })
-  }
-  readAddress = async (employeeId: number, addressId?: number) => {
-    if (!!addressId) {
-      await this.isAddressExist(addressId)
-      const data = await db.address.findUnique({
-        where: { employeeId, id: addressId },
-      })
-      return data
-    }
+  return await db.employee.update({
+    where: { id },
+    data: {
+      ...data,
+      birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+      safetyInductionDate: data.safetyInductionDate
+        ? new Date(data.safetyInductionDate)
+        : undefined,
+    },
+  })
+}
 
-    const data = await db.address.findMany({
-      where: {
-        employeeId,
-      },
-    })
-    return data
+export const destroy = async (id: string) => {
+  return await db.employee.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+  })
+}
+
+export const read = async (id: string) => {
+  const select: Prisma.EmployeeSelect = {
+    id: true,
+    fullname: true,
+    active: true,
+    address: true,
+    phone: true,
+    photoUrl: true,
+    createdAt: true,
+    updatedAt: true,
+    joinedAt: true,
+    lastEducation: true,
+    position: true,
+    birthDate: true,
+    salary: true,
+    overtimeSalary: true,
+    safetyInductionDate: true,
+    payType: true,
   }
+  return await db.employee.findUnique({ where: { id }, select })
+}
 
-  // CONTACT
-  createContact = async (employeeId: number, payload: Contact) => {
-    await this.isExist(employeeId)
-    await db.phoneNumbers.create({ data: { ...payload, employeeId } })
-    return { employeeId }
-  }
-  updateContact = async (id: number, payload: Contact) => {
-    await this.isContactExist(id)
-    return await db.phoneNumbers.update({
-      data: payload,
-      where: { id },
-      select: { employeeId: true },
-    })
-  }
-  deleteContact = async (id: number) => {
-    await this.isContactExist(id)
-    const data = await db.phoneNumbers.delete({
-      where: { id },
-      select: {
-        employeeId: true,
-      },
-    })
-    return data
-  }
-  readContact = async (employeeId: number, contactId?: number) => {
-    if (!!contactId) {
-      await this.isContactExist(contactId)
-      const data = await db.phoneNumbers.findUnique({
-        where: { employeeId, id: contactId },
-      })
-      return data
-    }
-    const data = await db.phoneNumbers.findMany({ where: { employeeId } })
-    return data
-  }
-
-  updatePositionEmployee = async (id: number, positionId: number) => {
-    try {
-      await this.isExist(id)
-      await this.isPositionExist(positionId)
-      await db.employee.update({ data: { positionId }, where: { id } })
-    } catch (error) {
-      throw error
-    }
-  }
-
-  updateStatusEmployee = async (
-    id: number,
-    status: boolean,
-    { description }: { description?: string }
-  ) => {
-    await this.isExist(id)
-    const date = new Date().toISOString()
-
-    const data = await db.employee.findUnique({ where: { id } })
-    if (status) {
-      if (!!data?.status) {
-        throw new Error('Pegawai sudah aktif')
-      }
-    } else if (!status && !data?.status) {
-      throw new Error('Pegawai sudah nonaktif')
-    }
-
-    await db.employee.update({ data: { status }, where: { id } })
-
-    return await db.employeeStatusTrack.create({
-      data: {
-        status,
-        date,
-        description: description ?? null,
-        employeeId: id,
-      },
-      select: {
-        employeeId: true,
-      },
-    })
-  }
-
-  readEmployeeTrack = async (id: number) => {
-    return await db.employeeStatusTrack.findMany({
-      where: { employeeId: id },
-      orderBy: { date: 'asc' },
-    })
-  }
-
-  // Competency
-  createCompetency = async (employeeId: number, payload: Competency) => {
-    const existingCompetencies = await db.employeeCompetency.findMany({
-      where: { employeeId },
-      select: { competencyId: true },
-    })
-
-    const existingCompetencyIds = existingCompetencies.map(
-      (ec) => ec.competencyId
-    )
-
-    // Filter competencies that not exists
-    const newCompetencyIds = payload.competencyId.filter(
-      (id) => !existingCompetencyIds.includes(id)
-    )
-
-    if (newCompetencyIds.length > 0) {
-      await db.employeeCompetency.createMany({
-        data: newCompetencyIds.map((item) => ({
-          competencyId: item,
-          employeeId,
-        })),
-      })
-    }
-  }
-  createSingleCompetency = async (
-    employeeId: number,
-    payload: { competencyId: number }
-  ) => {
-    return await db.employeeCompetency.create({
-      data: {
-        competencyId: payload.competencyId,
-        employeeId,
-      },
-      select: {
-        employeeId: true,
-      },
-    })
-  }
-  // competencyId
-  deleteCompetency = async (id: number) => {
-    return await db.employeeCompetency.delete({
-      where: { id },
-      select: { employeeId: true },
-    })
-  }
-  // competencyId
-  readCompetency = async (employeeId: number, id?: number) => {
-    try {
-      await this.isExist(employeeId)
-
-      if (!!id) {
-        await this.isCompetencyExist(id)
-        const employeeCompetency = await db.employeeCompetency.findUnique({
-          include: {
-            competency: true,
-          },
-          where: { employeeId, id },
-        })
-        const certifications = await db.certification.findMany({
-          where: {
-            competencyId: {
-              equals: employeeCompetency?.competency.id,
-            },
-          },
-        })
-        return {
-          data: {
-            competency: employeeCompetency?.competency,
-            certifications,
-          },
-        }
-      }
-      const data = await db.employeeCompetency.findMany({
-        include: {
-          competency: true,
-        },
-        where: { employeeId },
-      })
-      return data
-    } catch (error) {
-      throw error
-    }
-  }
-
-  // Certif
-  createCertif = async (employeeId: number, payload: Certification[]) => {
-    await db.certification.createMany({
-      data: payload.map((item) => {
-        const certifData = {
-          ...item,
-          competencyId:
-            item.competencyId && item.competencyId !== ''
-              ? Number(item.competencyId)
-              : null,
-          employeeId,
-          expire_at: null as Date | null,
-        }
-
-        if (item.expiry_year && item.expiry_month) {
-          try {
-            const date = new Date(
-              Number(item.expiry_year),
-              Number(item.expiry_month),
-              1
-            )
-            certifData.expire_at = date
-          } catch (error) {
-            certifData.expire_at = null
+export const readAll = async ({
+  active,
+  limit,
+  page,
+  position,
+  search,
+  lastEdu,
+  sortBy,
+  sortOrder,
+}: PaginationParams & {
+  lastEdu?: string
+  position?: string
+  active?: boolean
+  sortBy?: any
+  sortOrder?: 'desc' | 'asc'
+}) => {
+  const where: Prisma.EmployeeWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [{ fullname: { contains: search, mode: 'insensitive' } }],
           }
-        }
+        : {},
 
-        return certifData
-      }),
-    })
+      typeof active === 'boolean' ? { active } : {},
+
+      position
+        ? {
+            position: {
+              contains: position,
+              mode: 'insensitive',
+            },
+          }
+        : {},
+
+      lastEdu
+        ? {
+            lastEducation: {
+              equals: lastEdu,
+              mode: 'insensitive',
+            },
+          }
+        : {},
+    ],
   }
-  createSingleCertif = async (employeeId: number, payload: Certification) => {
-    let expire_at: null | Date = null
-    if (payload.expiry_year && payload.expiry_month) {
-      const date = new Date(
-        Number(payload.expiry_year),
-        Number(payload.expiry_month),
-        1
-      )
-      expire_at = date
-    }
-    return await db.certification.create({
-      data: {
-        ...payload,
-        competencyId: payload.competencyId
-          ? Number(payload.competencyId)
-          : null,
-        employeeId,
-        expire_at,
+
+  const select: Prisma.EmployeeSelect = {
+    id: true,
+    fullname: true,
+    active: true,
+    address: true,
+    phone: true,
+    photoUrl: true,
+    createdAt: true,
+    updatedAt: true,
+    joinedAt: true,
+    lastEducation: true,
+    position: true,
+    birthDate: true,
+    salary: true,
+    overtimeSalary: true,
+  }
+
+  const orderBy: Prisma.EmployeeOrderByWithRelationInput = {
+    [sortBy ?? 'createdAt']: sortOrder ?? 'asc',
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.employee.findMany({
+      where,
+      select,
+      orderBy,
+      take,
+    })
+    return { data }
+  }
+
+  const [data, total] = await Promise.all([
+    db.employee.findMany({
+      skip,
+      take,
+      where,
+      select,
+      orderBy,
+    }),
+    db.employee.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages,
+  }
+}
+
+export const readAllInfinite = async (
+  page?: number,
+  limit?: number,
+  search?: string,
+  position?: string,
+  active?: boolean,
+) => {
+  const where: Prisma.EmployeeWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [{ fullname: { contains: search } }],
+          }
+        : {},
+      active !== undefined ? { active } : {},
+      position !== undefined ? { position } : {},
+    ].filter(Boolean),
+  }
+
+  const select: Prisma.EmployeeSelect = {
+    id: true,
+    fullname: true,
+    active: true,
+    address: true,
+    phone: true,
+    photoUrl: true,
+    createdAt: true,
+    updatedAt: true,
+    joinedAt: true,
+    lastEducation: true,
+    position: true,
+    birthDate: true,
+    salary: true,
+    overtimeSalary: true,
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.employee.findMany({
+      skip,
+      take,
+      where,
+      select,
+      orderBy: {
+        fullname: 'asc',
       },
+    }),
+    db.employee.count({ where }),
+  ])
+
+  const hasNextPage = page * limit < total
+
+  return {
+    data,
+    nextPage: hasNextPage ? page + 1 : undefined,
+  }
+}
+
+export const destroyPhoto = async (id: string) => {
+  const data = await db.employee.findUnique({ where: { id } })
+  if (data.photoUrl) {
+    await deleteFile(data.photoUrl)
+  }
+
+  return await db.employee.update({
+    where: { id },
+    data: {
+      photoUrl: null,
+    },
+  })
+}
+
+// CERTIFICATION
+export const createCertificate = async (
+  employeeId: string,
+  payload: Certification & { fileUrl?: string },
+) => {
+  return await db.certificate.create({
+    data: {
+      employeeId,
+      name: payload.name,
+      fileUrl: payload.fileUrl,
+      publisher: payload.publisher,
+      issueDate: payload.issueDate,
+      expiryDate: payload.expiryDate,
+    },
+  })
+}
+
+export const updateCertificate = async (
+  id: string,
+  payload: Certification & { fileUrl?: string; changeFile?: boolean },
+) => {
+  const data = await db.certificate.findUnique({ where: { id } })
+  if (payload.changeFile && data.fileUrl) {
+    await deleteFile(data.fileUrl)
+  }
+
+  return await db.certificate.update({
+    where: { id },
+    data: {
+      name: payload.name,
+      fileUrl: payload.fileUrl,
+      publisher: payload.publisher,
+      issueDate: payload.issueDate,
+      expiryDate: payload.expiryDate,
+    },
+  })
+}
+
+export const destroyCertificate = async (id: string) => {
+  await db.certificate.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  })
+}
+
+export const findCertificates = async ({
+  search,
+  page,
+  limit,
+  id,
+}: PaginationParams & { id: string }) => {
+  const where: Prisma.CertificateWhereInput = {
+    deletedAt: null,
+    name: search ? { contains: search, mode: 'insensitive' } : undefined,
+    employeeId: id,
+  }
+
+  const select: Prisma.CertificateSelect = {
+    id: true,
+    name: true,
+    fileUrl: true,
+    publisher: true,
+    issueDate: true,
+    expiryDate: true,
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.certificate.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      select,
+    })
+
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.certificate.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+      select,
+    }),
+    db.certificate.count({ where }),
+  ])
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages: Math.ceil(total / limit),
+  }
+}
+
+export const findCertificate = async (id: string) => {
+  await isCertifExist(id)
+
+  return db.certificate.findUnique({
+    where: { id },
+    select: {
+      expiryDate: true,
+      issueDate: true,
+      name: true,
+      fileUrl: true,
+      publisher: true,
+      id: true,
+    },
+  })
+}
+
+// DATA
+export const findAttendanceById = async ({
+  employeeId,
+  year,
+  startMonth,
+  endMonth,
+}: {
+  employeeId: string
+  year: number
+  startMonth: number // 0 - 11
+  endMonth: number // 0 - 11
+}) => {
+  const start = startOfMonth(new Date(year, startMonth))
+  const end = endOfMonth(new Date(year, endMonth))
+
+  const attendances = await db.attendance.findMany({
+    where: {
+      deletedAt: null,
+      employeeId,
+      date: {
+        gte: start,
+        lte: end,
+      },
+    },
+    select: {
+      date: true,
+      type: true,
+    },
+  })
+
+  const totalMonths = endMonth - startMonth + 1
+
+  const data = Array.from({ length: totalMonths }, (_, i) => {
+    const current = addMonths(start, i)
+    const month = getMonth(current)
+    const year = getYear(current)
+
+    const filtered = attendances.filter(
+      (att) => att.date.getFullYear() === year && att.date.getMonth() === month,
+    )
+
+    return {
+      month,
+      year,
+      presence: filtered
+        .filter((att) => att.type === 'presence')
+        .map((att) => getDate(att.date)),
+      absent: filtered
+        .filter((att) => att.type === 'absent')
+        .map((att) => getDate(att.date)),
+    }
+  })
+
+  const allDates = eachDayOfInterval({ start, end })
+  const filledDates = attendances.map((a) => a.date.toDateString())
+
+  const total = {
+    presence: attendances.filter((a) => a.type === 'presence').length,
+    absent: attendances.filter((a) => a.type === 'absent').length,
+    notYet: allDates.filter((d) => !filledDates.includes(d.toDateString()))
+      .length,
+  }
+
+  return { data, total }
+}
+
+export const findOvertimeById = async ({
+  employeeId,
+  startDate,
+  endDate,
+  page,
+  limit,
+  search,
+}: {
+  employeeId: string
+  startDate?: Date
+  endDate?: Date
+  page?: number
+  limit?: number
+  search?: string
+}) => {
+  const where: Prisma.OvertimeWhereInput = {
+    deletedAt: null,
+    employeeId,
+    date:
+      startDate || endDate
+        ? {
+            ...(startDate && { gte: startOfDay(new Date(startDate)) }),
+            ...(endDate && { lte: endOfDay(new Date(endDate)) }),
+          }
+        : undefined,
+    note: search ? { contains: search, mode: 'insensitive' } : undefined,
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.overtime.findMany({
+      where,
+      orderBy: { date: 'desc' },
       select: {
-        employeeId: true,
+        id: true,
+        totalHour: true,
+        note: true,
+        date: true,
       },
     })
+
+    return { data }
   }
-  updateCertif = async (
-    certifId: number,
-    payload: Certification & { certif_file: string }
-  ) => {
-    let expire_at: null | Date = null
 
-    if (payload.certif_file) {
-      const existing = await db.certification.findUnique({
-        where: { id: certifId },
-        select: { certif_file: true },
-      })
-      if (existing?.certif_file) {
-        deleteFile(existing.certif_file, PATHS.FILES)
-      }
-    }
+  const { skip, take } = getPaginateParams(page, limit)
 
-    if (payload.expiry_year && payload.expiry_month) {
-      const date = new Date(
-        Number(payload.expiry_year),
-        Number(payload.expiry_month),
-        1
-      )
-      expire_at = date
-    }
-    return await db.certification.update({
-      data: {
-        ...payload,
-        competencyId: payload.competencyId
-          ? Number(payload.competencyId)
-          : null,
-        ...(expire_at ? { expire_at } : undefined),
-      },
-      where: { id: certifId },
+  const [data, total] = await Promise.all([
+    db.overtime.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { date: 'desc' },
       select: {
-        employeeId: true,
+        id: true,
+        totalHour: true,
+        note: true,
+        date: true,
       },
-    })
-  }
-  deleteCertif = async (certifId: number) => {
-    await this.isCertifExist(certifId)
-    const data = await db.certification.findUnique({
-      where: { id: certifId },
-      select: {
-        certif_file: true,
-        employeeId: true,
-      },
-    })
-    if (data?.certif_file) {
-      deleteFile(data.certif_file, PATHS.FILES)
-    }
+    }),
+    db.overtime.count({ where }),
+  ])
 
-    await db.certification.delete({ where: { id: certifId } })
-    return { employeeId: data?.employeeId }
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages: Math.ceil(total / limit),
   }
-  readCertif = async (competencyId: number, certifId?: number) => {
-    if (!!certifId) {
-      await this.isCertifExist(certifId)
-      const data = await db.certification.findUnique({
+}
+
+export const findCashAdvancesById = async ({
+  employeeId,
+  search,
+  page,
+  limit,
+}: {
+  employeeId: string
+  search?: string
+  page?: number
+  limit?: number
+}) => {
+  const where: Prisma.CashAdvanceWhereInput = {
+    deletedAt: null,
+    employeeId,
+    note: search ? { contains: search, mode: 'insensitive' } : undefined,
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.cashAdvance.findMany({
+      where,
+      orderBy: { date: 'desc' },
+      select: {
+        id: true,
+        amount: true,
+        note: true,
+        date: true,
+      },
+    })
+
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.cashAdvance.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { date: 'desc' },
+      select: {
+        id: true,
+        amount: true,
+        note: true,
+        date: true,
+      },
+    }),
+    db.cashAdvance.count({ where }),
+  ])
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages: Math.ceil(total / limit),
+  }
+}
+
+export const findChartCashAdvancesById = async (employeeId: string) => {
+  const now = new Date()
+
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const date = subMonths(now, 5 - i)
+    return {
+      key: format(date, 'yyyy-MM'),
+      label: format(date, 'LLLL', { locale: ind }),
+      start: startOfMonth(date),
+      end: endOfMonth(date),
+    }
+  })
+
+  const advances = await db.cashAdvance.findMany({
+    where: {
+      deletedAt: null,
+      employeeId,
+      date: {
+        gte: months[0].start,
+        lte: months[5].end,
+      },
+    },
+    select: {
+      date: true,
+      amount: true,
+    },
+  })
+
+  // group dan jumlah amount per bulan
+  const chartData = months.map(({ label, start, end }) => {
+    const total = advances
+      .filter((a) => a.date >= start && a.date <= end)
+      .reduce((sum, curr) => sum + curr.amount, 0)
+
+    return {
+      month: label,
+      total,
+    }
+  })
+
+  return chartData
+}
+
+export const findTotalEmployee = async () => {
+  const employees = await db.employee.groupBy({
+    by: ['active'],
+    where: {
+      deletedAt: null,
+    },
+    _count: {
+      id: true,
+    },
+  })
+
+  const chartData = [
+    {
+      name: 'Aktif',
+      total: employees.find((e) => e.active === true)?._count.id ?? 0,
+      fill: '#475DEF',
+    },
+    {
+      name: 'Nonaktif',
+      total: employees.find((e) => e.active === false)?._count.id ?? 0,
+      fill: '#D52B42',
+    },
+  ]
+
+  return chartData
+}
+
+export const findLastEducation = async () => {
+  const educationGroups = await db.employee.groupBy({
+    by: ['lastEducation'],
+    where: {
+      deletedAt: null,
+    },
+    _count: {
+      _all: true,
+    },
+  })
+
+  const colorMap: Record<string, string> = {
+    sd: '#D52B42',
+    smp: '#475DEF',
+    sma: '#27B5E9',
+    d3: '#10B981',
+    s1: '#6366F1',
+    s2: '#EC4899',
+    s3: '#F97316',
+    default: '#6B7280',
+  }
+
+  const chartData = educationGroups.map((item) => ({
+    name: item.lastEducation || 'Belum diisi',
+    total: item._count._all,
+    fill: colorMap[item.lastEducation ?? 'default'] ?? colorMap.default,
+  }))
+
+  return chartData
+}
+
+export const findSummaryById = async ({
+  id,
+  startDate,
+  endDate,
+}: {
+  id: string
+  startDate: Date
+  endDate: Date
+}) => {
+  const [presences, absents] = await Promise.all([
+    db.attendance.findMany({
+      where: {
+        employeeId: id,
+        type: 'presence',
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    }),
+    db.attendance.findMany({
+      where: {
+        employeeId: id,
+        type: 'absent',
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    }),
+  ])
+
+  const attendances = [...presences, ...absents].sort((a, b) =>
+    a.date < b.date ? -1 : 1,
+  )
+
+  const overtimes = await db.overtime.findMany({
+    where: {
+      employeeId: id,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+  })
+
+  const rawCashAdvances = await db.cashAdvance.findMany({
+    where: {
+      employeeId: id,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+      status: CashAdvanceStatus.notYetPaidOff,
+      deletedAt: null,
+    },
+    include: {
+      transactions: {
         where: {
-          competencyId,
-          id: certifId,
+          deletedAt: null,
         },
-      })
-      return data
+      },
+    },
+  })
+
+  const cashAdvances = rawCashAdvances.map((ca) => {
+    const paid = ca.transactions.reduce((sum, t) => sum + t.amount, 0)
+    const remaining = ca.amount - paid
+    return {
+      ...ca,
+      remaining,
     }
-    const data = await db.certification.findMany({ where: { competencyId } })
-    return data
+  })
+
+  const total = {
+    presence: presences.length,
+    absent: absents.length,
+    overtimes: overtimes.reduce((sum, i) => sum + i.totalHour, 0),
   }
 
-  getExpiringCertificates = async (positionId?: number) => {
-    const today = new Date()
-    const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
-    const oneMonthFromNow = new Date(jakartaTime)
-    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
-
-    const expiringCertificates = await db.certification.findMany({
-      where: {
-        expire_at: {
-          lte: oneMonthFromNow,
-        },
-        employee: {
-          isHidden: false,
-          positionId: positionId ?? undefined,
-        },
-      },
-
-      select: {
-        certif_name: true,
-        expire_at: true,
-        employee: {
-          select: {
-            id: true,
-            fullname: true,
-            photo: true,
-          },
-        },
-      },
-    })
-
-    return expiringCertificates.map((cert) => {
-      if (!cert.expire_at) return
-      const expireDate = new Date(
-        new Date(cert.expire_at).getTime() + 7 * 60 * 60 * 1000
-      )
-
-      return {
-        ...cert,
-        certif_name: cert.certif_name,
-        daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
-      }
-    })
+  return {
+    total,
+    attendances,
+    overtimes,
+    cashAdvances,
   }
-  getExpiringSafety = async (positionId?: number) => {
-    const today = new Date()
-    const jakartaTime = new Date(today.getTime() + 7 * 60 * 60 * 1000)
-    const oneMonthFromNow = new Date(jakartaTime)
-    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
+}
 
-    const expiringSafety = await db.employee.findMany({
-      where: {
-        safety_induction_date: {
-          lte: oneMonthFromNow,
-        },
-        isHidden: false,
-        positionId: positionId ?? undefined,
-      },
+export const readProjectEmployee = async ({
+  page,
+  limit,
+  search,
+  employeeId,
+  sortBy,
+  sortOrder,
+  isEnd = false,
+}: PaginationParams & {
+  employeeId?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  isEnd?: boolean
+}) => {
+  const where: Prisma.AssignedEmployeeWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [
+              {
+                project: {
+                  name: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          }
+        : {},
+      employeeId ? { employeeId } : {},
+      isEnd ? { endDate: { not: null } } : { endDate: { equals: null } },
+      { deletedAt: null },
+    ],
+  }
+
+  const orderBy: Prisma.AssignedEmployeeOrderByWithRelationInput = {
+    [sortBy || 'createdAt']: sortOrder || 'desc',
+  }
+
+  const select: Prisma.AssignedEmployeeSelect = {
+    id: true,
+    createdAt: true,
+    startDate: true,
+    endDate: true,
+    deletedAt: true,
+    employee: {
       select: {
         id: true,
         fullname: true,
-        photo: true,
-        safety_induction_date: true,
+        photoUrl: true,
+        position: true,
       },
+    },
+    project: {
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        priority: true,
+      },
+    },
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.assignedEmployee.findMany({
+      where,
+      select,
+      orderBy,
     })
-
-    return expiringSafety.map((item) => {
-      if (!item.safety_induction_date) return
-      const expireDate = new Date(item.safety_induction_date)
-
-      return {
-        ...item,
-        expire_at: format(expireDate, 'EEEE, d MMM yyyy'),
-        daysUntilExpiry: differenceInDays(expireDate, jakartaTime),
-      }
-    })
+    return { data }
   }
 
-  private isExist = async (id: number) => {
-    const data = await db.employee.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.notfoundCustom('Pegawai'))
-  }
-  private isAddressExist = async (id: number) => {
-    const data = await db.address.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.notfoundCustom('Alamat'))
-  }
-  private isContactExist = async (id: number) => {
-    const data = await db.phoneNumbers.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.notfoundCustom('Nomor telp'))
-  }
-  private isPositionExist = async (id: number) => {
-    const data = await db.position.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.notfoundCustom('Jabatan'))
-  }
-  private isCompetencyExist = async (id: number) => {
-    const data = await db.competency.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.notfoundCustom('Kompetensi'))
-  }
-  private isCertifExist = async (id: number) => {
-    const data = await db.certification.findUnique({ where: { id } })
-    if (!data) throw Error(this.message.notfoundCustom('Sertifikat'))
+  const { skip, take } = getPaginateParams(page, limit)
+  const [data, total] = await Promise.all([
+    db.assignedEmployee.findMany({
+      skip,
+      take,
+      where,
+      select,
+      orderBy,
+    }),
+    db.assignedEmployee.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+  return {
+    data,
+    total,
+    page,
+    limit,
+    total_pages,
   }
 }

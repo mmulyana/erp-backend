@@ -1,40 +1,11 @@
-import RouterWithFile from '../../helper/router-with-file'
-import { MulterConfig } from '../../utils/multer-config'
-import Validation from '../../helper/validation'
-import AccountController from './controller'
-import {
-  createAccountSchema,
-  updateAccountSchema,
-  updatePasswordSchema,
-} from './schema'
+import { Router } from 'express'
+import { patchInfo, patchPassword, patchResetPassword } from './controller'
+import upload from '@/utils/upload'
 
-export default class AccountRouter extends RouterWithFile {
-  private controller: AccountController = new AccountController()
+const router = Router()
 
-  private updatePassword: Validation = new Validation(updatePasswordSchema)
-  private createSchema: Validation = new Validation(createAccountSchema)
-  private updateSchema: Validation = new Validation(updateAccountSchema)
+router.patch('/:id/info', upload.single('photoUrl'), patchInfo)
+router.patch('/:id/password', patchPassword)
+router.patch('/:id/reset-password', patchResetPassword)
 
-  constructor(multer: MulterConfig) {
-    super(multer.uploadImg, 'akun')
-    this.register()
-  }
-
-  protected register() {    
-    this.router.post('/', this.createSchema.validate, this.controller.createAccountHandler)
-    this.router.post('/:id/tour', this.controller.createTourHandler)
-    
-    this.router.delete('/:id', this.controller.deleteAccountHandler)
-    
-    this.router.patch('/:id', this.upload.single('photo'), this.compressImage, this.updateSchema.validate, this.controller.updateAccountHandler)
-    this.router.patch('/:id/role/add/:roleId', this.controller.updateRoleAccountHandler)
-    this.router.patch('/:id/password/update', this.updatePassword.validate, this.controller.updatePasswordHandler)
-    this.router.patch('/:id/password/reset', this.controller.resetPasswordHandler)
-
-    this.router.patch('/:id/activate', this.controller.activateHandler)
-    this.router.patch('/:id/deactivate', this.controller.deactivateHandler)
-
-    this.router.get('/:id', this.controller.getAccountHandler)
-    this.router.get('/', this.controller.getAllAccountHandler)
-  }
-}
+export default router

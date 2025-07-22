@@ -1,92 +1,61 @@
-// index.ts
-import express, { Express } from 'express'
-import { ErrorHandler } from './helper/error-handler'
-import { AuthMiddleware } from './middleware/auth-middleware'
-import { createMulter, MulterConfig } from './utils/multer-config'
-import { setupRoutes } from './routes'
-import { Server } from 'socket.io'
+import 'module-alias/register'
+import express from 'express'
+import dotenv from 'dotenv'
 import cors from 'cors'
 import http from 'http'
+import { Server } from 'socket.io'
 
-import KanbanSocket from './modules/project/kanban/socket'
-import ActivitySocket from './modules/project/activity/socket'
+import { commentSocketHandler } from './modules/project/comment'
+import { errorHandler } from './utils/error-handler'
+import setupSwagger from './lib/swagger'
+import route from './modules'
 
-class Application {
-  private app: Express
-  private httpServer: http.Server
-  private PORT: number
-  private HOST: string
-  private authMiddleware: AuthMiddleware = new AuthMiddleware()
-  private multerConfig: MulterConfig
-  private io: Server
+dotenv.config({
+  path: `.env.${process.env.NODE_ENV || 'production'}`,
+})
 
-  constructor() {
-    this.app = express()
-    this.httpServer = http.createServer(this.app)
-    this.PORT = Number(process.env.REST_PORT) || 5000
-    this.HOST = process.env.HOST || 'localhost'
+const PORT = Number(process.env.REST_PORT) || 8000
+const HOST = process.env.HOST || 'localhost'
 
-    this.multerConfig = createMulter()
-    this.io = new Server(this.httpServer, {
-      cors: {
-        origin: '*',
-      },
-    })
+const app = express()
+const server = http.createServer(app)
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+})
 
-    this.plugin()
-    this.setupSocket()
-    this.setupRoutes()
-    this.start()
-  }
+io.on('connection', (socket) => {
+  console.log('client connected:', socket.id)
 
-  private plugin(): void {
-    this.app.use(cors())
-    this.app.use(express.urlencoded({ extended: true }))
-    this.app.use(express.json())
-    this.app.use(express.static('public'))
-  }
+  commentSocketHandler(socket)
 
-  private setupRoutes(): void {
-    this.app.get('/', (req, res) => {
-      res.json({ message: 'hello world' })
-    })
+  socket.on('disconnect', () => {
+    console.log('client disconnected:', socket.id)
+  })
+})
 
-    const v1Router = express.Router()
+app.use(cors())
+app.use(express.static('public'))
+app.use(express.static('uploads'))
+app.use(express.json())
 
-    setupRoutes(v1Router, this.authMiddleware, {
-      multerConfig: this.multerConfig,
-      withoutAuth: false,
-      io: this.io,
-    })
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Hello world!' })
+})
 
-    this.app.use('/api/v1', v1Router)
+app.use('/api', route)
+setupSwagger(app)
 
-    // 404 handler
-    this.app.use((req, res, next) => {
-      next({ err: 'not found' })
-    })
+app.use(async (req, res, next) => {
+  res.status(404).json({ message: 'Not found!' })
+})
 
-    // Error handler
-    this.app.use(ErrorHandler)
-  }
+app.use(errorHandler)
 
-  private setupSocket(): void {
-    this.io.on('connection', (socket) => {
-      console.log('New client connected')
-      new KanbanSocket(socket, this.io).socket
-      new ActivitySocket(socket, this.io).socket
+server.listen(PORT, HOST, () => {
+  console.log(`Server is running at http://${HOST}:${PORT}`)
+})
 
-      socket.on('disconnect', () => {
-        console.log('User disconnected')
-      })
-    })
-  }
-
-  private start(): void {
-    this.httpServer.listen(this.PORT, this.HOST, () => {
-      console.log(`Server is running at http://${this.HOST}:${this.PORT}`)
-    })
-  }
-}
-
-new Application()
+export default app

@@ -1,111 +1,66 @@
-import { NextFunction, Request, Response } from 'express'
-import BaseController from '../../helper/base-controller'
-import RoleService from './service'
+import { checkParamsId, getParams } from '@/utils/params'
+import { Request, Response } from 'express'
 
-export default class RoleController extends BaseController {
-  private service: RoleService = new RoleService()
+import {
+  successResponse,
+  createResponse,
+  deleteResponse,
+  updateResponse,
+} from '@/utils/response'
+import { errorParse } from '@/utils/error-handler'
 
-  constructor() {
-    super('role')
+import {
+  findById,
+  destroy,
+  findAll,
+  findOne,
+  create,
+  update,
+} from './repository'
+import { CreateRoleSchema, UpdateRoleSchema } from './schema'
+
+export const findRoles = async (req: Request, res: Response) => {
+  const { page, limit, search } = getParams(req)
+
+  const result = await findAll(page, limit, search)
+  res.json(successResponse(result, 'role'))
+}
+
+export const findRole = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await findById(id)
+
+  const result = await findOne(id)
+  res.json(successResponse(result, 'role'))
+}
+
+export const createRole = async (req: Request, res: Response) => {
+  const parsed = CreateRoleSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  getRolesHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await this.service.getRoles()
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
+  const result = await create(parsed.data)
+  res.json(createResponse(result, 'role'))
+}
+
+export const updateRole = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await findById(id)
+
+  const parsed = UpdateRoleSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
-  getRoleByIdHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      const data = await this.service.getRoleBydId(Number(id))
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  createRoleHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      await this.service.createRole(req.body)
-      return this.response.success(res, this.message.successCreate())
-    } catch (error) {
-      next(error)
-    }
-  }
-  updateRoleHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      const data = await this.service.updateRole(Number(id), req.body)
-      return this.response.success(res, this.message.successUpdate(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  deleteRoleHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id } = req.params
-      const data = await this.service.deleteRole(Number(id))
-      return this.response.success(res, this.message.successDelete(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  addPermissionRoleHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id, permissionId } = req.params
-      const data = await this.service.addPermissionRole(
-        Number(id),
-        Number(permissionId)
-      )
-      return this.response.success(
-        res,
-        this.message.successCreateField('hak istimewa'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
-  deletePermissionRoleHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { id, permissionId } = req.params
-      const data = await this.service.removePermissionRole(
-        Number(id),
-        Number(permissionId)
-      )
-      return this.response.success(
-        res,
-        this.message.successDeleteField('hak istimewa'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
+
+  const result = await update(id, parsed.data)
+  res.json(updateResponse(result, 'role'))
+}
+
+export const deleteRole = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await findById(id)
+
+  await destroy(id)
+  res.json(deleteResponse('role'))
 }

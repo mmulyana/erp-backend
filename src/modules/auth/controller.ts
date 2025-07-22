@@ -1,27 +1,22 @@
-import BaseController from '../../helper/base-controller'
-import { AuthService } from './service'
-import dotenv from 'dotenv'
-dotenv.config()
+import { Request, Response } from 'express'
 
-export default class AuthController extends BaseController {
-  private service: AuthService = new AuthService()
+import { LoginSchema } from './schema'
+import { findMeService, loginService } from './service'
 
-  constructor() {
-    super('auth')
+import { errorParse } from '@/utils/error-handler'
+import { successResponse } from '@/utils/response'
+
+export const login = async (req: Request, res: Response) => {
+  const parsed = LoginSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  login = async (req: any, res: any, next: any) => {
-    try {
-      const { name, email, phoneNumber, password } = req.body
-      const data = await this.service.login({
-        phoneNumber,
-        password,
-        email,
-        name,
-      })
-      return this.response.success(res, `Selamat datang, ${name}`, data)
-    } catch (error) {
-      next(error)
-    }
-  }
+  const result = await loginService(parsed.data)
+  res.status(200).json(successResponse(result))
+}
+
+export const findMe = async (req: Request, res: Response) => {
+  const result = await findMeService(req.user.id as string)
+  res.json(successResponse(result, 'me'))
 }

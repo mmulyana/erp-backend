@@ -1,21 +1,8 @@
-export const EVENT_INITIAL_DATA = 'initial_data'
-export const EVENT_UPDATED_DATA = 'updated_data'
-export const EVENT_CREATE_BOARD = 'create_board'
-export const REQUEST_BOARD = 'request_board'
-export const CREATE_BOARD = 'create_board'
-export const CREATE_PROJECT = 'create_project'
-export const UPDATE_PROJECT = 'update_project'
-export const UPDATE_ORDER_ITEMS = 'update_order_items'
-export const DELETE_PROJECT = 'delete_project'
-export const SUCCESS_CREATE_PROJECT = 'success_create_project'
-export const ERROR_CREATE_PROJECT = 'error_create_project'
-export const CHAT_INITIAL_DATA = 'chat_initial'
-export const CHAT_UPDATED_DATA = 'chat_updated'
-export const REQUEST_CHAT_BY_PROJECT = 'request_chat_by_project'
-export const JOIN_BY_PROJECT = 'join_by_project'
-export const JOIN_BY_PARENT = 'join_by_parent'
-export const MESSAGES_BY_PROJECT = 'activity_by_project'
-export const MESSAGES_BY_PARENT = 'activity_by_parent'
-export const ERROR_JOIN = 'error_join'
-export const ERROR_ROOM = 'error_rooms'
-export const LEAVE_ROOM = 'leave_rooms'
+const SocketKeys = {
+  Initial: 'initial',
+  Update: 'update',
+  UpdateOrder: 'update-order',
+  Request: 'request',
+}
+
+export default SocketKeys

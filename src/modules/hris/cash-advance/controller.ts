@@ -1,113 +1,164 @@
-import BaseController from '../../../helper/base-controller'
-import { NextFunction, Request, Response } from 'express'
-import CashAdvanceRepository, { FilterCash } from './repository'
+import { Request, Response } from 'express'
+import {
+  successResponse,
+  createResponse,
+  updateResponse,
+  deleteResponse,
+} from '@/utils/response'
+import { checkParamsId, getParams } from '@/utils/params'
+import { errorParse } from '@/utils/error-handler'
 
-export default class CashAdvanceController extends BaseController {
-  private repository: CashAdvanceRepository = new CashAdvanceRepository()
+import { CashAdvanceSchema, CashAdvanceTransactionSchema } from './schema'
+import {
+  create,
+  createTransaction,
+  destroy,
+  destroyTransaction,
+  findAll,
+  findAllTransaction,
+  findOne,
+  findOneTransaction,
+  findTotalByMonth,
+  isExist,
+  isTransactionExist,
+  update,
+  updateTransaction,
+} from './repository'
+import { getQueryParam } from '@/utils'
 
-  constructor() {
-    super('Kasbon')
+export const postCashAdvance = async (req: Request, res: Response) => {
+  const parsed = CashAdvanceSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
+  }
+  const data = await create({ ...parsed.data, createdBy: req.user.id })
+  res.json(createResponse(data, 'kasbon'))
+}
+
+export const patchCashAdvance = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const parsed = CashAdvanceSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
 
-  createHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await this.repository.create(req.body)
-      return this.response.success(res, this.message.successCreate())
-    } catch (error) {
-      next(error)
-    }
-  }
-  updateHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const data = await this.repository.update(Number(id), req.body)
-      return this.response.success(res, this.message.successUpdate())
-    } catch (error) {
-      next(error)
-    }
-  }
-  deleteHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      await this.repository.delete(Number(id))
-      return this.response.success(res, this.message.successDelete())
-    } catch (error) {
-      next(error)
-    }
-  }
-  readAllHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await this.repository.readAll()
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  readByIdHandler = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params
-      const data = await this.repository.readById(Number(id))
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
-  }
-  ReadByPagination = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { page, limit, name, startDate, endDate } = req.query
+  const result = await update(id, { ...parsed.data, createdBy: req.user.id })
+  res.json(updateResponse(result, 'kasbon'))
+}
 
-      const data = await this.repository.readByPagination(
-        page ? Number(page) : undefined,
-        limit ? Number(limit) : undefined,
-        {
-          endDate: endDate ? new Date(String(endDate)) : undefined,
-          startDate: startDate ? new Date(String(startDate)) : undefined,
-          fullname: name ? String(name) : undefined,
-        }
-      )
+export const deleteCashAdvance = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
 
-      return this.response.success(res, this.message.successRead(), data)
-    } catch (error) {
-      next(error)
-    }
+  await destroy(id)
+  res.json(deleteResponse('kasbon'))
+}
+
+export const getCashAdvance = async (req: Request, res: Response) => {
+  const { id } = checkParamsId(req)
+  await isExist(id)
+
+  const result = await findOne(id)
+  res.json(successResponse(result, 'kasbon'))
+}
+
+export const getCashAdvances = async (req: Request, res: Response) => {
+  const { page, limit, search, sortBy, sortOrder } = getParams(req)
+  const startDate = getQueryParam(req.query, 'startDate', 'string')
+  const endDate = getQueryParam(req.query, 'endDate', 'string')
+  const position = getQueryParam(req.query, 'position', 'string')
+
+  const data = await findAll({
+    page,
+    limit,
+    search,
+    startDate,
+    endDate,
+    position,
+    sortBy,
+    sortOrder,
+  })
+  res.json(successResponse(data, 'kasbon'))
+}
+
+export const getTotalByMonth = async (req: Request, res: Response) => {
+  const month = req.query.month ? Number(req.query.month) : undefined
+  const year = req.query.year ? Number(req.query.year) : undefined
+  const data = await findTotalByMonth(year, month)
+  res.json(successResponse(data, 'total kasbon bulan ini'))
+}
+
+// transaction
+export const postCashAdvanceTransaction = async (
+  req: Request,
+  res: Response,
+) => {
+  const parsed = CashAdvanceTransactionSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
-  readTotalHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const data = await this.repository.readTotal()
-      return this.response.success(
-        res,
-        this.message.successReadField('jumlah kasbon'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
+  const data = await createTransaction(parsed.data)
+  res.json(createResponse(data, 'transaksi kasbon'))
+}
+
+export const patchCashAdvanceTransaction = async (
+  req: Request,
+  res: Response,
+) => {
+  const { id } = checkParamsId(req)
+  await isTransactionExist(id)
+
+  const parsed = CashAdvanceTransactionSchema.partial().safeParse(req.body)
+  if (!parsed.success) {
+    return errorParse(parsed.error)
   }
-  readTotalInYearHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { total } = req.query
-      const data = await this.repository.readTotalInYear(
-        total ? Number(total) : undefined
-      )
-      return this.response.success(
-        res,
-        this.message.successReadField('jumlah kasbon'),
-        data
-      )
-    } catch (error) {
-      next(error)
-    }
-  }
+
+  const result = await updateTransaction(id, parsed.data)
+  res.json(updateResponse(result, 'transaksi kasbon'))
+}
+
+export const deleteCashAdvanceTransaction = async (
+  req: Request,
+  res: Response,
+) => {
+  const { id } = checkParamsId(req)
+  await isTransactionExist(id)
+
+  await destroyTransaction(id)
+  res.json(deleteResponse('transaksi kasbon'))
+}
+
+export const getCashAdvanceTransaction = async (
+  req: Request,
+  res: Response,
+) => {
+  const { id } = checkParamsId(req)
+  await isTransactionExist(id)
+
+  const result = await findOneTransaction(id)
+  res.json(successResponse(result, 'transaksi kasbon'))
+}
+
+export const getCashAdvanceTransactions = async (
+  req: Request,
+  res: Response,
+) => {
+  const { page, limit, search } = getParams(req)
+  const start_date = req.query.startDate
+    ? String(req.query.startDate)
+    : undefined
+  const end_date = req.query.endDate ? String(req.query.endDate) : undefined
+  const cashAdvanceId = req.params.id
+
+  const data = await findAllTransaction(
+    page,
+    limit,
+    search,
+    start_date,
+    end_date,
+    cashAdvanceId,
+  )
+  res.json(successResponse(data, 'transaksi kasbon'))
 }

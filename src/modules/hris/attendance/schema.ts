@@ -1,13 +1,9 @@
 import { z } from 'zod'
 
-export const createAttendanceSchema = z.object({
-  employeeId: z.number(),
-  date: z.string(),
-  total_hour: z.number(),
+export const AttendanceSchema = z.object({
+  employeeId: z.string().uuid(),
+  date: z.coerce.date(),
   type: z.enum(['presence', 'absent']),
 })
-export const updateAttendanceSchema = createAttendanceSchema
-  .omit({
-    employeeId: true,
-  })
-  .partial()
+
+export type Attendance = z.infer<typeof AttendanceSchema>

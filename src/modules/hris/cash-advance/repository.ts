@@ -1,251 +1,360 @@
-import { z } from 'zod'
-import { cashAdvanceSchema } from './schema'
-import db from '../../../lib/db'
-import Message from '../../../utils/constant/message'
+import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { Prisma } from '@prisma/client'
+import { HttpStatusCode } from 'axios'
 
-type cashAdvance = z.infer<typeof cashAdvanceSchema>
+import { convertUTCToWIB } from '@/utils/convert-date'
+import { throwError } from '@/utils/error-handler'
+import { getPaginateParams } from '@/utils/params'
+import { Messages } from '@/utils/constant'
+import { DateRangeParams, OrderByParams, PaginationParams } from '@/types'
+import db from '@/lib/prisma'
 
-type MonthlyTotal = {
-  month: string
-  total: number
-}
+import { checkRemaining, recalculateRemaining, updateStatus } from './helper'
+import { CashAdvance, CashAdvanceTransaction } from './schema'
 
-type ChartConfig = {
-  total: {
-    label: string
-    color: string
-  }
-}
-
-export type FilterCash = {
+export type FilterCash = DateRangeParams & {
   fullname?: string
-  startDate?: Date
-  endDate?: Date
 }
-export default class CashAdvanceRepository {
-  private messagge: Message = new Message('Kasbon')
 
-  create = async (payload: cashAdvance) => {
-    await db.cashAdvance.create({
-      data: {
-        ...payload,
-        requestDate: new Date(payload.requestDate).toISOString(),
-      },
-    })
-  }
-  update = async (id: number, payload: cashAdvance) => {
-    await this.isExist(id)
-    return await db.cashAdvance.update({
-      data: {
-        ...payload,
-        requestDate: new Date(payload.requestDate).toISOString(),
-      },
-      where: {
-        id,
-      },
-      select: {
-        id: true,
-      },
-    })
-  }
-  delete = async (id: number) => {
-    await this.isExist(id)
-    await db.cashAdvance.delete({ where: { id } })
-  }
-  readAll = async () => {
-    const data = await db.cashAdvance.findMany({
-      select: {
-        employee: {
-          select: {
-            id: true,
-            fullname: true,
-          },
-        },
-        amount: true,
-        id: true,
-        requestDate: true,
-        description: true,
-        employeeId: true,
-      },
-    })
-    return data
-  }
-  readById = async (id: number) => {
-    await this.isExist(id)
-    const data = await db.cashAdvance.findUnique({
-      select: {
-        employee: {
-          select: {
-            id: true,
-            fullname: true,
-          },
-        },
-        amount: true,
-        id: true,
-        requestDate: true,
-        description: true,
-        employeeId: true,
-      },
-      where: { id },
-    })
-    return data
-  }
-  readByPagination = async (
-    page: number = 1,
-    limit: number = 10,
-    filter?: FilterCash
-  ) => {
-    const skip = (page - 1) * limit
-    let where: Prisma.CashAdvanceWhereInput = {}
+type Payload = CashAdvance & { createdBy: string }
 
-    if (filter) {
-      if (filter.fullname) {
-        where = {
-          employee: {
+const select: Prisma.CashAdvanceSelect = {
+  employee: {
+    select: {
+      id: true,
+      fullname: true,
+      position: true,
+    },
+  },
+  amount: true,
+  id: true,
+  date: true,
+  note: true,
+  employeeId: true,
+  status: true,
+}
+
+export const isExist = async (id: string) => {
+  const data = await db.cashAdvance.findUnique({ where: { id } })
+  if (!data || data.deletedAt !== null)
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+}
+export const isTransactionExist = async (id: string) => {
+  const data = await db.cashAdvanceTransaction.findUnique({ where: { id } })
+  if (!data || data.deletedAt !== null)
+    return throwError(Messages.notFound, HttpStatusCode.BadRequest)
+}
+
+export const create = async (payload: Payload) => {
+  await db.cashAdvance.create({
+    data: {
+      employeeId: payload.employeeId,
+      amount: payload.amount,
+      note: payload.note,
+      createdBy: payload.createdBy,
+      date: new Date(payload.date).toISOString(),
+    },
+  })
+}
+
+export const update = async (id: string, payload: Payload) => {
+  return await db.cashAdvance.update({
+    data: {
+      ...payload,
+      date: new Date(payload.date).toISOString(),
+    },
+    where: { id },
+  })
+}
+
+export const destroy = async (id: string) => {
+  await db.cashAdvance.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+  })
+}
+
+export const findAll = async ({
+  page,
+  limit,
+  search,
+  startDate,
+  endDate,
+  position,
+  sortBy,
+  sortOrder,
+}: PaginationParams &
+  OrderByParams & {
+    startDate?: string
+    endDate?: string
+    position?: string
+  }) => {
+  const where: Prisma.CashAdvanceWhereInput = {
+    AND: [
+      search
+        ? {
             OR: [
-              { fullname: { contains: filter.fullname.toLowerCase() } },
-              { fullname: { contains: filter.fullname.toUpperCase() } },
-              { fullname: { contains: filter.fullname } },
+              {
+                employee: {
+                  fullname: { contains: search, mode: 'insensitive' },
+                },
+              },
             ],
-          },
-        }
-      }
+          }
+        : {},
+      startDate && endDate
+        ? {
+            date: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }
+        : {},
+      position
+        ? {
+            employee: {
+              position: { contains: position, mode: 'insensitive' },
+            },
+          }
+        : {},
+      { deletedAt: null },
+    ],
+  }
 
-      if (filter.startDate && filter.endDate) {
-        where = {
-          ...where,
-          requestDate: {
-            gte: filter.startDate,
-            lte: filter.endDate,
-          },
-        }
-      }
-    }
+  const orderBy: Prisma.CashAdvanceOrderByWithRelationInput = {
+    [sortBy ?? 'createdAt']: sortOrder ?? 'desc',
+  }
 
+  if (page === undefined || limit === undefined) {
     const data = await db.cashAdvance.findMany({
-      skip,
-      take: limit,
       where,
+      select,
+      orderBy,
+    })
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.cashAdvance.findMany({
+      orderBy,
+      where,
+      skip,
+      take,
+      select,
+    }),
+    db.cashAdvance.count({ where }),
+  ])
+
+  const total_pages = Math.ceil(total / limit)
+
+  const converted = data.map((item) => ({
+    ...item,
+    date: convertUTCToWIB(item.date),
+  }))
+
+  return {
+    data: converted,
+    total,
+    page,
+    limit,
+    total_pages,
+  }
+}
+
+export const findOne = async (id: string) => {
+  return await db.cashAdvance.findUnique({
+    select,
+    where: { id },
+  })
+}
+
+export const findTotalByMonth = async (year: number, monthIndex: number) => {
+  const currentMonthStart = startOfMonth(new Date(year, monthIndex))
+  const currentMonthEnd = endOfMonth(currentMonthStart)
+
+  const previousMonthStart = startOfMonth(subMonths(currentMonthStart, 1))
+  const previousMonthEnd = endOfMonth(previousMonthStart)
+
+  const [current, previous] = await Promise.all([
+    db.cashAdvance.aggregate({
+      where: {
+        deletedAt: null,
+        date: {
+          gte: currentMonthStart,
+          lte: currentMonthEnd,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+    db.cashAdvance.aggregate({
+      where: {
+        deletedAt: null,
+        date: {
+          gte: previousMonthStart,
+          lte: previousMonthEnd,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+  ])
+
+  const totalAmount = current._sum.amount ?? 0
+  const prevAmount = previous._sum.amount ?? 0
+
+  const percentage =
+    prevAmount === 0
+      ? totalAmount > 0
+        ? 100
+        : 0
+      : Math.round(((totalAmount - prevAmount) / prevAmount) * 100)
+
+  return {
+    totalAmount,
+    percentage,
+  }
+}
+
+// transaction
+export const createTransaction = async (data: CashAdvanceTransaction) => {
+  await checkRemaining(data.cashAdvanceId, data.amount)
+
+  await db.cashAdvanceTransaction.create({
+    data: {
+      amount: data.amount,
+      cashAdvanceId: data.cashAdvanceId,
+      date: new Date(data.date),
+      note: data.note,
+    },
+  })
+
+  const remaining = await recalculateRemaining(data.cashAdvanceId)
+  await updateStatus(data.cashAdvanceId, remaining)
+}
+export const updateTransaction = async (
+  id: string,
+  data: CashAdvanceTransaction,
+) => {
+  await db.cashAdvanceTransaction.update({
+    where: { id },
+    data: {
+      amount: data.amount,
+      cashAdvanceId: data.cashAdvanceId,
+      date: new Date(data.date),
+      note: data.note,
+    },
+  })
+  const remaining = await recalculateRemaining(data.cashAdvanceId)
+  await updateStatus(data.cashAdvanceId, remaining)
+}
+export const destroyTransaction = async (id: string) => {
+  const data = await db.cashAdvanceTransaction.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+  })
+
+  const remaining = await recalculateRemaining(data.cashAdvanceId)
+  await updateStatus(data.cashAdvanceId, remaining)
+}
+
+export const findAllTransaction = async (
+  page?: number,
+  limit?: number,
+  search?: string,
+  startDate?: string,
+  endDate?: string,
+  cashAdvanceId?: string,
+) => {
+  const where: Prisma.CashAdvanceTransactionWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [
+              {
+                note: { contains: search, mode: 'insensitive' },
+              },
+            ],
+          }
+        : {},
+      startDate && endDate
+        ? {
+            date: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }
+        : {},
+      { deletedAt: null, cashAdvanceId },
+    ],
+  }
+
+  if (page === undefined || limit === undefined) {
+    const data = await db.cashAdvanceTransaction.findMany({
+      where,
+    })
+    return { data }
+  }
+
+  const { skip, take } = getPaginateParams(page, limit)
+
+  const [data, total] = await Promise.all([
+    db.cashAdvanceTransaction.findMany({
       orderBy: {
-        id: 'desc',
+        createdAt: 'asc',
       },
-      select: {
-        employee: {
-          select: {
-            id: true,
-            fullname: true,
-          },
-        },
-        amount: true,
-        id: true,
-        requestDate: true,
-        description: true,
-        employeeId: true,
-      },
-    })
+      where,
+      skip,
+      take,
+    }),
+    db.cashAdvanceTransaction.count({ where }),
+  ])
 
-    const total = await db.cashAdvance.count({ where })
-    const totalPages = Math.ceil(total / limit)
+  const total_pages = Math.ceil(total / limit)
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages,
-    }
-  }
-  readTotal = async () => {
-    const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  const allTx = await db.cashAdvanceTransaction.findMany({
+    where,
+    orderBy: { createdAt: 'asc' },
+  })
 
-    const totalAmount = await db.cashAdvance.aggregate({
-      _sum: {
-        amount: true,
-      },
-      where: {
-        requestDate: {
-          gte: startOfMonth,
-          lte: endOfMonth,
-        },
-      },
-    })
+  const cashAdvance = await db.cashAdvance.findUnique({
+    where: { id: cashAdvanceId ?? '' },
+    select: { amount: true },
+  })
 
-    return { total: totalAmount._sum.amount || 0 }
+  let runningRemaining = cashAdvance?.amount ?? 0
+  const remainingMap = new Map<string, number>()
+
+  for (const tx of allTx) {
+    runningRemaining -= tx.amount
+    remainingMap.set(tx.id, runningRemaining)
   }
 
-  readTotalInYear = async (totalMonths: number = 12) => {
-    const now = new Date()
-    const startDate = new Date(
-      now.getFullYear(),
-      now.getMonth() - (totalMonths - 1),
-      1
-    )
-    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  const converted = data.map((item) => ({
+    ...item,
+    remaining: remainingMap.get(item.id) ?? null,
+  }))
 
-    const monthlyTotals = await db.cashAdvance.groupBy({
-      by: ['requestDate'],
-      _sum: {
-        amount: true,
-      },
-      where: {
-        requestDate: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-    })
-
-    const monthNames = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
-    ]
-
-    const monthlyMap = new Map<number, number>()
-
-    monthlyTotals.forEach((item) => {
-      const date = new Date(item.requestDate)
-      const month = date.getMonth()
-      const currentTotal = monthlyMap.get(month) || 0
-      monthlyMap.set(month, currentTotal + (item._sum.amount?.toNumber() || 0))
-    })
-
-    const chartData: MonthlyTotal[] = []
-    for (let i = 0; i < totalMonths; i++) {
-      const monthIndex = (now.getMonth() - (totalMonths - 1) + i + 12) % 12
-      chartData.push({
-        month: monthNames[monthIndex],
-        total: Math.round(monthlyMap.get(monthIndex) || 0),
-      })
-    }
-
-    const chartConfig = {
-      total: {
-        label: 'Total',
-        color: '#2A9D90',
-      },
-    } satisfies ChartConfig
-
-    return {
-      chartData,
-      chartConfig,
-    }
+  return {
+    data: converted,
+    total,
+    page,
+    limit,
+    total_pages,
   }
+}
 
-  protected isExist = async (id: number) => {
-    const data = await db.cashAdvance.findUnique({ where: { id } })
-    if (!data) throw Error(this.messagge.notfound())
-  }
+export const findOneTransaction = async (id: string) => {
+  return await db.cashAdvanceTransaction.findUnique({
+    select,
+    where: { id },
+  })
 }

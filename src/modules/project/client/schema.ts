@@ -1,13 +1,11 @@
 import { z } from 'zod'
 
-export const createSchema = z.object({
-  name: z.string(),
-  phone: z.string().optional(),
+export const ClientSchema = z.object({
+  name: z.string().min(1, "Tidak boleh kosong"),
   email: z.string().optional(),
-  companyId: z.number().optional(),
-  positon: z.string().optional()
+  phone: z.string().optional(),
+  position: z.string().optional(),
+  companyId: z.string().min(1).uuid().optional().nullable(),
 })
 
-export const updateSchema = createSchema.partial()
-
-export type Client = z.infer<typeof createSchema>
+export type Client = z.infer<typeof ClientSchema>
