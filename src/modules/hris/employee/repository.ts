@@ -32,6 +32,24 @@ type Payload = Employee & {
   deletedAt?: string
 }
 
+const selectEmployee: Prisma.EmployeeSelect = {
+  id: true,
+  fullname: true,
+  active: true,
+  address: true,
+  phone: true,
+  photoUrl: true,
+  createdAt: true,
+  updatedAt: true,
+  joinedAt: true,
+  lastEducation: true,
+  position: true,
+  birthDate: true,
+  salary: true,
+  overtimeSalary: true,
+  nik: true,
+}
+
 export const isExist = async (id: string) => {
   const data = await db.employee.findUnique({ where: { id } })
   if (!data) {
@@ -64,6 +82,7 @@ export const create = async (data: Payload) => {
       address: data.address,
       phone: data.phone,
       payType: data.payType,
+      nik: data.nik,
     },
   })
 }
@@ -96,25 +115,7 @@ export const destroy = async (id: string) => {
 }
 
 export const read = async (id: string) => {
-  const select: Prisma.EmployeeSelect = {
-    id: true,
-    fullname: true,
-    active: true,
-    address: true,
-    phone: true,
-    photoUrl: true,
-    createdAt: true,
-    updatedAt: true,
-    joinedAt: true,
-    lastEducation: true,
-    position: true,
-    birthDate: true,
-    salary: true,
-    overtimeSalary: true,
-    safetyInductionDate: true,
-    payType: true,
-  }
-  return await db.employee.findUnique({ where: { id }, select })
+  return await db.employee.findUnique({ where: { id }, select: selectEmployee })
 }
 
 export const readAll = async ({
@@ -163,22 +164,7 @@ export const readAll = async ({
     ],
   }
 
-  const select: Prisma.EmployeeSelect = {
-    id: true,
-    fullname: true,
-    active: true,
-    address: true,
-    phone: true,
-    photoUrl: true,
-    createdAt: true,
-    updatedAt: true,
-    joinedAt: true,
-    lastEducation: true,
-    position: true,
-    birthDate: true,
-    salary: true,
-    overtimeSalary: true,
-  }
+  const select: Prisma.EmployeeSelect = selectEmployee
 
   const orderBy: Prisma.EmployeeOrderByWithRelationInput = {
     [sortBy ?? 'createdAt']: sortOrder ?? 'asc',

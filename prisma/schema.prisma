@@ -70,6 +70,7 @@ model Employee {
   safetyInductionDate DateTime?
   address             String?   @db.Text()
   payType             PayType?  @default(daily)
+  nik                 String?    @unique
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -193,12 +194,13 @@ model CashAdvanceTransaction {
 }
 
 model PayrollPeriod {
-  id        String       @id @default(uuid()) @db.Uuid()
-  name      String
-  startDate DateTime
-  endDate   DateTime
-  payType   PayType
-  status    PeriodStatus @default(processing)
+  id          String       @id @default(uuid()) @db.Uuid()
+  name        String?
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  payType     PayType
+  status      PeriodStatus @default(processing)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -213,8 +215,8 @@ model Payroll {
   employeeId     String        @db.Uuid()
   periodId       String        @db.Uuid()
   createdBy      String        @db.Uuid()
-  workDay        Int
-  overtimeHour   Int
+  workDay        Int?
+  overtimeHour   Int?
   salary         Int
   overtimeSalary Int
   paymentType    PaymentType?
@@ -427,6 +429,7 @@ model Inventory {
   availableStock    Int     @default(0)
   totalStock        Int     @default(0)
   category          String?
+  type              String?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

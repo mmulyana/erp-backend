@@ -10,13 +10,10 @@ export const EmployeeSchema = z.object({
     }, z.date().nullable())
     .nullable()
     .optional(),
-  joinedAt: z
-    .preprocess((val) => {
-      if (val === '' || val == null) return null
-      return new Date(val as string)
-    }, z.date().nullable())
-    .nullable()
-    .optional(),
+  joinedAt: z.preprocess((val) => {
+    if (val === '' || val == null) return null
+    return new Date(val as string)
+  }, z.date()),
   safetyInductionDate: z
     .preprocess((val) => {
       if (val === '' || val == null) return null
@@ -44,6 +41,7 @@ export const EmployeeSchema = z.object({
     return val
   }, z.boolean().nullable().optional()),
   payType: z.enum(['monthly', 'daily']).default('daily'),
+  nik: z.string().min(1),
 })
 
 export const CertificationSchema = z.object({
