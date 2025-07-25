@@ -52,6 +52,7 @@ export const create = async (
       photoUrl: payload.photoUrl,
       unitOfMeasurement: payload.unitOfMeasurement,
       category: payload.category,
+      type: payload.type,
     },
   })
 }
@@ -73,6 +74,7 @@ export const update = async (
       photoUrl: payload.photoUrl,
       unitOfMeasurement: payload.unitOfMeasurement,
       category: payload.category,
+      type: payload.type,
     },
   })
 }
@@ -105,6 +107,7 @@ export const readAll = async ({
   sortBy,
   sortOrder,
   status,
+  type,
 }: PaginationParams & {
   infinite?: boolean
   brandId?: string
@@ -112,6 +115,7 @@ export const readAll = async ({
   sortBy?: string
   sortOrder?: string
   status?: 'OutOfStock' | 'LowStock' | 'Available'
+  type?: string
 }) => {
   const orderField = sortBy || 'createdAt'
   const orderDirection = sortOrder === 'asc' ? 'ASC' : 'DESC'
@@ -137,6 +141,11 @@ export const readAll = async ({
   if (warehouseId) {
     whereClause += ` AND inventories."warehouseId" = $${paramIndex}::uuid`
     params.push(warehouseId)
+    paramIndex++
+  }
+  if (type) {
+    whereClause += ` AND inventories."type" = $${paramIndex}`
+    params.push(type)
     paramIndex++
   }
 

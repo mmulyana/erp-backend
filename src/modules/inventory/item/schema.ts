@@ -1,4 +1,4 @@
-import { nullable, z } from 'zod'
+import { z } from 'zod'
 
 export const ItemSchema = z.object({
   name: z.string().min(1, 'Tidak boleh kosong'),
@@ -9,6 +9,7 @@ export const ItemSchema = z.object({
   unitOfMeasurement: z.string().optional(),
   category: z.string().nullable().optional(),
   photoUrl: z.any(),
+  type: z.string().optional(),
 })
 
 export type Item = z.infer<typeof ItemSchema>
