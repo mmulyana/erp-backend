@@ -116,7 +116,9 @@ export const postInventory = async (req: Request, res: Response) => {
 }
 
 export const getStatusChart = async (req: Request, res: Response) => {
-  const result = await readStatusChart()
+  const type = getQueryParam(req.query, 'type', 'string')
+
+  const result = await readStatusChart({ type })
   res.json(successResponse(result, 'Bagan status'))
 }
 

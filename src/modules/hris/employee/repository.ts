@@ -214,12 +214,12 @@ export const readAllInfinite = async (
     AND: [
       search
         ? {
-            OR: [{ fullname: { contains: search } }],
+            fullname: { contains: search, mode: 'insensitive' },
           }
         : {},
       active !== undefined ? { active } : {},
       position !== undefined ? { position } : {},
-    ].filter(Boolean),
+    ],
   }
 
   const select: Prisma.EmployeeSelect = {

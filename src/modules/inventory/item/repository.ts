@@ -34,6 +34,7 @@ const select: Prisma.InventorySelect = {
   category: true,
   unitOfMeasurement: true,
   warehouseId: true,
+  type: true,
 
   updatedAt: true,
   createdAt: true,
@@ -237,8 +238,8 @@ export const isExist = async (id: string) => {
   }
 }
 
-export const readStatusChart = async () => {
-  const result = await db.$queryRawUnsafe<any[]>(`
+export const readStatusChart = async ({ type }: { type?: string }) => {
+  const result = await db.$queryRawUnsafe<any>(`
     SELECT
       status AS name,
       COUNT(*) AS total
@@ -251,6 +252,7 @@ export const readStatusChart = async () => {
         END AS status
       FROM "inventories"
       WHERE "deletedAt" IS NULL
+      ${type ? `AND "type" = '${type}'` : ''}
     ) AS grouped
     GROUP BY status
   `)
