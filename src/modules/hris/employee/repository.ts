@@ -48,6 +48,7 @@ const selectEmployee: Prisma.EmployeeSelect = {
   salary: true,
   overtimeSalary: true,
   nik: true,
+  payType: true,
 }
 
 export const isExist = async (id: string) => {
